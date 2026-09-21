@@ -1,0 +1,14 @@
+/archive/
+/data/
+.Rhistory
+.RData
+*.Rcheck/
+*.tar.gz
+/docs/
+inst/doc
+/dev/
+.Rproj.user/
+.env
+/docker/data/
+
+/README.html

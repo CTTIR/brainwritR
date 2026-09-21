@@ -1,0 +1,29 @@
+services:
+  brainwriting:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      # BASE_URL is what gets rendered into the QR code.
+      BASE_URL: https://${BW_HOST:-brainwriting.example.de}
+      MOD_PIN: ${MOD_PIN:?Set MOD_PIN to a private moderator PIN}
+      DB_PATH: /app/data/brainwriting.sqlite
+      PORT: 3838
+      TZ: Europe/Berlin
+    volumes:
+      - ./data:/app/data
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - traefik.http.routers.bw635.rule=Host(`${BW_HOST:-brainwriting.example.de}`)
+      - traefik.http.routers.bw635.entrypoints=websecure
+      - traefik.http.routers.bw635.tls=true
+      - traefik.http.routers.bw635.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.bw635.loadbalancer.server.port=3838
+    # Exactly one process/container. Do not use --scale or replicas.
+networks:
+  proxy:
+    external: true

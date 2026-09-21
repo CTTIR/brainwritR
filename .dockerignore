@@ -1,0 +1,11 @@
+.git
+.github
+archive
+dev
+data
+docker/data
+docs
+*.Rcheck
+*.tar.gz
+.Rproj.user
+.env

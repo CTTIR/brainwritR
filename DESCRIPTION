@@ -1,0 +1,23 @@
+Package: brainwritR
+Title: Resilient Classroom Brainwriting with Shiny
+Version: 0.1.0
+Authors@R: person("R.", "Heller", email = "raban.heller@uni-ulm.de",
+    role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
+Description: Run a self-hosted classroom adaptation of 6-3-5 brainwriting.
+    Rotating topics, persistent drafts, participant reconnection, and a
+    database-authoritative round clock support small groups using smartphones.
+    Includes a German-language Shiny application, pure rotation helpers,
+    and CSV and Markdown exports for facilitated debriefing.
+License: MIT + file LICENSE
+URL: https://github.com/CTTIR/brainwritR, https://cttir.github.io/brainwritR/
+BugReports: https://github.com/CTTIR/brainwritR/issues
+Depends: R (>= 4.4.0)
+Imports: shiny, bslib, DBI, RSQLite, shinyjs, qrcode, graphics, stats, utils
+Suggests: testthat (>= 3.0.0), withr, shinytest2, chromote, knitr, rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/Needs/website: CTTIR/themakR
+Encoding: UTF-8
+Language: en-US
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 8.0.0
