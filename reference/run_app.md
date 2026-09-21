@@ -1,6 +1,6 @@
 # Run the classroom brainwriting application
 
-Starts one German-language Shiny application backed by SQLite. Open
+Starts one multilingual Shiny application backed by SQLite. Open
 `base_url` for participants and append `/?mod=1` for the moderator.
 Configuration is resolved at invocation, never at package load time.
 

@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="index.html"><img src="logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/classroom-guide.html">Running a resilient classroom brainwriting session</a></li>
+<li><a class="dropdown-item" href="articles/classroom-guide.html">Running and reviewing a classroom brainwriting session</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -77,8 +77,9 @@
 <!-- badges: start -->
 
 <p><strong>A quiet workspace for building on each other’s ideas.</strong></p>
-<p>brainwritR brings a classroom adaptation of Rohrbach’s 6-3-5 brainwriting method onto participants’ smartphones. A facilitator sets up topics, invites the room with a QR code, and runs timed rounds. Participants read earlier contributions on their assigned sheet, add answers to two questions, and move to the next topic together. All application text is German; documentation is English.</p>
+<p>brainwritR brings a classroom adaptation of Rohrbach’s 6-3-5 brainwriting method onto participants’ smartphones. A facilitator sets up topics, invites the room with a QR code, and runs timed rounds. Participants read earlier contributions on their assigned sheet, add answers to two questions, and move to the next topic together. The app offers German, English and French; documentation is English.</p>
 <p>The app keeps drafts and the round clock in SQLite, resumes participants after a mobile reconnect, and avoids replacing textareas during routine polling. No accounts, webfonts, or external application services are required.</p>
+<p>Use the <strong>DE / EN / FR language slider</strong> to change the interface without replacing answer fields or translating contributed text. The choice is remembered in that browser. German is the default. The text-analysis method and export schemas retain their documented German defaults; the in-app chart labels follow the selected language.</p>
 <div class="section level2">
 <h2 id="install-and-start">Install and start<a class="anchor" aria-label="anchor" href="#install-and-start"></a>
 </h2>
@@ -102,19 +103,172 @@
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="a-session-in-four-steps">A session in four steps<a class="anchor" aria-label="anchor" href="#a-session-in-four-steps"></a>
+<h2 id="individual-device-workflow">Individual-device workflow<a class="anchor" aria-label="anchor" href="#individual-device-workflow"></a>
 </h2>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Set up:</strong> open the moderator route, enter the PIN, and enter a title and two questions for each topic. Choose 2–6 groups, 1–12 rounds, and 60–1800 seconds per round. The <strong>15-2-5</strong> preset is three topics, three rounds, five minutes per round, designed for roughly 13–17 participants.</li>
+<strong>Set up:</strong> open the moderator route, enter the PIN, and enter a title and two questions for each topic. Choose 2–6 groups, 1–12 rounds, and 30–1800 seconds per round. The <strong>15-2-5</strong> preset is three topics, three rounds, five minutes per round, designed for roughly 13–17 participants.</li>
 <li>
 <strong>Invite:</strong> open the lobby. Participants scan the QR code and enter a name or pseudonym. Watch the live roster, then start once at least K people have joined.</li>
 <li>
 <strong>Write and rotate:</strong> groups are balanced and randomized. Participants read previous rounds on their sheet and answer both questions. Drafts save after 1.2 seconds of quiet; <strong>Abgeben</strong> explicitly submits both answers. Submitted answers remain editable until the round ends. The moderator can add 60 seconds or end a round early.</li>
 <li>
-<strong>Debrief:</strong> after the last round, the moderator sees results by topic and sheet, downloads CSV or Markdown, and can confirm a full session reset.</li>
+<strong>Debrief:</strong> after the last round, the moderator sees results by topic and sheet, downloads CSV, Markdown, RDS, XLSX or a two-page PDF, and can confirm a full session reset.</li>
 </ol>
-<p><img src="reference/figures/mobile-session.png" width="320" alt="German mobile participant view with round timer, two questions and autosaved answers"></p>
+</div>
+<div class="section level2">
+<h2 id="screenshot-gallery">Screenshot gallery<a class="anchor" aria-label="anchor" href="#screenshot-gallery"></a>
+</h2>
+<p>Actual browser captures with English selected and English example content.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th align="left">Prepare the activity</th>
+<th align="left">Individual device</th>
+</tr></thead>
+<tbody><tr>
+<td align="left"><img src="reference/figures/setup.png" width="320" alt="English setup with mode selection and example questions"></td>
+<td align="left"><img src="reference/figures/mobile-session.png" width="320" alt="English mobile participant sheet with two questions and timer"></td>
+</tr></tbody>
+</table>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th align="left">Shared group device</th>
+<th align="left">Hot-seat handover</th>
+</tr></thead>
+<tbody><tr>
+<td align="left"><img src="reference/figures/group-device.png" width="320" alt="English group claim buttons"></td>
+<td align="left"><img src="reference/figures/hot-seat.png" width="320" alt="English hot-seat handover and start button"></td>
+</tr></tbody>
+</table>
+<p><img src="reference/figures/analytics.png" width="720" alt="English descriptive analytics with indicators, contribution chart and term figures"></p>
+</div>
+<div class="section level2">
+<h2 id="modi-match-the-devices-in-the-room">Modi: match the devices in the room<a class="anchor" aria-label="anchor" href="#modi-match-the-devices-in-the-room"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th align="left">Device situation</th>
+<th align="left">Mode</th>
+<th align="left">Author and timing</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">Everyone has a phone or laptop</td>
+<td align="left">
+<code>individual</code> (default)</td>
+<td align="left">One person per author; parallel rounds</td>
+</tr>
+<tr>
+<td align="left">One device at each group table</td>
+<td align="left"><code>group_device</code></td>
+<td align="left">One group per author; one sheet per topic; parallel rounds</td>
+</tr>
+<tr>
+<td align="left">One shared computer for everyone</td>
+<td align="left"><code>hot_seat</code></td>
+<td align="left">People take sequential timed turns within passes</td>
+</tr>
+</tbody>
+</table>
+<p>Choose the mode during setup; it is frozen once setup is saved. All modes use the same topic and sheet rotation formulas and preserve submitted flags through later edits. Existing deployments need no settings file or new arguments.</p>
+<p>In <strong>group-device mode</strong>, devices claim a named group. Reclaiming an existing group asks for confirmation and hands over its existing identity, preserving all earlier attribution. A stale device can still edit: concurrent writes use last-write-wins. Close the old tab after taking over. Start normally requires all K groups; the moderator may choose <strong>Ohne alle Gruppen starten</strong>. Unclaimed groups can join later. Each topic has exactly one sheet.</p>
+<p>In <strong>hot-seat mode</strong>, enter a roster (one name per line). Setup starts directly at <strong>Weitergeben an: …</strong>, without a QR-code lobby. <strong>Los geht’s</strong> starts that person’s timer; <strong>Fertig — weitergeben</strong> saves both answers and advances. <strong>Überspringen</strong> skips an absent person without creating entries. People are assigned virtual groups using the same balanced randomization as individual mode; turns follow roster arrival order. Each pass visits everyone once.</p>
+<p>Keep a PIN-authenticated <code>/?mod=1</code> tab open on the same machine for <strong>+30 s</strong>, skipping a turn, ending the rest of a pass, adding latecomers, or finishing early while retaining results. Latecomers append to the remaining passes. This mode uses the current turn as identity and does not require browser identity storage. The duration estimate excludes handovers and pauses: <code>passes × people × turn_secs</code>.</p>
+<p>With fewer people than topics, empty starting groups receive <strong>one empty sheet</strong>. This deliberate extension makes the requested one-person hot-seat session usable; all other starting sheet counts remain frozen. The last-1–2-seconds autosave boundary applies to hot-seat turns as well as parallel rounds.</p>
+</div>
+<div class="section level2">
+<h2 id="prepare-once-reuse-with-yaml">Prepare once, reuse with YAML<a class="anchor" aria-label="anchor" href="#prepare-once-reuse-with-yaml"></a>
+</h2>
+<p>For a quick demonstration, select <strong>Use example questions</strong> (German: <strong>Beispiel-Fragenset verwenden</strong>). Three classroom topics appear in the selected interface language. Edit them freely; clearing the checkbox restores your previous questions and topic count. Mode, roster and timers stay as configured. Loading a YAML file replaces the example selection. Changing interface language never translates existing prompts.</p>
+<p>The setup form and <strong>Einstellungen laden (YAML)</strong> prepare the same configuration. Loading a file validates it and prefills the form; it never starts a session. Review the fields before saving. <strong>Einstellungen exportieren (YAML)</strong> is available in setup and the lobby. Save it before a hot-seat session starts if you need a standalone reusable file; the finished RDS snapshot also contains the settings.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Portable session preparation. The moderator PIN is never included.</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> brainwriting635-settings/1</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">mode</span><span class="kw">:</span><span class="at"> individual</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">rounds</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">round_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">turn_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">90</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">topics</span><span class="kw">:</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Lernen im Kurs"</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was unterstützt das gemeinsame Lernen?"</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was möchten wir ausprobieren?"</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Zusammenarbeit"</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie können wir Wissen teilen?"</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie beziehen wir alle ein?"</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Transfer in den Alltag"</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wo können wir die Ideen anwenden?"</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was ist der erste konkrete Schritt?"</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="fu">groups</span><span class="kw">:</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Nord"</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Süd"</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe West"</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="fu">participants</span><span class="kw">:</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Alice"</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Bob"</span></span></code></pre></div>
+<p>The compatibility identifier remains exactly <code>brainwriting635-settings/1</code>. Topics must contain 2–6 nonempty title/question pairs. Rounds are integers 1–12; parallel-round duration is 30–1800 seconds and turn duration 20–600 seconds (default 90). Optional group names must be unique and match the number of topics. Roster names must be nonempty and unique after trimming. Hot-seat start requires at least one name. Individual-mode roster names appear as one-tap join buttons; taken names are disabled, and the free-text join field remains available.</p>
+<p>The upload limit is 100 KiB. YAML expressions are never evaluated. All validation errors appear together in the selected interface language; unknown keys produce warnings and are ignored. The PIN is never read from or exported to settings. Keep it in runtime configuration.</p>
+<p>Database initialization migrates older sessions in place. It adds <code>mode</code> (default <code>individual</code>), <code>current_turn</code> (default 0), and <code>settings_yaml</code> without changing the other tables or removing data. The additional settings column is a deliberate extension to keep custom names, the prepared roster, and turn duration in SQLite across restarts. No sidecar file is required. Back up before upgrading; an older package version should not be used to operate a newer-mode database.</p>
+</div>
+<div class="section level2">
+<h2 id="analytics-and-reports">Analytics and reports<a class="anchor" aria-label="anchor" href="#analytics-and-reports"></a>
+</h2>
+<p>The moderator’s finished screen has <strong>Beiträge</strong> and <strong>Auswertung</strong> tabs. Four indicators summarize nonempty saved answers: contribution count, average raw word count, submitted share, and distinct filtered terms. Drafts count as contributions; <strong>Abgabequote</strong> is submitted nonempty entries divided by all nonempty entries, not a measure of attendance or the proportion of possible answers completed.</p>
+<p>The figures show contributions by topic/round, the top eight terms per topic, a term network, a wordcloud, and adjacent-round lexical overlap. Network and wordcloud share a topic selector. The network defaults to at least two entries containing a pair and at most 40 frequent terms; the cloud uses at most 60 terms. Layouts use fixed seeds. The same plotting functions create app and report figures. Empty or insufficient input produces a labelled placeholder instead of an error.</p>
+<p>Text processing is deliberately simple: Unicode letter boundaries, German lowercasing, at least three letters, German Snowball stopwords, no stemming and no embeddings. Terms from each topic’s title and questions are excluded by default; the app provides a toggle. Term counts retain repeated occurrences. Network edges count entries containing both terms, once per entry.</p>
+<p><strong>Anknüpfungsgrad</strong> is the mean Jaccard overlap of token sets from consecutive rounds on each sheet/question, pooling authors who share that sheet. Missing or empty rounds contribute NA, not zero; available comparisons are averaged by topic. This is lexical continuity, <strong>not evidence of idea quality or conceptual elaboration</strong>. Discuss the original contributions alongside the charts.</p>
+<p>The PDF always has two A4 portrait pages, including for an empty session: overview/parameters/KPIs/contributions/top terms, then networks/wordcloud/topic summary. Up to three topics receive separate networks; larger sessions receive one combined network. Cairo and patchwork compose the report directly: the runtime container needs no LaTeX, Pandoc, or R Markdown report toolchain.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th align="left">Format</th>
+<th align="left">Use</th>
+<th align="left">Contents</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">CSV</td>
+<td align="left">Spreadsheet or statistical import</td>
+<td align="left">Existing UTF-8 long contribution table</td>
+</tr>
+<tr>
+<td align="left">Markdown</td>
+<td align="left">Readable classroom protocol</td>
+<td align="left">Questions and nonempty answers by topic/sheet</td>
+</tr>
+<tr>
+<td align="left">RDS</td>
+<td align="left">Lossless re-analysis in R</td>
+<td align="left">Four raw tables, settings, generation time, package version</td>
+</tr>
+<tr>
+<td align="left">XLSX</td>
+<td align="left">Workbook for review</td>
+<td align="left">Beiträge, Teilnehmer, Themen, Kennzahlen; styled headers</td>
+</tr>
+<tr>
+<td align="left">PDF</td>
+<td align="left">Shareable two-page debrief</td>
+<td align="left">Session overview and the shared descriptive figures</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Namen pseudonymisieren (TN-01, TN-02, …)</strong> applies stable arrival-order codes to all five downloads; groups receive <code>Gruppe-01</code>, etc. RDS/XLSX persistent author IDs and stored roster settings are replaced consistently. In-app views retain real names. This is author-field pseudonymization: identifying information typed inside answers, topic titles or questions is not detected or redacted. Review free text before sharing. The PDF contains aggregate results, not an author list.</p>
 </div>
 <div class="section level2">
 <h2 id="how-rotation-works">How rotation works<a class="anchor" aria-label="anchor" href="#how-rotation-works"></a>
@@ -124,7 +278,7 @@
 Group 1       Topic 1    Topic 2    Topic 3
 Group 2       Topic 2    Topic 3    Topic 1
 Group 3       Topic 3    Topic 1    Topic 2</code></pre>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">brainwritR</span><span class="fu">::</span><span class="fu"><a href="reference/topic_for.html">topic_for</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, round <span class="op">=</span> <span class="fl">2</span>, n_groups <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 2 3 1</span></span>
 <span><span class="fu">brainwritR</span><span class="fu">::</span><span class="fu"><a href="reference/sheet_for.html">sheet_for</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, n_sheets <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
@@ -199,31 +353,31 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 <h2 id="docker-and-traefik">Docker and Traefik<a class="anchor" aria-label="anchor" href="#docker-and-traefik"></a>
 </h2>
 <p>Build from the repository root. The image uses <code>rocker/r-ver:4.4.2</code> and runs as unprivileged UID 10001. A standalone local smoke run needs no Traefik:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-f</span> docker/Dockerfile <span class="at">-t</span> brainwritr:0.1.0 .</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">docker</span> volume create brainwritr-data</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">--name</span> brainwritr <span class="at">-p</span> 3838:3838 <span class="dt">\</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">-e</span> MOD_PIN=choose-a-private-pin <span class="dt">\</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">-v</span> brainwritr-data:/app/data brainwritr:0.1.0</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-f</span> docker/Dockerfile <span class="at">-t</span> brainwritr:0.3.0 .</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">docker</span> volume create brainwritr-data</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">--name</span> brainwritr <span class="at">-p</span> 3838:3838 <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">-e</span> MOD_PIN=choose-a-private-pin <span class="dt">\</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">-v</span> brainwritr-data:/app/data brainwritr:0.3.0</span></code></pre></div>
 <p>For an existing Traefik installation with an external <code>proxy</code> network:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="bu">export</span> <span class="va">BW_HOST</span><span class="op">=</span>brainwriting.example.de</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'choose-a-private-pin'</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="bu">export</span> <span class="va">BW_HOST</span><span class="op">=</span>brainwriting.example.de</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'choose-a-private-pin'</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
 <p>Replace the example hostname and certificate resolver. DNS, TLS and the existing Traefik <code>websecure</code> entrypoint must already be configured. <code>BASE_URL</code> supplies the QR-code URL. The bind mount is <strong>docker/data/</strong> relative to the Compose file; it must be writable by UID 10001. Keep the database volume when updating images. Set <code>TZ=Europe/Berlin</code> for local export timestamps (already set in Compose).</p>
 </div>
 <div class="section level2">
 <h2 id="export-and-privacy">Export and privacy<a class="anchor" aria-label="anchor" href="#export-and-privacy"></a>
 </h2>
 <p>CSV is a UTF-8 long table with <code>Thema</code>, <code>Bogen</code>, <code>Runde</code>, <code>Frage</code>, <code>Teilnehmer</code>, <code>Beitrag</code>, <code>abgegeben</code>, and <code>Zeit</code>. <code>Zeit</code> uses SQLite local time; <code>abgegeben</code> is 0 or 1. Both drafts and submitted entries are included. Empty saved entries are included in CSV and omitted from the grouped Markdown protocol. Markdown groups Thema → Bogen → <code>R{round} · F{question} · {name}: text</code>.</p>
-<p>Use pseudonyms and avoid personal or sensitive information in contributions. The app stores names/pseudonyms, an opaque participant ID, joining and editing times, group assignments, and text on your server. Browser storage holds only the participant ID. It makes no application calls to external services and has no built-in analytics. The moderator can export all contributions and reset the session. Participants can read earlier drafts as well as submissions on their assigned sheet; this is a collaborative activity, not a confidential survey.</p>
+<p>Use pseudonyms and avoid personal or sensitive information in contributions. The app stores names/pseudonyms, an opaque participant ID, joining and editing times, group assignments, and text on your server. Browser storage holds the participant ID and language preference. It makes no application calls to external services and has no external usage tracking. The moderator can export all contributions and reset the session. Participants can read earlier drafts as well as submissions on their assigned sheet; this is a collaborative activity, not a confidential survey.</p>
 <p>This supports data-minimizing, self-hosted use; it is <strong>not a blanket GDPR/DSGVO compliance guarantee</strong>. The operator defines access, notice, retention and backup policy. Reset deletes the session’s logical records, but is not secure forensic erasure of SQLite pages, filesystem snapshots, exports or backups. Protect those separately. Treat exported user text as untrusted when importing into spreadsheet software or rendering Markdown; use text-only spreadsheet import and a safe Markdown renderer.</p>
 </div>
 <div class="section level2">
 <h2 id="development-and-quality">Development and quality<a class="anchor" aria-label="anchor" href="#development-and-quality"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">document</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">check</span><span class="op">(</span>args <span class="op">=</span> <span class="st">"--as-cran"</span><span class="op">)</span></span>

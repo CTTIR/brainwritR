@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Running a resilient classroom brainwriting session • brainwritR</title>
+<title>Running and reviewing a classroom brainwriting session • brainwritR</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -18,7 +18,7 @@
 <link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Running a resilient classroom brainwriting session">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Running and reviewing a classroom brainwriting session">
 <meta name="theme-color" content="#1565c0">
 </head>
 <body>
@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/classroom-guide.html">Running a resilient classroom brainwriting session</a></li>
+<li><a class="dropdown-item" href="../articles/classroom-guide.html">Running and reviewing a classroom brainwriting session</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -71,7 +71,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Running a resilient classroom brainwriting session</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Running and reviewing a classroom brainwriting session</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/CTTIR/brainwritR/blob/main/vignettes/classroom-guide.Rmd" class="external-link"><code>vignettes/classroom-guide.Rmd</code></a></small>
@@ -81,38 +81,39 @@
     
     
 <div class="section level2">
-<h2 id="prepare-a-useful-activity">Prepare a useful activity<a class="anchor" aria-label="anchor" href="#prepare-a-useful-activity"></a>
+<h2 id="plan-the-activity">Plan the activity<a class="anchor" aria-label="anchor" href="#plan-the-activity"></a>
 </h2>
-<p>brainwritR supports a classroom adaptation of the 6-3-5 method
+<p>brainwritR implements a classroom adaptation of the 6-3-5 method
 attributed to Bernd Rohrbach. The original name refers to six people,
-three ideas and five minutes; this application instead provides
+three ideas and five minutes. This application instead provides
 <strong>two questions per topic</strong> and rotates topics between
-groups. Its 15-2-5 preset is intended for a room of approximately 15
-people. It does not enforce a fixed number of ideas per answer.</p>
-<p>Before the class, choose three topics that benefit from elaboration
-rather than a single correct answer. For each, pair a generative
-question with a practical follow-up. For example, a topic about teamwork
-could ask “Was erleichtert die Zusammenarbeit?” and “Wie koennen wir das
-im naechsten Projekt umsetzen?”. Explain that participants should read,
-extend, and combine earlier ideas rather than judge their authors.
-Reserve time after the writing rounds to discuss the results; the
-software organizes contributions but does not rank them.</p>
-<p>Use pseudonyms. Explain who can see earlier drafts, who will receive
-exports, and when records will be deleted. Participants need a modern
-browser, a reachable server, and the same browser/origin throughout the
-session to preserve resume. No participant account is created. One
-person should use one browser tab.</p>
+groups. The 15-2-5 preset means three topics, three rounds and five
+minutes per round, intended for approximately 15 participants. It does
+not enforce a fixed number of ideas in an answer.</p>
+<p>Choose topics that benefit from elaboration, then pair each
+generative question with a practical follow-up. For example: “What helps
+a team collaborate?” and “How could we apply this in our next project?”.
+Ask participants to read, extend and combine earlier ideas. Reserve time
+after writing for discussion; the application organizes contributions
+without ranking their quality.</p>
+<p>Use pseudonyms. Explain who can read drafts, who will receive exports
+and when records will be removed. A modern browser and reachable server
+are required. There are no participant accounts. The interface offers
+German, English and French through a three-position language slider;
+German is the initial default. Select English to follow the interface
+labels used in this guide. Language selection changes interface text,
+not participant contributions or topic content.</p>
 </div>
 <div class="section level2">
-<h2 id="launch-and-configure">Launch and configure<a class="anchor" aria-label="anchor" href="#launch-and-configure"></a>
+<h2 id="start-the-application">Start the application<a class="anchor" aria-label="anchor" href="#start-the-application"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/run_app.html">run_app</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># Participant: http://localhost:3838</span></span>
 <span><span class="co"># Moderator:   http://localhost:3838/?mod=1</span></span></code></pre></div>
-<p>The default PIN <code>635</code> is convenient for a local
-demonstration. For a reachable classroom instance, provide a private PIN
-and the real participant URL:</p>
+<p>The default moderator PIN is <code>635</code>, suitable for a local
+demonstration. For a classroom deployment, supply a private PIN and the
+externally reachable URL:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/run_app.html">run_app</a></span><span class="op">(</span></span>
 <span>  db_path <span class="op">=</span> <span class="st">"/srv/brainwriting/data/classroom.sqlite"</span>,</span>
@@ -122,83 +123,171 @@ and the real participant URL:</p>
 <span>  host <span class="op">=</span> <span class="st">"0.0.0.0"</span>,</span>
 <span>  poll_ms <span class="op">=</span> <span class="fl">2500</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><code>DB_PATH</code>, <code>MOD_PIN</code>, <code>BASE_URL</code>,
-and <code>PORT</code> supply defaults when their respective arguments
-are omitted. Arguments win over environment variables. The QR code uses
-<code>base_url</code> exactly: it must be reachable from phones and must
-not contain <code>?mod=1</code>. The server does not infer its external
-hostname from proxy headers. The default SQLite path is relative to the
-working directory; choose a stable absolute path in an operational
-service.</p>
-<p>The app creates the parent database directory at startup and
-initializes the schema if necessary. Loading the R package alone has no
-filesystem effects. The moderator PIN is held in process configuration,
-not in the session tables.</p>
+<p><code>DB_PATH</code>, <code>MOD_PIN</code>, <code>BASE_URL</code> and
+<code>PORT</code> provide defaults when corresponding arguments are
+omitted. Explicit arguments take precedence. Configuration is resolved
+at launch, with no database or directory creation during package
+loading. The default database is <code>data/brainwriting.sqlite</code>,
+relative to the working directory. Use an absolute path for a
+long-running service.</p>
+<p>The QR code uses <code>base_url</code> exactly. A phone’s
+<code>localhost</code> refers to that phone; use a URL that devices in
+the classroom can reach. The moderator route adds <code>?mod=1</code>;
+do not put this query string into the participant URL.</p>
 </div>
 <div class="section level2">
-<h2 id="facilitate-the-four-lifecycle-stages">Facilitate the four lifecycle stages<a class="anchor" aria-label="anchor" href="#facilitate-the-four-lifecycle-stages"></a>
+<h2 id="choose-a-device-mode">Choose a device mode<a class="anchor" aria-label="anchor" href="#choose-a-device-mode"></a>
 </h2>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Devices</th>
+<th align="left">Mode</th>
+<th align="left">Authors</th>
+<th align="left">Schedule</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Everyone has a phone or laptop</td>
+<td align="left"><code>individual</code></td>
+<td align="left">People</td>
+<td align="left">Parallel timed rounds</td>
+</tr>
+<tr class="even">
+<td align="left">One device per group table</td>
+<td align="left"><code>group_device</code></td>
+<td align="left">Groups</td>
+<td align="left">Parallel timed rounds</td>
+</tr>
+<tr class="odd">
+<td align="left">One computer for the entire room</td>
+<td align="left"><code>hot_seat</code></td>
+<td align="left">People</td>
+<td align="left">Sequential timed turns within passes</td>
+</tr>
+</tbody>
+</table>
+<p>The mode is selected during setup and cannot change during the
+session. All three modes use the same rotation and entry-storage
+engine.</p>
 <div class="section level3">
-<h3 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
+<h3 id="individual-devices">Individual devices<a class="anchor" aria-label="anchor" href="#individual-devices"></a>
 </h3>
-<p>The moderator opens <code>/?mod=1</code>, enters the PIN and supplies
-all topic titles and both questions. There must be 2–6 topics and an
-equal number of groups. The setup form defaults to three rounds of 300
-seconds. Choose K rounds if every group should encounter every topic
-exactly once. Fewer rounds produce a partial cycle; additional rounds
-repeat topics.</p>
+<p>The default workflow is unchanged. Prepare 2–6 topics, open the lobby
+and share the QR code. People enter a name or pseudonym and join. A
+prepared roster adds one-tap name buttons; claimed names are disabled,
+with free-text joining still available. A blank free-text name receives
+an automatically generated label. Start requires at least as many people
+as topics.</p>
+<p>The app randomizes balanced groups. With 16 people and three topics,
+the sizes are 6, 5 and 5. People use their own devices, read the earlier
+contributions on their assigned sheet and answer both questions. Submit
+marks both answers as submitted; they remain editable until the round
+ends. The moderator sees group progress, can add 60 seconds and can end
+a round early.</p>
 </div>
 <div class="section level3">
-<h3 id="lobby">Lobby<a class="anchor" aria-label="anchor" href="#lobby"></a>
+<h3 id="group-devices">Group devices<a class="anchor" aria-label="anchor" href="#group-devices"></a>
 </h3>
-<p>Select <strong>Speichern und Lobby oeffnen</strong>. Project the QR
-code or share the URL. Each participant enters a name or pseudonym and
-selects <strong>Teilnehmen</strong>. A blank name receives an
-automatically generated label. Participants see a waiting view; the
-moderator sees the live roster. Start requires at least K
-participants.</p>
-<p>Groups are randomized and balanced at start, independent of joining
-order. For 16 participants and K = 3 the group sizes are 6, 5, and 5.
-The corresponding topics permanently receive 6, 5, and 5 sheets.
-Refreshing or reconnecting a browser with a valid saved identity does
-not create a new participant.</p>
+<p>Each device claims one named group, which becomes the author of its
+answers. There is exactly one sheet per topic. Start normally requires
+every group to be claimed; the moderator can explicitly start without
+all groups.</p>
+<p>Reclaiming a group asks for confirmation and reuses the same
+persistent author identity. Existing contributions retain their
+attribution. Close the old device’s tab after taking over: simultaneous
+edits from old and new devices use last-write-wins. Unclaimed groups may
+join after the session has started.</p>
 </div>
 <div class="section level3">
-<h3 id="running">Running<a class="anchor" aria-label="anchor" href="#running"></a>
+<h3 id="hot-seat">Hot seat<a class="anchor" aria-label="anchor" href="#hot-seat"></a>
 </h3>
-<p>Each participant sees a round/group/sheet label, topic title, shared
-clock, and two answer fields. Previous rounds’ nonempty contributions on
-the assigned sheet appear above the corresponding question. Earlier
-<strong>drafts as well as submitted answers</strong> are visible.
-Same-round contributions by another participant sharing a sheet are kept
-independently, and are visible in later rounds and exports.</p>
-<p><strong>Abgeben</strong> submits both fields. Submission indicates
-progress, not a lock: a participant may continue to edit, and an
-autosave preserves the submitted flag. The moderator sees the number of
-submitted participants per group, can add 60 seconds, and can force the
-next round with <strong>Runde beenden</strong>. Early advancement can
-cut off unsaved typing; announce it before using the control.</p>
-<p>Late arrivals join the smallest group, using its next free index.
-They cannot recover missed topics automatically, and do not create new
-sheets.</p>
-</div>
-<div class="section level3">
-<h3 id="finished">Finished<a class="anchor" aria-label="anchor" href="#finished"></a>
-</h3>
-<p>After the last round the moderator sees grouped results and
-CSV/Markdown buttons. Participants see a completion message. Export
-before selecting <strong>Neue Session …</strong> and confirming
-<strong>Ja, alles loeschen</strong>. Cancel leaves the data intact.
-Reset is accepted only for a finished session and removes all
-participants, topics, contributions and assignments together. Connected
-clients discard their old identity; a later returning browser also has
-its stale identity cleared.</p>
+<p>Enter at least one name in the roster, one per line. Saving starts
+directly at a handover screen instead of opening a QR lobby. The next
+person selects the start button to arm the timer. Finishing saves both
+answers and hands over to the next person; skipping a handover creates
+no entries. Turn order follows roster arrival order. A pass visits
+everyone once, then the topic rotation advances.</p>
+<p>Virtual groups use the same balanced assignment as individual mode.
+If there are fewer people than topics, an empty starting group receives
+one empty sheet so that the shared modulo mapping remains valid. Other
+sheet counts remain frozen. The estimated working duration is
+<code>passes * people * turn_secs</code>; it excludes handovers and
+pauses. The default turn is 90 seconds.</p>
+<p>Keep a PIN-authenticated moderator tab open on the same computer to
+add 30 seconds, skip a person, end the rest of a pass, append a
+latecomer or finish early while retaining results. Latecomers join the
+smallest virtual group and receive turns at the end of the current and
+remaining passes. The kiosk derives identity from the active turn and
+does not require participant identity in browser storage.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="understand-the-rotation-invariant">Understand the rotation invariant<a class="anchor" aria-label="anchor" href="#understand-the-rotation-invariant"></a>
+<h2 id="try-the-example-question-set">Try the example question set<a class="anchor" aria-label="anchor" href="#try-the-example-question-set"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>Select <strong>Use example questions</strong> in setup to populate
+three ready-to-use classroom topics in the currently selected interface
+language. The questions remain editable. Clearing the checkbox restores
+the previous topic count and questions. The option preserves the
+selected device mode, roster and timers. A valid YAML upload replaces
+the example selection. Switching language does not translate existing
+questions; choose the interface language before enabling the
+examples.</p>
+</div>
+<div class="section level2">
+<h2 id="reuse-session-settings">Reuse session settings<a class="anchor" aria-label="anchor" href="#reuse-session-settings"></a>
+</h2>
+<p>The setup form and YAML upload prepare the same fields. Upload
+validates and prefills the form; it never starts a session. Review the
+values before saving. Settings export is available in setup and the
+lobby. For hot-seat mode, export before starting if a separate reusable
+settings file is needed. A finished RDS snapshot also contains the
+configuration.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> brainwriting635-settings/1</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">mode</span><span class="kw">:</span><span class="at"> individual</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">rounds</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="fu">round_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">turn_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">90</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">topics</span><span class="kw">:</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Teamwork"</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"What helps a team collaborate?"</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"How can we apply this next week?"</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Learning spaces"</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"What makes a space useful for learning?"</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Which change could we try first?"</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Feedback"</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"What makes feedback actionable?"</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"How can we build it into our routine?"</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">groups</span><span class="kw">:</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"North"</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"South"</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"West"</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="fu">participants</span><span class="kw">:</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Alex"</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Sam"</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Robin"</span></span></code></pre></div>
+<p>The format identifier remains <code>brainwriting635-settings/1</code>
+for compatibility. Topic count must be 2–6, with nonempty titles and
+both questions. Rounds must be an integer from 1–12. Parallel rounds
+allow 30–1800 seconds; hot-seat turns allow 20–600 seconds. Group names
+must be unique and match the topic count. Optional roster names must be
+nonempty and unique after trimming.</p>
+<p>The upload limit is 100 KiB. YAML expressions are not evaluated.
+Validation collects all errors together; unknown keys warn and are
+ignored. The moderator PIN is neither loaded from nor written to the
+settings file.</p>
+</div>
+<div class="section level2">
+<h2 id="understand-the-rotation">Understand the rotation<a class="anchor" aria-label="anchor" href="#understand-the-rotation"></a>
+</h2>
+<p>Group <code>g</code> in round or pass <code>r</code> receives topic
+<code>((g - 1 + r - 1) %% K) + 1</code>:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">k</span> <span class="op">&lt;-</span> <span class="fl">3L</span></span>
 <span><span class="va">rotation</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">k</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">k</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">g</span>, <span class="va">r</span><span class="op">)</span> <span class="fu"><a href="../reference/topic_for.html">topic_for</a></span><span class="op">(</span><span class="va">g</span>, <span class="va">r</span>, <span class="va">k</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dimnames.html" class="external-link">dimnames</a></span><span class="op">(</span><span class="va">rotation</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Group"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">k</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Round"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">k</span><span class="op">)</span><span class="op">)</span></span>
@@ -231,148 +320,173 @@ its stale identity cleared.</p>
 </tr>
 </tbody>
 </table>
-<p>Every row and every column is a permutation of topics 1 through K.
-The formulas are vectorized and exposed independently of the app:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<p>Every row and column is a permutation of the topics. Across K
+complete rounds, every group visits every topic once. Fewer rounds cover
+a partial cycle; more rounds repeat topics. A late arrival cannot
+recover missed topics automatically.</p>
+<p>Each topic begins with one sheet per person in its starting group,
+frozen at start, except for the single-sheet group-device mode and empty
+hot-seat groups. Within-group index <code>i</code> receives sheet
+<code>((i - 1) %% n_sheets) + 1</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/sheet_for.html">sheet_for</a></span><span class="op">(</span>idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, n_sheets <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1 2 3 4 5 1</span></span>
 <span><span class="fu"><a href="../reference/sheet_for.html">sheet_for</a></span><span class="op">(</span>idx <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, n_sheets <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1 2 3 4 5</span></span></code></pre></div>
-<p>In the first case two people share sheet 1 and each gets a distinct
-database row. In the second case sheet 6 receives no contribution in
-that round. The initial reference commentary claimed that every sheet
-receives a new group’s entry every round; that claim cannot hold for
-unequal groups under the specified modulo mapping. The mapping is
-preserved and this limitation is made explicit. The all-topics guarantee
-also requires attendance for the entire cycle.</p>
+<p>Six people visiting five sheets share one sheet, retaining both
+authors’ entries. Five people visiting six sheets leave one untouched in
+that round. Unequal group sizes therefore do not guarantee a
+contribution to every sheet every round. Completion of either question
+is voluntary.</p>
 </div>
 <div class="section level2">
-<h2 id="persistence-and-timing-contracts">Persistence and timing contracts<a class="anchor" aria-label="anchor" href="#persistence-and-timing-contracts"></a>
+<h2 id="read-the-results-responsibly">Read the results responsibly<a class="anchor" aria-label="anchor" href="#read-the-results-responsibly"></a>
 </h2>
-<p>SQLite contains four tables:</p>
+<p>The finished moderator screen separates the contribution list from
+descriptive analytics. The four indicators count nonempty saved entries,
+average unfiltered word count, submitted share and distinct filtered
+terms. Drafts are included. The submitted share uses nonempty stored
+entries as its denominator, not the number of theoretically possible
+answers or attendance.</p>
+<p>Five shared figure functions provide contributions by topic and
+round, eight top terms per topic, a co-occurrence network, a wordcloud
+and lexical continuity between rounds. The network defaults to at least
+two co-occurring entries and at most 40 frequent terms. The wordcloud
+uses at most 60 terms. A topic selector filters both. Empty or
+insufficient text produces a placeholder.</p>
+<p>Text processing splits at Unicode nonletters, lowercases using German
+locale, retains words with at least three letters and removes German
+Snowball stopwords. Topic-title and question vocabulary are also
+excluded by default; the app can disable this filter. There is no
+stemming or semantic model. Interface language selection does not change
+this German-language text-analysis method; interpret English or French
+contributions accordingly.</p>
+<p>Term counts retain repeated words, while network edges count the
+entries that contain a pair once each. Lexical continuity is the Jaccard
+overlap between consecutive rounds’ token sets on each sheet and
+question, pooling authors who share the sheet. Missing or empty rounds
+yield missing values rather than zero; valid comparisons are averaged by
+topic. Word reuse is not evidence of idea quality, understanding or
+conceptual development. Read the original answers alongside the
+figures.</p>
+</div>
+<div class="section level2">
+<h2 id="choose-an-export">Choose an export<a class="anchor" aria-label="anchor" href="#choose-an-export"></a>
+</h2>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">Table</th>
-<th align="left">Purpose</th>
+<th align="left">Format</th>
+<th align="left">Intended use</th>
+<th align="left">Contents</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left"><code>session</code></td>
-<td align="left">Singleton state, configuration, current round, epoch
-deadline</td>
+<td align="left">CSV</td>
+<td align="left">Statistical or spreadsheet import</td>
+<td align="left">Long table, including empty drafts</td>
 </tr>
 <tr class="even">
-<td align="left"><code>topics</code></td>
-<td align="left">Titles, two questions, frozen sheet counts</td>
+<td align="left">Markdown</td>
+<td align="left">Readable discussion protocol</td>
+<td align="left">Questions and nonempty answers grouped by sheet</td>
 </tr>
 <tr class="odd">
-<td align="left"><code>participants</code></td>
-<td align="left">Opaque identity, pseudonym, group/index and joining
-time</td>
+<td align="left">RDS</td>
+<td align="left">Lossless re-analysis in R</td>
+<td align="left">Raw tables, settings, generation time and package
+version</td>
 </tr>
 <tr class="even">
-<td align="left"><code>entries</code></td>
-<td align="left">Topic/sheet/round/question/person text, submission
-flag, edit time</td>
+<td align="left">XLSX</td>
+<td align="left">Workbook review</td>
+<td align="left">Contributions, authors, topics and descriptive
+summaries</td>
+</tr>
+<tr class="odd">
+<td align="left">PDF</td>
+<td align="left">Shareable overview</td>
+<td align="left">Exactly two A4 pages using the same figures as the
+app</td>
 </tr>
 </tbody>
 </table>
-<p>The uniqueness key includes the participant ID. Multiple contributors
-sharing a sheet never replace one another’s entries. Each operation
-opens a connection, sets a 5000 ms busy timeout, and closes it. WAL mode
-is enabled at initialization. Setup, group assignment, joining and reset
-use transactions so a failure cannot leave a half-applied lifecycle
-operation.</p>
-<p>The round deadline is an epoch timestamp in SQLite. Both polling
-streams attempt an advance, and an SQL guard on status and current round
-makes a racing update idempotent. A new round’s deadline is the time of
-advancement plus its duration. There is no background scheduler without
-connected sessions: if everyone closes the app, an expired round
-advances on the next connection, with a full duration for the new round.
-The application does not replay multiple missed rounds.</p>
-<p>Two polls separate metadata from contributions. Gated main views
-depend only on real transitions; history, timer, roster and progress
-update independently. Saved text is read without creating a reactive
-dependency during a main-view render. Autosave captures the editing
-context with the input and writes after 1200 ms of quiet. This prevents
-a delayed previous-round edit from being written into the next round. A
-late write may nevertheless appear only when a subsequent view of that
-sheet is rendered.</p>
-<div class="section level3">
-<h3 id="mobile-recovery-and-limits">Mobile recovery and limits<a class="anchor" aria-label="anchor" href="#mobile-recovery-and-limits"></a>
-</h3>
-<p>On <code>shiny:disconnected</code>, the browser reloads after 1.5
-seconds. On every <code>shiny:connected</code>, it sends the locally
-stored participant ID, which the server validates against SQLite. A
-valid identity resumes saved work. If local storage is blocked or
-erased, automatic resume cannot work. Do not share a browser profile
-between simultaneous participants.</p>
-<p>The countdown redraws once per second; polling defaults to every 2.5
-seconds. It turns red below one minute. Briefly showing
-<code>0:00</code> before the next poll is expected. Unsaved keystrokes
-at the boundary or while offline can be lost. Submission before expiry
-is the clearest way to preserve a completed response. There is no
-offline editing queue or merge mechanism for concurrent tabs.</p>
-</div>
+<p>The PDF uses Cairo and patchwork directly, without a runtime
+dependency on Pandoc or LaTeX. Its first page contains parameters,
+indicators and overview charts. Its second contains networks, a
+wordcloud and per-topic summaries. Up to three topics receive separate
+networks; larger sessions use one combined network. Export schemas and
+the PDF retain their German labels independently of the interface
+language.</p>
+<p>Optional author pseudonymization applies stable arrival-order codes
+to all five downloads. It also replaces persistent author IDs and stored
+roster settings. On-screen views retain names. This is not complete
+anonymization: personal information typed into answers or topic prompts
+remains unchanged. Review such content before sharing. CSV values should
+be imported as text, and Markdown should be rendered with raw HTML
+disabled.</p>
 </div>
 <div class="section level2">
-<h2 id="deploy-one-durable-instance">Deploy one durable instance<a class="anchor" aria-label="anchor" href="#deploy-one-durable-instance"></a>
+<h2 id="persistence-recovery-and-deployment">Persistence, recovery and deployment<a class="anchor" aria-label="anchor" href="#persistence-recovery-and-deployment"></a>
 </h2>
-<p>The repository includes <code>docker/Dockerfile</code> and
-<code>docker/docker-compose.yml</code>. Build with the repository root
-as context. Compose expects an existing Traefik installation, the
-<code>proxy</code> Docker network, a <code>websecure</code> entrypoint,
-a working certificate resolver, and DNS for the public hostname. It does
-not provision those shared infrastructure components.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="bu">export</span> <span class="va">BW_HOST</span><span class="op">=</span>brainwriting.example.de</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'replace-with-a-private-pin'</span></span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
-<p>The image runs as UID 10001. Bind-mounted <code>docker/data/</code>
-must be writable by that UID. The SQLite file, WAL, and shared-memory
-files all belong on the persistent volume. Do not mount only the
-<code>.sqlite</code> file. Use local disk and exactly one application
-process. No replicas, ShinyProxy, or horizontal scaling are supported.
-For another course, use another database/container and distinct Traefik
-labels and hostname; do not share a database across instances.</p>
-<p>For backups, stop the app before copying the entire database
-directory, or use SQLite’s online backup API. Copying a live
-<code>.sqlite</code> alone can omit committed WAL data. Protect backups
-like the live database. Restarting a container with the same volume
-resumes the same session; rebuilding the image is not a reset. Keep the
-host clock synchronized since deadlines use wall-clock epoch
-seconds.</p>
+<p>SQLite stores the session, topics, authors and entries. Each
+operation opens and closes its own connection, with WAL mode and a 5000
+ms busy timeout. Entry uniqueness includes author identity, so two
+people sharing a sheet do not replace each other’s contributions.
+Autosaves preserve an explicit submission flag.</p>
+<p>Existing databases migrate in place by adding <code>mode</code>,
+<code>current_turn</code> and <code>settings_yaml</code>. Older sessions
+retain individual mode. The settings column preserves prepared names and
+turn duration across restarts; no sidecar file is needed. Back up before
+upgrading and avoid operating newer-mode databases with an older
+application version.</p>
+<p>Every connected client polls the authoritative deadline. Guarded
+updates prevent racing clock ticks from advancing twice. Hot-seat
+updates also guard the current turn, and stale repeated controls cannot
+advance a later person’s turn. Without any connected clients there is no
+scheduler: the next connection resumes the expired transition, without
+replaying every missed round.</p>
+<p>A disconnect triggers a reload after 1.5 seconds. Individual and
+group devices resend their stored identity; the server resumes it or
+clears it after reset. Keep the same browser and origin. With browser
+storage disabled or cleared, automatic identity recovery is unavailable.
+There is no offline editing queue.</p>
+<p>Typing is debounced for 1200 milliseconds. Main answer fields are
+replaced only on genuine session, round or assignment transitions, not
+every poll or language change. A delayed save retains its original
+editing context. Keystrokes in the last 1–2 seconds of a round or turn
+can still lose the race with its boundary. Submit before expiry. The
+timer turns red below one minute and can briefly show zero until the
+next poll.</p>
+<p>Use exactly one R process per instance, a writable local disk and a
+persistent database directory. Do not use replicas, ShinyProxy or
+horizontal scaling. Another course needs another container/database and
+distinct proxy routing. The supplied Docker image runs as UID 10001.
+Compose expects an existing Traefik installation, external
+<code>proxy</code> network, TLS resolver and reachable hostname.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="bu">export</span> <span class="va">BW_HOST</span><span class="op">=</span>brainwriting.example.de</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'replace-with-a-private-pin'</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
+<p>Mount the whole database directory, including SQLite WAL files. For
+backups, stop the app before copying it or use SQLite’s online backup
+API. A live database file copied without its WAL can omit committed
+changes. Restarting with the same volume resumes the session; rebuilding
+an image does not reset it.</p>
+<p>Export before resetting a finished session. Confirmed reset removes
+logical session data and clears participant identity on reconnect. It
+does not remove old downloads, backups, snapshots or residual SQLite
+pages. Apply a retention policy to those copies as well. Self-hosting
+and pseudonyms alone do not establish legal compliance.</p>
 </div>
 <div class="section level2">
-<h2 id="debrief-and-handle-exports">Debrief and handle exports<a class="anchor" aria-label="anchor" href="#debrief-and-handle-exports"></a>
-</h2>
-<p>CSV includes every saved entry, even an empty draft, and the exact
-German columns <code>Thema</code>, <code>Bogen</code>,
-<code>Runde</code>, <code>Frage</code>, <code>Teilnehmer</code>,
-<code>Beitrag</code>, <code>abgegeben</code>, <code>Zeit</code>. The
-final column uses the server’s local timezone. Compose sets
-<code>Europe/Berlin</code>. Markdown includes topic questions and
-nonempty entries grouped by topic and sheet. Both formats include
-submitted and unsubmitted contributions.</p>
-<p>Use the protocol to identify themes together. Participant names and
-contribution text remain untrusted input in exports: import CSV columns
-as text to avoid spreadsheet formula execution, and render Markdown
-using a safe renderer that disables raw HTML. The interactive app
-renders user text as escaped content.</p>
-<p>Self-hosting and pseudonyms reduce exposure but do not establish
-legal compliance by themselves. Provide a suitable notice and retention
-policy for the course. The reset action removes logical records, not old
-exports, backups, free SQLite pages or filesystem snapshots. Separate
-retention and disposal procedures apply.</p>
-</div>
-<div class="section level2">
-<h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
+<h2 id="rehearse-and-troubleshoot">Rehearse and troubleshoot<a class="anchor" aria-label="anchor" href="#rehearse-and-troubleshoot"></a>
 </h2>
 <table class="table">
 <colgroup>
@@ -385,61 +499,41 @@ retention and disposal procedures apply.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Phone cannot open QR link</td>
-<td align="left">Public <code>BASE_URL</code>, DNS, Wi-Fi reachability
-and TLS</td>
+<td align="left">Phone cannot open the QR link</td>
+<td align="left">Public URL, DNS, Wi-Fi reachability and TLS</td>
 </tr>
 <tr class="even">
-<td align="left">App cannot create database</td>
-<td align="left">Directory ownership for UID 10001 and mounted
-volume</td>
+<td align="left">Database cannot be created</td>
+<td align="left">Mounted directory ownership for UID 10001</td>
 </tr>
 <tr class="odd">
-<td align="left">Grey screen/reload loop</td>
-<td align="left">Reverse proxy WebSocket support and service
-availability</td>
+<td align="left">Repeated reconnects</td>
+<td align="left">Proxy WebSocket support and service availability</td>
 </tr>
 <tr class="even">
-<td align="left">Participant appears twice</td>
-<td align="left">Cleared storage, another browser, or an earlier
-separate join</td>
+<td align="left">Duplicate participant</td>
+<td align="left">Cleared storage or a separate browser profile</td>
 </tr>
 <tr class="odd">
-<td align="left">Timer paused while room was absent</td>
+<td align="left">Timer waited while everyone was absent</td>
 <td align="left">Expected: no clients means no polling scheduler</td>
 </tr>
 <tr class="even">
-<td align="left">Some sheets lack a round</td>
-<td align="left">Unequal group sizes, late arrival or unanswered
+<td align="left">A sheet lacks a round</td>
+<td align="left">Unequal groups, late arrivals or unanswered
 questions</td>
 </tr>
 <tr class="odd">
-<td align="left">Old work appears after restart</td>
-<td align="left">Expected persistence; finish/export/reset for a new
+<td align="left">Old work returns after restart</td>
+<td align="left">Expected persistence; export and reset for a new
 course</td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section level2">
-<h2 id="validation-and-reference-changes">Validation and reference changes<a class="anchor" aria-label="anchor" href="#validation-and-reference-changes"></a>
-</h2>
-<p>The archived single-file draft was the refactoring reference. The
-table schema, rotation formulas, upsert semantics and guarded
-advancement SQL were retained. Deliberate corrections include
-server-side checks on all moderator operations, transactional lifecycle
-writes, stale-identity cleanup, avoiding premature identity removal
-after joining, preserving the context of debounced edits, and preventing
-a delayed post-reset write from recreating deleted entries. The finished
-participant route refuses new joining instead of presenting a futile
-join form. CSV column capitalization follows the requested export
-contract. The viewport permits zoom and inputs have accessible
-labels.</p>
-<p>Tests exercise these changes rather than asserting only successful
-page startup. Run the package tests, browser suite, package check, lint
-and documentation build before deploying a changed version. A passing
-automated browser suite does not replace a classroom rehearsal on the
-institution’s actual phones and network.</p>
+<p>Tests cover rotation, persistence, configuration, mode transitions,
+reconnection, exports, report page counts and browser workflows. A
+passing automated suite does not replace a rehearsal on the
+institution’s actual devices and network.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

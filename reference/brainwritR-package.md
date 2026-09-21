@@ -1,6 +1,6 @@
 # brainwritR: resilient classroom brainwriting
 
-A single-process, SQLite-backed German-language Shiny application for
+A single-process, SQLite-backed multilingual Shiny application for
 facilitated topic rotation. See
 [`run_app()`](https://cttir.github.io/brainwritR/reference/run_app.md)
 and the classroom guide.
