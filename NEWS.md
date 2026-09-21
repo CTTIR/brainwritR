@@ -1,3 +1,25 @@
+# brainwritR 0.3.0
+
+* Add an in-place German/English/French language slider without interrupting drafts.
+* Offer reversible, editable example questions in the selected interface language.
+* Provide an English screenshot gallery and an entirely English classroom vignette.
+
+* Add a multilingual descriptive analytics view with five shared ggplot figures.
+* Count Unicode German terms with transparent stopword and prompt-vocabulary filters.
+* Summarize adjacent-round lexical overlap without treating it as an idea-quality score.
+* Compose deterministic two-page A4 reports directly with Cairo and patchwork.
+* Add lossless RDS and styled four-sheet XLSX exports alongside CSV and Markdown.
+* Apply optional stable author pseudonyms consistently across all five downloads.
+
+# brainwritR 0.2.0
+
+* Preserve the default individual-device workflow and add optional roster buttons.
+* Add canonical group-device identities and sequential hot-seat handovers.
+* Prepare sessions using the setup form or validated, safely parsed YAML files.
+* Migrate existing databases in place, retaining sessions and contributions.
+* Persist settings in SQLite and support sparse hot-seat groups with an empty sheet.
+* Extend lifecycle, browser, migration and configuration regression coverage.
+
 # brainwritR 0.1.0
 
 * Initial classroom brainwriting application with German participant and moderator views.

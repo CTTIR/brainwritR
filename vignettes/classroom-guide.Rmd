@@ -1,8 +1,8 @@
 ---
-title: "Running a resilient classroom brainwriting session"
+title: "Running and reviewing a classroom brainwriting session"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Running a resilient classroom brainwriting session}
+  %\VignetteIndexEntry{Running and reviewing a classroom brainwriting session}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -12,28 +12,29 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(brainwritR)
 ```
 
-## Prepare a useful activity
+## Plan the activity
 
-brainwritR supports a classroom adaptation of the 6-3-5 method attributed to
+brainwritR implements a classroom adaptation of the 6-3-5 method attributed to
 Bernd Rohrbach. The original name refers to six people, three ideas and five
-minutes; this application instead provides **two questions per topic** and
-rotates topics between groups. Its 15-2-5 preset is intended for a room of
-approximately 15 people. It does not enforce a fixed number of ideas per answer.
+minutes. This application instead provides **two questions per topic** and
+rotates topics between groups. The 15-2-5 preset means three topics, three rounds
+and five minutes per round, intended for approximately 15 participants.
+It does not enforce a fixed number of ideas in an answer.
 
-Before the class, choose three topics that benefit from elaboration rather than
-a single correct answer. For each, pair a generative question with a practical
-follow-up. For example, a topic about teamwork could ask “Was erleichtert die
-Zusammenarbeit?” and “Wie koennen wir das im naechsten Projekt umsetzen?”.
-Explain that participants should read, extend, and combine earlier ideas rather
-than judge their authors. Reserve time after the writing rounds to discuss the
-results; the software organizes contributions but does not rank them.
+Choose topics that benefit from elaboration, then pair each generative question
+with a practical follow-up. For example: “What helps a team collaborate?” and
+“How could we apply this in our next project?”. Ask participants to read,
+extend and combine earlier ideas. Reserve time after writing for discussion;
+the application organizes contributions without ranking their quality.
 
-Use pseudonyms. Explain who can see earlier drafts, who will receive exports,
-and when records will be deleted. Participants need a modern browser, a reachable
-server, and the same browser/origin throughout the session to preserve resume.
-No participant account is created. One person should use one browser tab.
+Use pseudonyms. Explain who can read drafts, who will receive exports and when
+records will be removed. A modern browser and reachable server are required.
+There are no participant accounts. The interface offers German, English and
+French through a three-position language slider; German is the initial default.
+Select English to follow the interface labels used in this guide. Language
+selection changes interface text, not participant contributions or topic content.
 
-## Launch and configure
+## Start the application
 
 ```{r launch, eval=FALSE}
 run_app()
@@ -41,8 +42,8 @@ run_app()
 # Moderator:   http://localhost:3838/?mod=1
 ```
 
-The default PIN `635` is convenient for a local demonstration. For a reachable
-classroom instance, provide a private PIN and the real participant URL:
+The default moderator PIN is `635`, suitable for a local demonstration. For a
+classroom deployment, supply a private PIN and the externally reachable URL:
 
 ```{r classroom, eval=FALSE}
 run_app(
@@ -55,66 +56,129 @@ run_app(
 )
 ```
 
-`DB_PATH`, `MOD_PIN`, `BASE_URL`, and `PORT` supply defaults when their respective
-arguments are omitted. Arguments win over environment variables. The QR code
-uses `base_url` exactly: it must be reachable from phones and must not contain
-`?mod=1`. The server does not infer its external hostname from proxy headers.
-The default SQLite path is relative to the working directory; choose a stable
-absolute path in an operational service.
+`DB_PATH`, `MOD_PIN`, `BASE_URL` and `PORT` provide defaults when corresponding
+arguments are omitted. Explicit arguments take precedence. Configuration is
+resolved at launch, with no database or directory creation during package loading.
+The default database is `data/brainwriting.sqlite`, relative to the working
+directory. Use an absolute path for a long-running service.
 
-The app creates the parent database directory at startup and initializes the
-schema if necessary. Loading the R package alone has no filesystem effects.
-The moderator PIN is held in process configuration, not in the session tables.
+The QR code uses `base_url` exactly. A phone's `localhost` refers to that phone;
+use a URL that devices in the classroom can reach. The moderator route adds
+`?mod=1`; do not put this query string into the participant URL.
 
-## Facilitate the four lifecycle stages
+## Choose a device mode
 
-### Setup
+| Devices | Mode | Authors | Schedule |
+|:--|:--|:--|:--|
+| Everyone has a phone or laptop | `individual` | People | Parallel timed rounds |
+| One device per group table | `group_device` | Groups | Parallel timed rounds |
+| One computer for the entire room | `hot_seat` | People | Sequential timed turns within passes |
 
-The moderator opens `/?mod=1`, enters the PIN and supplies all topic titles and
-both questions. There must be 2–6 topics and an equal number of groups. The setup
-form defaults to three rounds of 300 seconds. Choose K rounds if every group
-should encounter every topic exactly once. Fewer rounds produce a partial cycle;
-additional rounds repeat topics.
+The mode is selected during setup and cannot change during the session. All
+three modes use the same rotation and entry-storage engine.
 
-### Lobby
+### Individual devices
 
-Select **Speichern und Lobby oeffnen**. Project the QR code or share the URL.
-Each participant enters a name or pseudonym and selects **Teilnehmen**. A blank
-name receives an automatically generated label. Participants see a waiting view;
-the moderator sees the live roster. Start requires at least K participants.
+The default workflow is unchanged. Prepare 2–6 topics, open the lobby and share
+the QR code. People enter a name or pseudonym and join. A prepared roster adds
+one-tap name buttons; claimed names are disabled, with free-text joining still
+available. A blank free-text name receives an automatically generated label.
+Start requires at least as many people as topics.
 
-Groups are randomized and balanced at start, independent of joining order.
-For 16 participants and K = 3 the group sizes are 6, 5, and 5. The corresponding
-topics permanently receive 6, 5, and 5 sheets. Refreshing or reconnecting a browser
-with a valid saved identity does not create a new participant.
+The app randomizes balanced groups. With 16 people and three topics, the sizes
+are 6, 5 and 5. People use their own devices, read the earlier contributions on
+their assigned sheet and answer both questions. Submit marks both answers as
+submitted; they remain editable until the round ends. The moderator sees group
+progress, can add 60 seconds and can end a round early.
 
-### Running
+### Group devices
 
-Each participant sees a round/group/sheet label, topic title, shared clock, and
-two answer fields. Previous rounds' nonempty contributions on the assigned sheet
-appear above the corresponding question. Earlier **drafts as well as submitted
-answers** are visible. Same-round contributions by another participant sharing
-a sheet are kept independently, and are visible in later rounds and exports.
+Each device claims one named group, which becomes the author of its answers.
+There is exactly one sheet per topic. Start normally requires every group to
+be claimed; the moderator can explicitly start without all groups.
 
-**Abgeben** submits both fields. Submission indicates progress, not a lock:
-a participant may continue to edit, and an autosave preserves the submitted
-flag. The moderator sees the number of submitted participants per group, can add
-60 seconds, and can force the next round with **Runde beenden**. Early advancement
-can cut off unsaved typing; announce it before using the control.
+Reclaiming a group asks for confirmation and reuses the same persistent author
+identity. Existing contributions retain their attribution. Close the old device's
+tab after taking over: simultaneous edits from old and new devices use
+last-write-wins. Unclaimed groups may join after the session has started.
 
-Late arrivals join the smallest group, using its next free index. They cannot
-recover missed topics automatically, and do not create new sheets.
+### Hot seat
 
-### Finished
+Enter at least one name in the roster, one per line. Saving starts directly at a
+handover screen instead of opening a QR lobby. The next person selects the start
+button to arm the timer. Finishing saves both answers and hands over to the next
+person; skipping a handover creates no entries. Turn order follows roster arrival
+order. A pass visits everyone once, then the topic rotation advances.
 
-After the last round the moderator sees grouped results and CSV/Markdown
-buttons. Participants see a completion message. Export before selecting
-**Neue Session …** and confirming **Ja, alles loeschen**. Cancel leaves the data
-intact. Reset is accepted only for a finished session and removes all participants,
-topics, contributions and assignments together. Connected clients discard their
-old identity; a later returning browser also has its stale identity cleared.
+Virtual groups use the same balanced assignment as individual mode. If there are
+fewer people than topics, an empty starting group receives one empty sheet so
+that the shared modulo mapping remains valid. Other sheet counts remain frozen.
+The estimated working duration is `passes * people * turn_secs`; it excludes
+handovers and pauses. The default turn is 90 seconds.
 
-## Understand the rotation invariant
+Keep a PIN-authenticated moderator tab open on the same computer to add 30 seconds,
+skip a person, end the rest of a pass, append a latecomer or finish early while
+retaining results. Latecomers join the smallest virtual group and receive turns
+at the end of the current and remaining passes. The kiosk derives identity from
+the active turn and does not require participant identity in browser storage.
+
+## Try the example question set
+
+Select **Use example questions** in setup to populate three ready-to-use classroom
+topics in the currently selected interface language. The questions remain editable.
+Clearing the checkbox restores the previous topic count and questions. The option
+preserves the selected device mode, roster and timers. A valid YAML upload replaces
+the example selection. Switching language does not translate existing questions;
+choose the interface language before enabling the examples.
+
+## Reuse session settings
+
+The setup form and YAML upload prepare the same fields. Upload validates and
+prefills the form; it never starts a session. Review the values before saving.
+Settings export is available in setup and the lobby. For hot-seat mode, export
+before starting if a separate reusable settings file is needed. A finished RDS
+snapshot also contains the configuration.
+
+```yaml
+format: brainwriting635-settings/1
+mode: individual
+rounds: 3
+round_secs: 300
+turn_secs: 90
+topics:
+  - title: "Teamwork"
+    q1: "What helps a team collaborate?"
+    q2: "How can we apply this next week?"
+  - title: "Learning spaces"
+    q1: "What makes a space useful for learning?"
+    q2: "Which change could we try first?"
+  - title: "Feedback"
+    q1: "What makes feedback actionable?"
+    q2: "How can we build it into our routine?"
+groups:
+  - "North"
+  - "South"
+  - "West"
+participants:
+  - "Alex"
+  - "Sam"
+  - "Robin"
+```
+
+The format identifier remains `brainwriting635-settings/1` for compatibility.
+Topic count must be 2–6, with nonempty titles and both questions. Rounds must be
+an integer from 1–12. Parallel rounds allow 30–1800 seconds; hot-seat turns allow
+20–600 seconds. Group names must be unique and match the topic count. Optional
+roster names must be nonempty and unique after trimming.
+
+The upload limit is 100 KiB. YAML expressions are not evaluated. Validation
+collects all errors together; unknown keys warn and are ignored. The moderator
+PIN is neither loaded from nor written to the settings file.
+
+## Understand the rotation
+
+Group `g` in round or pass `r` receives topic
+`((g - 1 + r - 1) %% K) + 1`:
 
 ```{r rotation-table}
 k <- 3L
@@ -123,74 +187,113 @@ dimnames(rotation) <- list(paste("Group", 1:k), paste("Round", 1:k))
 knitr::kable(rotation)
 ```
 
-Every row and every column is a permutation of topics 1 through K. The formulas
-are vectorized and exposed independently of the app:
+Every row and column is a permutation of the topics. Across K complete rounds,
+every group visits every topic once. Fewer rounds cover a partial cycle; more
+rounds repeat topics. A late arrival cannot recover missed topics automatically.
+
+Each topic begins with one sheet per person in its starting group, frozen at
+start, except for the single-sheet group-device mode and empty hot-seat groups.
+Within-group index `i` receives sheet `((i - 1) %% n_sheets) + 1`:
 
 ```{r uneven}
 sheet_for(idx = 1:6, n_sheets = 5)
 sheet_for(idx = 1:5, n_sheets = 6)
 ```
 
-In the first case two people share sheet 1 and each gets a distinct database row.
-In the second case sheet 6 receives no contribution in that round. The initial
-reference commentary claimed that every sheet receives a new group's entry
-every round; that claim cannot hold for unequal groups under the specified
-modulo mapping. The mapping is preserved and this limitation is made explicit.
-The all-topics guarantee also requires attendance for the entire cycle.
+Six people visiting five sheets share one sheet, retaining both authors' entries.
+Five people visiting six sheets leave one untouched in that round. Unequal group
+sizes therefore do not guarantee a contribution to every sheet every round.
+Completion of either question is voluntary.
 
-## Persistence and timing contracts
+## Read the results responsibly
 
-SQLite contains four tables:
+The finished moderator screen separates the contribution list from descriptive
+analytics. The four indicators count nonempty saved entries, average unfiltered
+word count, submitted share and distinct filtered terms. Drafts are included.
+The submitted share uses nonempty stored entries as its denominator, not the
+number of theoretically possible answers or attendance.
 
-| Table | Purpose |
-|:--|:--|
-| `session` | Singleton state, configuration, current round, epoch deadline |
-| `topics` | Titles, two questions, frozen sheet counts |
-| `participants` | Opaque identity, pseudonym, group/index and joining time |
-| `entries` | Topic/sheet/round/question/person text, submission flag, edit time |
+Five shared figure functions provide contributions by topic and round, eight top
+terms per topic, a co-occurrence network, a wordcloud and lexical continuity
+between rounds. The network defaults to at least two co-occurring entries and
+at most 40 frequent terms. The wordcloud uses at most 60 terms. A topic selector
+filters both. Empty or insufficient text produces a placeholder.
 
-The uniqueness key includes the participant ID. Multiple contributors sharing a
-sheet never replace one another's entries. Each operation opens a connection,
-sets a 5000 ms busy timeout, and closes it. WAL mode is enabled at initialization.
-Setup, group assignment, joining and reset use transactions so a failure cannot
-leave a half-applied lifecycle operation.
+Text processing splits at Unicode nonletters, lowercases using German locale,
+retains words with at least three letters and removes German Snowball stopwords.
+Topic-title and question vocabulary are also excluded by default; the app can
+disable this filter. There is no stemming or semantic model. Interface language
+selection does not change this German-language text-analysis method; interpret
+English or French contributions accordingly.
 
-The round deadline is an epoch timestamp in SQLite. Both polling streams attempt
-an advance, and an SQL guard on status and current round makes a racing update
-idempotent. A new round's deadline is the time of advancement plus its duration.
-There is no background scheduler without connected sessions: if everyone closes
-the app, an expired round advances on the next connection, with a full duration
-for the new round. The application does not replay multiple missed rounds.
+Term counts retain repeated words, while network edges count the entries that
+contain a pair once each. Lexical continuity is the Jaccard overlap between
+consecutive rounds' token sets on each sheet and question, pooling authors who
+share the sheet. Missing or empty rounds yield missing values rather than zero;
+valid comparisons are averaged by topic. Word reuse is not evidence of idea
+quality, understanding or conceptual development. Read the original answers
+alongside the figures.
 
-Two polls separate metadata from contributions. Gated main views depend only
-on real transitions; history, timer, roster and progress update independently.
-Saved text is read without creating a reactive dependency during a main-view
-render. Autosave captures the editing context with the input and writes after
-1200 ms of quiet. This prevents a delayed previous-round edit from being written
-into the next round. A late write may nevertheless appear only when a subsequent
-view of that sheet is rendered.
+## Choose an export
 
-### Mobile recovery and limits
+| Format | Intended use | Contents |
+|:--|:--|:--|
+| CSV | Statistical or spreadsheet import | Long table, including empty drafts |
+| Markdown | Readable discussion protocol | Questions and nonempty answers grouped by sheet |
+| RDS | Lossless re-analysis in R | Raw tables, settings, generation time and package version |
+| XLSX | Workbook review | Contributions, authors, topics and descriptive summaries |
+| PDF | Shareable overview | Exactly two A4 pages using the same figures as the app |
 
-On `shiny:disconnected`, the browser reloads after 1.5 seconds. On every
-`shiny:connected`, it sends the locally stored participant ID, which the server
-validates against SQLite. A valid identity resumes saved work. If local storage
-is blocked or erased, automatic resume cannot work. Do not share a browser
-profile between simultaneous participants.
+The PDF uses Cairo and patchwork directly, without a runtime dependency on
+Pandoc or LaTeX. Its first page contains parameters, indicators and overview
+charts. Its second contains networks, a wordcloud and per-topic summaries.
+Up to three topics receive separate networks; larger sessions use one combined
+network. Export schemas and the PDF retain their German labels independently
+of the interface language.
 
-The countdown redraws once per second; polling defaults to every 2.5 seconds.
-It turns red below one minute. Briefly showing `0:00` before the next poll is
-expected. Unsaved keystrokes at the boundary or while offline can be lost.
-Submission before expiry is the clearest way to preserve a completed response.
-There is no offline editing queue or merge mechanism for concurrent tabs.
+Optional author pseudonymization applies stable arrival-order codes to all five
+downloads. It also replaces persistent author IDs and stored roster settings.
+On-screen views retain names. This is not complete anonymization: personal
+information typed into answers or topic prompts remains unchanged. Review such
+content before sharing. CSV values should be imported as text, and Markdown
+should be rendered with raw HTML disabled.
 
-## Deploy one durable instance
+## Persistence, recovery and deployment
 
-The repository includes `docker/Dockerfile` and `docker/docker-compose.yml`.
-Build with the repository root as context. Compose expects an existing Traefik
-installation, the `proxy` Docker network, a `websecure` entrypoint, a working
-certificate resolver, and DNS for the public hostname. It does not provision
-those shared infrastructure components.
+SQLite stores the session, topics, authors and entries. Each operation opens and
+closes its own connection, with WAL mode and a 5000 ms busy timeout. Entry
+uniqueness includes author identity, so two people sharing a sheet do not replace
+each other's contributions. Autosaves preserve an explicit submission flag.
+
+Existing databases migrate in place by adding `mode`, `current_turn` and
+`settings_yaml`. Older sessions retain individual mode. The settings column
+preserves prepared names and turn duration across restarts; no sidecar file is
+needed. Back up before upgrading and avoid operating newer-mode databases with
+an older application version.
+
+Every connected client polls the authoritative deadline. Guarded updates prevent
+racing clock ticks from advancing twice. Hot-seat updates also guard the current
+turn, and stale repeated controls cannot advance a later person's turn. Without
+any connected clients there is no scheduler: the next connection resumes the
+expired transition, without replaying every missed round.
+
+A disconnect triggers a reload after 1.5 seconds. Individual and group devices
+resend their stored identity; the server resumes it or clears it after reset.
+Keep the same browser and origin. With browser storage disabled or cleared,
+automatic identity recovery is unavailable. There is no offline editing queue.
+
+Typing is debounced for 1200 milliseconds. Main answer fields are replaced only
+on genuine session, round or assignment transitions, not every poll or language
+change. A delayed save retains its original editing context. Keystrokes in the
+last 1–2 seconds of a round or turn can still lose the race with its boundary.
+Submit before expiry. The timer turns red below one minute and can briefly show
+zero until the next poll.
+
+Use exactly one R process per instance, a writable local disk and a persistent
+database directory. Do not use replicas, ShinyProxy or horizontal scaling.
+Another course needs another container/database and distinct proxy routing.
+The supplied Docker image runs as UID 10001. Compose expects an existing Traefik
+installation, external `proxy` network, TLS resolver and reachable hostname.
 
 ```{bash deploy, eval=FALSE}
 mkdir -p docker/data
@@ -201,62 +304,29 @@ export MOD_PIN='replace-with-a-private-pin'
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-The image runs as UID 10001. Bind-mounted `docker/data/` must be writable by that
-UID. The SQLite file, WAL, and shared-memory files all belong on the persistent
-volume. Do not mount only the `.sqlite` file. Use local disk and exactly one
-application process. No replicas, ShinyProxy, or horizontal scaling are supported.
-For another course, use another database/container and distinct Traefik labels
-and hostname; do not share a database across instances.
+Mount the whole database directory, including SQLite WAL files. For backups,
+stop the app before copying it or use SQLite's online backup API. A live database
+file copied without its WAL can omit committed changes. Restarting with the same
+volume resumes the session; rebuilding an image does not reset it.
 
-For backups, stop the app before copying the entire database directory, or use
-SQLite's online backup API. Copying a live `.sqlite` alone can omit committed
-WAL data. Protect backups like the live database. Restarting a container with
-the same volume resumes the same session; rebuilding the image is not a reset.
-Keep the host clock synchronized since deadlines use wall-clock epoch seconds.
+Export before resetting a finished session. Confirmed reset removes logical
+session data and clears participant identity on reconnect. It does not remove
+old downloads, backups, snapshots or residual SQLite pages. Apply a retention
+policy to those copies as well. Self-hosting and pseudonyms alone do not establish
+legal compliance.
 
-## Debrief and handle exports
-
-CSV includes every saved entry, even an empty draft, and the exact German columns
-`Thema`, `Bogen`, `Runde`, `Frage`, `Teilnehmer`, `Beitrag`, `abgegeben`, `Zeit`.
-The final column uses the server's local timezone. Compose sets `Europe/Berlin`.
-Markdown includes topic questions and nonempty entries grouped by topic and sheet.
-Both formats include submitted and unsubmitted contributions.
-
-Use the protocol to identify themes together. Participant names and contribution
-text remain untrusted input in exports: import CSV columns as text to avoid
-spreadsheet formula execution, and render Markdown using a safe renderer that
-disables raw HTML. The interactive app renders user text as escaped content.
-
-Self-hosting and pseudonyms reduce exposure but do not establish legal compliance
-by themselves. Provide a suitable notice and retention policy for the course.
-The reset action removes logical records, not old exports, backups, free SQLite
-pages or filesystem snapshots. Separate retention and disposal procedures apply.
-
-## Troubleshooting
+## Rehearse and troubleshoot
 
 | Symptom | Check |
 |:--|:--|
-| Phone cannot open QR link | Public `BASE_URL`, DNS, Wi-Fi reachability and TLS |
-| App cannot create database | Directory ownership for UID 10001 and mounted volume |
-| Grey screen/reload loop | Reverse proxy WebSocket support and service availability |
-| Participant appears twice | Cleared storage, another browser, or an earlier separate join |
-| Timer paused while room was absent | Expected: no clients means no polling scheduler |
-| Some sheets lack a round | Unequal group sizes, late arrival or unanswered questions |
-| Old work appears after restart | Expected persistence; finish/export/reset for a new course |
+| Phone cannot open the QR link | Public URL, DNS, Wi-Fi reachability and TLS |
+| Database cannot be created | Mounted directory ownership for UID 10001 |
+| Repeated reconnects | Proxy WebSocket support and service availability |
+| Duplicate participant | Cleared storage or a separate browser profile |
+| Timer waited while everyone was absent | Expected: no clients means no polling scheduler |
+| A sheet lacks a round | Unequal groups, late arrivals or unanswered questions |
+| Old work returns after restart | Expected persistence; export and reset for a new course |
 
-## Validation and reference changes
-
-The archived single-file draft was the refactoring reference. The table schema,
-rotation formulas, upsert semantics and guarded advancement SQL were retained.
-Deliberate corrections include server-side checks on all moderator operations,
-transactional lifecycle writes, stale-identity cleanup, avoiding premature
-identity removal after joining, preserving the context of debounced edits, and
-preventing a delayed post-reset write from recreating deleted entries. The
-finished participant route refuses new joining instead of presenting a futile
-join form. CSV column capitalization follows the requested export contract.
-The viewport permits zoom and inputs have accessible labels.
-
-Tests exercise these changes rather than asserting only successful page startup.
-Run the package tests, browser suite, package check, lint and documentation build
-before deploying a changed version. A passing automated browser suite does not
-replace a classroom rehearsal on the institution's actual phones and network.
+Tests cover rotation, persistence, configuration, mode transitions, reconnection,
+exports, report page counts and browser workflows. A passing automated suite does
+not replace a rehearsal on the institution's actual devices and network.
