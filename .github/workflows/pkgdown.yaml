@@ -36,7 +36,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev \
-            zlib1g-dev libsqlite3-dev libfontconfig1-dev libfreetype6-dev \
+            zlib1g-dev libsqlite3-dev libuv1-dev libfontconfig1-dev libfreetype6-dev \
             libharfbuzz-dev libfribidi-dev libpng-dev libtiff-dev libjpeg-dev \
             librsvg2-dev libmagick++-dev
           browser_path=$(command -v google-chrome)
