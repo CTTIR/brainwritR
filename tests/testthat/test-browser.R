@@ -112,6 +112,12 @@ test_that("moderator route requires PIN and reset clears stale identities", {
   app$wait_for_js("!!document.querySelector('#next_btn')")
   before <- read_table(path, "session")$round_ends_at
   app$click("plus60_btn")
+  # Browser clicks are asynchronous: await the committed deadline, then assert
+  # the exact increment. A lost or duplicated action still fails this check.
+  for (attempt in seq_len(100)) {
+    if (identical(read_table(path, "session")$round_ends_at, before + 60)) break
+    Sys.sleep(0.1)
+  }
   expect_equal(read_table(path, "session")$round_ends_at, before + 60)
   for (r in 2:3) {
     app$click("next_btn")
