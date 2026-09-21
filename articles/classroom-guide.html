@@ -415,6 +415,9 @@ app</td>
 </tr>
 </tbody>
 </table>
+<p>On macOS, the CRAN R build may require <a href="https://www.xquartz.org/" class="external-link">XQuartz</a> for Cairo graphics. Install
+it before using PDF reports; see the <a href="https://search.r-project.org/R/refmans/grDevices/html/cairo.html" class="external-link">R
+Cairo device documentation</a>.</p>
 <p>The PDF uses Cairo and patchwork directly, without a runtime
 dependency on Pandoc or LaTeX. Its first page contains parameters,
 indicators and overview charts. Its second contains networks, a

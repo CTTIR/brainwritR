@@ -265,6 +265,11 @@ conceptual development. Read the original answers alongside the figures.
 | XLSX | Workbook review | Contributions, authors, topics and descriptive summaries |
 | PDF | Shareable overview | Exactly two A4 pages using the same figures as the app |
 
+On macOS, the CRAN R build may require
+[XQuartz](https://www.xquartz.org/) for Cairo graphics. Install it
+before using PDF reports; see the [R Cairo device
+documentation](https://search.r-project.org/R/refmans/grDevices/html/cairo.html).
+
 The PDF uses Cairo and patchwork directly, without a runtime dependency
 on Pandoc or LaTeX. Its first page contains parameters, indicators and
 overview charts. Its second contains networks, a wordcloud and per-topic
