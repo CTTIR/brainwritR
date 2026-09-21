@@ -8,6 +8,23 @@ browser_ready <- function() {
 
 new_browser_app <- function(cfg, name) {
   directory <- withr::local_tempdir(.local_envir = parent.frame())
+  # Own the browser lifecycle and its temporary files, including on failure.
+  withr::local_envvar(c(TMPDIR = directory), .local_envir = parent.frame())
+  previous_browser <- if (chromote::has_default_chromote_object()) {
+    chromote::default_chromote_object()
+  } else {
+    NULL
+  }
+  browser <- tryCatch(chromote::Chromote$new(), error = function(e) {
+    testthat::skip(paste("Chrome cannot start:", conditionMessage(e)))
+  })
+  chromote::set_default_chromote_object(browser)
+  app <- NULL
+  withr::defer({
+    if (!is.null(app)) app$stop()
+    browser$close()
+    if (!is.null(previous_browser)) chromote::set_default_chromote_object(previous_browser)
+  }, envir = parent.frame())
   saveRDS(cfg, file.path(directory, "config.rds"))
   writeLines(c(
     "library(brainwritR)",
@@ -31,7 +48,6 @@ test_that("mobile participant text survives polls and reconnect", {
   path <- new_db(withr::local_tempfile(), n = 2)
   cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
   app <- new_browser_app(cfg, "participant")
-  on.exit(app$stop(), add = TRUE)
   app$wait_for_js("!!document.querySelector('#join_name')")
   expect_match(app$get_js("document.body.innerText"), "Teilnehmen")
   app$set_inputs(join_name = "Mobil")
@@ -97,7 +113,6 @@ test_that("moderator route requires PIN and reset clears stale identities", {
   path <- new_db(withr::local_tempfile(), n = 3)
   cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
   app <- new_browser_app(cfg, "moderator")
-  on.exit(app$stop(), add = TRUE)
   app$run_js("location.search = '?mod=1'")
   app$wait_for_js("!!document.querySelector('#pin')")
   restore_browser_tracer(app)
