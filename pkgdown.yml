@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  classroom-guide: classroom-guide.html
+last_built: 2026-09-21T13:39Z
+urls:
+  reference: https://cttir.github.io/brainwritR/reference
+  article: https://cttir.github.io/brainwritR/articles

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="580" viewBox="0 0 500 580"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><rdf:Description><dc:creator>RealFaviconGenerator</dc:creator><dc:source>https://realfavicongenerator.net</dc:source></rdf:Description></rdf:RDF></metadata><defs>
+    <linearGradient id="bgbwA" x1="0" y1="0" x2="0.15" y2="1">
+      <stop offset="0%" stop-color="#04201f"></stop>
+      <stop offset="100%" stop-color="#02100f"></stop>
+    </linearGradient>
+    <marker id="arrbwA" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0,1 L 9,5 L 0,9 z" fill="#2BB3C0"></path>
+    </marker>
+    <clipPath id="hexbwA">
+      <polygon points="250,30 455,145 455,375 250,490 45,375 45,145"></polygon>
+    </clipPath>
+  </defs><polygon points="250,30 455,145 455,375 250,490 45,375 45,145" fill="url(#bgbwA)"></polygon><g clip-path="url(#hexbwA)">
+
+    <!-- faint grid -->
+    <line x1="45" y1="200" x2="455" y2="200" stroke="#0d3b3a" stroke-width="0.4" opacity="0.4"></line>
+    <line x1="45" y1="260" x2="455" y2="260" stroke="#0d3b3a" stroke-width="0.4" opacity="0.4"></line>
+    <line x1="45" y1="320" x2="455" y2="320" stroke="#0d3b3a" stroke-width="0.4" opacity="0.4"></line>
+    <line x1="150" y1="145" x2="150" y2="490" stroke="#0d3b3a" stroke-width="0.4" opacity="0.35"></line>
+    <line x1="250" y1="145" x2="250" y2="490" stroke="#0d3b3a" stroke-width="0.4" opacity="0.35"></line>
+    <line x1="350" y1="145" x2="350" y2="490" stroke="#0d3b3a" stroke-width="0.4" opacity="0.35"></line>
+
+    <!-- quiet hero 635 -->
+    <text x="250" y="345" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="185" fill="#2BB3C0" opacity="0.08" font-variant-numeric="tabular-nums" letter-spacing="4">635</text>
+
+    <!-- circular connecting arrows (petrol accent) -->
+    <path d="M 316,214 A 104 104 0 0 1 356,328" fill="none" stroke="#2BB3C0" stroke-width="4.5" marker-end="url(#arrbwA)" opacity="0.9"></path>
+    <path d="M 344,344 A 106 106 0 0 1 168,348" fill="none" stroke="#2BB3C0" stroke-width="4.5" marker-end="url(#arrbwA)" opacity="0.9"></path>
+    <path d="M 150,326 A 104 104 0 0 1 188,214" fill="none" stroke="#2BB3C0" stroke-width="4.5" marker-end="url(#arrbwA)" opacity="0.9"></path>
+
+    <!-- Sheet 1 — top -->
+    <g transform="rotate(-6 250 205)">
+      <rect x="196" y="158" width="108" height="90" rx="9" fill="#F5F8FA" stroke="#0A2E2C" stroke-width="2"></rect>
+      <line x1="210" y1="184" x2="290" y2="184" stroke="#22303c" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="210" y1="202" x2="290" y2="202" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="210" y1="220" x2="262" y2="220" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+    </g>
+
+    <!-- Sheet 2 — bottom-right -->
+    <g transform="rotate(8 330 362)">
+      <rect x="276" y="316" width="108" height="90" rx="9" fill="#F5F8FA" stroke="#0A2E2C" stroke-width="2"></rect>
+      <line x1="290" y1="342" x2="370" y2="342" stroke="#22303c" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="290" y1="360" x2="370" y2="360" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="290" y1="378" x2="342" y2="378" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+    </g>
+
+    <!-- Sheet 3 — bottom-left -->
+    <g transform="rotate(-8 170 362)">
+      <rect x="116" y="316" width="108" height="90" rx="9" fill="#F5F8FA" stroke="#0A2E2C" stroke-width="2"></rect>
+      <line x1="130" y1="342" x2="210" y2="342" stroke="#22303c" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="130" y1="360" x2="210" y2="360" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+      <line x1="130" y1="378" x2="182" y2="378" stroke="#5b6b7a" stroke-width="4.5" stroke-linecap="round"></line>
+    </g>
+
+  </g><polygon points="250,30 455,145 455,375 250,490 45,375 45,145" fill="none" stroke="#0E7C88" stroke-width="11" stroke-linejoin="round"></polygon><polygon points="250,44 441,153 441,367 250,476 59,367 59,153" fill="none" stroke="#2BB3C0" stroke-width="1.5" stroke-linejoin="round" opacity="0.55"></polygon><text font-family="monospace" font-weight="700" font-size="26" fill="#7FD6DE" text-anchor="middle" x="250" y="545" letter-spacing="0.5">brainwritR</text></svg>
