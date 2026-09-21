@@ -474,7 +474,10 @@ language_js <- function() {
   let language='de';
   let scheduled=false;
   let observer;
-  const excluded='[translate="no"],[data-bw-user],[data-bw-language],script,style,textarea';
+  const excluded='[translate="no"],[data-bw-user],[data-bw-language],script,style,textarea,'+
+    '#analytics_topic option:not([value="all"]),'+
+    '.selectize-dropdown [data-value]:not([data-value="all"]),'+
+    '.selectize-input [data-value]:not([data-value="all"])';
   const templates=[
     [/^Thema (\d+):$/, 'Topic $1:', 'Th\u00e8me $1 :'],
     [/^Runde (\d+) \u00b7 (.*)$/, 'Round $1 \u00b7 $2', 'Ronde $1 \u00b7 $2'],

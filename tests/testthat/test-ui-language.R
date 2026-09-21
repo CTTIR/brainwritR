@@ -123,3 +123,40 @@ test_that("English example questions remain editable and disabling restores prio
   expect_false(app$get_js("!!document.querySelector('#t_title_3')"))
   expect_identical(read_table(path, "session")$status, "setup")
 })
+
+test_that("analytics selectors preserve topic names that match translated interface labels", {
+  modes_browser_ready()
+  path <- new_db(withr::local_tempfile(), n = 3)
+  exec_sql(path, "UPDATE topics SET title = 'Abgeben' WHERE id = 1")
+  start_session(path)
+  for (i in 1:3) maybe_advance(path, force = TRUE)
+  cfg <- app_config(path, "secret", "http://localhost:3838")
+  app <- modes_browser_app(cfg, "language-analytics-topic")
+  modes_browser_moderator(app)
+  app$wait_for_js("!!document.querySelector('a[data-value=\"Auswertung\"]')")
+  app$run_js(paste0(
+    "document.querySelector('#bw-language-slider').value='2'; ",
+    "document.querySelector('#bw-language-slider').dispatchEvent(",
+    "new Event('change',{bubbles:true}));"
+  ))
+  app$wait_for_js("document.documentElement.lang === 'en'")
+  app$run_js("document.querySelector('a[data-value=\"Auswertung\"]').click()")
+  app$wait_for_js("!!document.querySelector('#analytics_topic')?.selectize")
+  app$wait_for_js(paste0(
+    "document.querySelector('.selectize-input [data-value=\"all\"]')",
+    "?.textContent === 'All topics'"
+  ))
+  app$run_js("document.querySelector('#analytics_topic').selectize.open()")
+  app$wait_for_js("!!document.querySelector('.selectize-dropdown [data-value=\"1\"]')")
+  expect_equal(app$get_js(paste0(
+    "document.querySelector('.selectize-dropdown [data-value=\"1\"]').textContent"
+  )), "Abgeben")
+  app$run_js("document.querySelector('.selectize-dropdown [data-value=\"1\"]').click()")
+  app$wait_for_js("!!document.querySelector('.selectize-input [data-value=\"1\"]')")
+  expect_equal(app$get_js(paste0(
+    "document.querySelector('.selectize-input [data-value=\"1\"]').textContent"
+  )), "Abgeben")
+  expect_equal(app$get_js("document.querySelector('#analytics_topic option[value=\"1\"]').text"),
+               "Abgeben")
+  expect_identical(read_table(path, "topics")$title[1], "Abgeben")
+})
