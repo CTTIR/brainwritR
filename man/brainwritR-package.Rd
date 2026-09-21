@@ -6,7 +6,7 @@
 \alias{brainwritR-package}
 \title{brainwritR: resilient classroom brainwriting}
 \description{
-A single-process, SQLite-backed German-language Shiny application for
+A single-process, SQLite-backed multilingual Shiny application for
 facilitated topic rotation. See \code{\link[=run_app]{run_app()}} and the classroom guide.
 }
 \seealso{

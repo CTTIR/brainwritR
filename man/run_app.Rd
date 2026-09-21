@@ -33,7 +33,7 @@ Set a private PIN before deployment.}
 Invisibly, the value returned by \code{\link[shiny:runApp]{shiny::runApp()}} when the app stops.
 }
 \description{
-Starts one German-language Shiny application backed by SQLite. Open
+Starts one multilingual Shiny application backed by SQLite. Open
 \code{base_url} for participants and append \verb{/?mod=1} for the moderator.
 Configuration is resolved at invocation, never at package load time.
 }

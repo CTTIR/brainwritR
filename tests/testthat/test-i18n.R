@@ -1,0 +1,35 @@
+test_that("the language control offers three accessible positions and German default", {
+  html <- as.character(language_switch_ui())
+  expect_match(html, 'id="bw-language-slider"', fixed = TRUE)
+  expect_match(html, 'type="range"', fixed = TRUE)
+  expect_match(html, 'min="1"', fixed = TRUE)
+  expect_match(html, 'max="3"', fixed = TRUE)
+  expect_match(html, 'step="1"', fixed = TRUE)
+  expect_match(html, 'value="1"', fixed = TRUE)
+  expect_match(html, 'aria-valuetext="Deutsch"', fixed = TRUE)
+  expect_match(html, 'translate="no"', fixed = TRUE)
+})
+
+test_that("translations preserve unknown content and cover all three languages", {
+  dict <- bw_language_dictionary()
+  expect_named(dict, c("de", "en", "fr"))
+  expect_false(anyDuplicated(dict$de) > 0)
+  expect_true(all(nzchar(as.matrix(dict))))
+  expect_identical(bw_translate(c("Abgeben", "private contribution"), "en"),
+                   c("Submit", "private contribution"))
+  expect_identical(bw_translate("Abgeben", "fr"), "Envoyer")
+  expect_identical(bw_translate(dict$de, "de"), dict$de)
+  expect_identical(bw_translate(dict$de, "en"), dict$en)
+  expect_identical(bw_translate(dict$de, "fr"), dict$fr)
+})
+
+test_that("client language script updates nodes in place and keeps identity separate", {
+  js <- language_js()
+  expect_match(js, "new WeakMap()", fixed = TRUE)
+  expect_match(js, "MutationObserver", fixed = TRUE)
+  expect_match(js, "bw_language", fixed = TRUE)
+  expect_match(js, "ui_language", fixed = TRUE)
+  expect_match(js, "[data-bw-user]", fixed = TRUE)
+  expect_match(js, "characterData:true", fixed = TRUE)
+  expect_false(grepl("innerHTML|outerHTML|location.reload|bw_store_pid", js))
+})

@@ -1,0 +1,23 @@
+# Portable session preparation. The moderator PIN is never included.
+format: brainwriting635-settings/1
+mode: individual
+rounds: 3
+round_secs: 300
+turn_secs: 90
+topics:
+  - title: "Lernen im Kurs"
+    q1: "Was unterstützt das gemeinsame Lernen?"
+    q2: "Was möchten wir ausprobieren?"
+  - title: "Zusammenarbeit"
+    q1: "Wie können wir Wissen teilen?"
+    q2: "Wie beziehen wir alle ein?"
+  - title: "Transfer in den Alltag"
+    q1: "Wo können wir die Ideen anwenden?"
+    q2: "Was ist der erste konkrete Schritt?"
+groups:
+  - "Gruppe Nord"
+  - "Gruppe Süd"
+  - "Gruppe West"
+participants:
+  - "Alice"
+  - "Bob"

@@ -13,7 +13,7 @@ app_ui <- function(cfg) {
       ),
       tags$link(rel = "icon", type = "image/svg+xml", href = app_icon_uri()),
       tags$style(HTML(app_css())),
-      tags$script(HTML(app_js())),
+      tags$script(HTML(paste(app_js(), language_js()))),
       tags$title("Brainwriting 6-3-5")
     ),
     tags$main(
@@ -27,6 +27,7 @@ app_ui <- function(cfg) {
         ),
         div(class = "bw-status", "Gemeinsam Ideen weiterdenken")
       ),
+      language_switch_ui(),
       uiOutput("page"),
       tags$footer(
         class = "bw-footer",

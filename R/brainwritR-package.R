@@ -1,6 +1,6 @@
 #' brainwritR: resilient classroom brainwriting
 #'
-#' A single-process, SQLite-backed German-language Shiny application for
+#' A single-process, SQLite-backed multilingual Shiny application for
 #' facilitated topic rotation. See [run_app()] and the classroom guide.
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbGetQuery dbWithTransaction
 #' @importFrom RSQLite SQLite
@@ -15,4 +15,5 @@
 #' @importFrom shiny observeEvent p parseQueryString passwordInput plotOutput reactive reactivePoll
 #' @importFrom shiny reactiveVal removeModal renderPlot renderUI req showModal showNotification
 #' @importFrom shiny strong tagList tags textAreaInput textInput uiOutput
+#' @importFrom rlang .data
 "_PACKAGE"

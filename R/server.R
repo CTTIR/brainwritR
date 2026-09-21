@@ -17,7 +17,8 @@ app_server <- function(cfg) {
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
         dbGetQuery(con, "
-        SELECT status || '|' || current_round || '|' || COALESCE(round_ends_at, 0) || '|' ||
+        SELECT status || '|' || current_round || '|' || current_turn || '|' ||
+               COALESCE(round_ends_at, 0) || '|' ||
                (SELECT COUNT(*) FROM participants) || '|' ||
                (SELECT COALESCE(MAX(joined_at), 0) FROM participants) AS v
         FROM session")$v
@@ -28,7 +29,7 @@ app_server <- function(cfg) {
         list(
           s            = get_session(con),
           topics       = dbGetQuery(con, "SELECT * FROM topics ORDER BY id"),
-          participants = dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at")
+          participants = dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at, rowid")
         )
       }
     )
@@ -39,7 +40,8 @@ app_server <- function(cfg) {
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
         dbGetQuery(con, "
-        SELECT (SELECT status || current_round || COALESCE(round_ends_at, 0) FROM session)
+        SELECT (SELECT status || current_round || '|' || current_turn ||
+                       COALESCE(round_ends_at, 0) FROM session)
                || '|' ||
                (SELECT COUNT(*) || '-' || COALESCE(MAX(updated_at), 0) || '-' ||
                        COALESCE(SUM(submitted), 0) FROM entries)
@@ -52,13 +54,16 @@ app_server <- function(cfg) {
         list(
           s            = get_session(con),
           topics       = dbGetQuery(con, "SELECT * FROM topics ORDER BY id"),
-          participants = dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at"),
+          participants = dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at, rowid"),
           entries      = dbGetQuery(con, "SELECT * FROM entries")
         )
       }
     )
 
     observeEvent(input$stored_pid, ignoreNULL = FALSE, {
+      if (isolate(tick_meta())$s$mode == "hot_seat") {
+        return()
+      }
       pid <- input$stored_pid
       if (is.null(pid) || identical(pid, "")) {
         return()
@@ -76,15 +81,26 @@ app_server <- function(cfg) {
       }
     })
 
+    active_pid <- function(m = tick_meta()) {
+      if (m$s$mode != "hot_seat") {
+        return(my_pid())
+      }
+      i <- m$s$current_turn
+      if (m$s$status != "running" || i < 1L || i > nrow(m$participants)) {
+        return(NULL)
+      }
+      m$participants$pid[i]
+    }
+
     observe({
       m <- tick_meta()
-      pid <- my_pid()
+      pid <- active_pid(m)
       if (!is.null(pid) && !(pid %in% m$participants$pid)) {
         # A new join can precede the next poll; validate against the database,
         # never clear a just-created identity from an older cached snapshot.
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
-        m$participants <- dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at")
+        m$participants <- dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at, rowid")
         if (!(pid %in% m$participants$pid)) {
           my_pid(NULL)
           session$sendCustomMessage("bw_clear_pid", "")
@@ -101,6 +117,9 @@ app_server <- function(cfg) {
         }
       }
       key <- paste(m$s$status, m$s$current_round, pid %||% "-", grp, idx, sep = "|")
+      if (m$s$mode == "hot_seat") {
+        key <- paste(key, m$s$current_turn, is.na(m$s$round_ends_at), sep = "|")
+      }
       old <- isolate(part_state())
       if (is.null(old) || !identical(old$key, key)) {
         submitted_flag(NULL)
@@ -111,6 +130,9 @@ app_server <- function(cfg) {
     observe({
       m <- tick_meta()
       key <- paste(m$s$status, m$s$current_round, sep = "|")
+      if (m$s$mode == "hot_seat") {
+        key <- paste(key, m$s$current_turn, is.na(m$s$round_ends_at), sep = "|")
+      }
       old <- isolate(mod_state())
       if (is.null(old) || !identical(old$key, key)) {
         mod_state(list(key = key, s = m$s))
@@ -119,8 +141,11 @@ app_server <- function(cfg) {
 
     edit_ctx <- reactive({
       m <- tick_meta()
-      pid <- my_pid()
+      pid <- active_pid(m)
       if (is.null(pid) || m$s$status != "running") {
+        return(NULL)
+      }
+      if (m$s$mode == "hot_seat" && is.na(m$s$round_ends_at)) {
         return(NULL)
       }
       me <- m$participants[m$participants$pid == pid, ]
@@ -165,6 +190,9 @@ app_server <- function(cfg) {
       if (!is.null(my_pid())) {
         return()
       }
+      if (isolate(tick_meta())$s$mode != "individual") {
+        return()
+      }
       nm <- trimws(input$join_name %||% "")
       if (!nzchar(nm)) nm <- paste0("TN-", sample(100:999, 1))
       pid <- add_participant(cfg$db_path, nm)
@@ -174,6 +202,135 @@ app_server <- function(cfg) {
       }
       my_pid(pid)
       session$sendCustomMessage("bw_store_pid", pid)
+    })
+
+    group_pending <- reactiveVal(NULL)
+    remember_author <- function(pid) {
+      if (is.null(pid)) {
+        return(invisible(NULL))
+      }
+      my_pid(pid)
+      session$sendCustomMessage("bw_store_pid", pid)
+    }
+    output$group_choices <- renderUI({
+      m <- tick_meta()
+      req(m$s$mode == "group_device", m$s$status %in% c("lobby", "running"))
+      names <- get_settings(cfg$db_path)$groups
+      div(
+        class = "bw-card", h2("Als Gruppe beitreten:"),
+        lapply(seq_along(names), function(i) {
+          tags$button(
+            type = "button", class = "btn btn-outline-primary w-100 mb-2",
+            onclick = sprintf("Shiny.setInputValue('group_choice', %d, {priority:'event'})", i),
+            tags$span(translate = "no", names[i])
+          )
+        })
+      )
+    })
+    observeEvent(input$group_choice, {
+      m <- tick_meta()
+      g <- input$group_choice
+      req(m$s$mode == "group_device", m$s$status %in% c("lobby", "running"))
+      req(
+        is.numeric(g), length(g) == 1L, !is.na(g), g == floor(g),
+        g >= 1L, g <= m$s$n_groups
+      )
+      con <- db(cfg$db_path)
+      on.exit(dbDisconnect(con), add = TRUE)
+      claimed <- dbGetQuery(con, "SELECT pid FROM participants WHERE grp = :g",
+        params = list(g = g)
+      )
+      if (nrow(claimed)) {
+        group_pending(g)
+        showModal(modalDialog(
+          title = paste0(
+            "Gruppe ", get_settings(cfg$db_path)$groups[g],
+            " ist bereits verbunden \u2014 auf diesem Ger\u00e4t \u00fcbernehmen?"
+          ),
+          footer = tagList(
+            modalButton("Abbrechen"),
+            actionButton("group_confirm", "\u00dcbernehmen", class = "btn-primary")
+          )
+        ))
+      } else {
+        remember_author(claim_group(cfg$db_path, g))
+      }
+    })
+    observeEvent(input$group_confirm, {
+      req(!is.null(group_pending()))
+      remember_author(claim_group(cfg$db_path, group_pending()))
+      group_pending(NULL)
+      removeModal()
+    })
+    output$roster_choices <- renderUI({
+      m <- tick_meta()
+      req(m$s$mode == "individual")
+      names <- get_settings(cfg$db_path)$participants
+      lapply(seq_along(names), function(i) {
+        tags$button(
+          type = "button", class = "btn btn-outline-secondary me-2 mb-2",
+          disabled = if (names[i] %in% m$participants$name) "disabled" else NULL,
+          onclick = sprintf("Shiny.setInputValue('roster_choice', %d, {priority:'event'})", i),
+          tags$span(translate = "no", names[i])
+        )
+      })
+    })
+    observeEvent(input$roster_choice, {
+      req(is.null(my_pid()), tick_meta()$s$mode == "individual")
+      names <- get_settings(cfg$db_path)$participants
+      i <- input$roster_choice
+      req(is.numeric(i), length(i) == 1L, !is.na(i), i == floor(i), i >= 1L, i <= length(names))
+      con <- db(cfg$db_path)
+      on.exit(dbDisconnect(con), add = TRUE)
+      if (names[i] %in% dbGetQuery(con, "SELECT name FROM participants")$name) {
+        return()
+      }
+      remember_author(add_participant(cfg$db_path, names[i]))
+    })
+    observeEvent(input$turn_start, {
+      req(tick_meta()$s$mode == "hot_seat")
+      arm_turn(cfg$db_path, expected = tick_meta()$s)
+    })
+    observeEvent(input$turn_skip, {
+      m <- tick_meta()
+      req(m$s$mode == "hot_seat", is.na(m$s$round_ends_at))
+      maybe_advance(cfg$db_path, force = TRUE, expected = tick_meta()$s)
+    })
+    observeEvent(input$start_override, {
+      req(is_mod(), tick_meta()$s$mode == "group_device")
+      err <- start_session(cfg$db_path, force = TRUE)
+      if (!is.null(err)) showNotification(err, type = "warning")
+    })
+    output$current_turn_info <- renderUI({
+      req(is_mod())
+      m <- tick_meta()
+      who <- active_pid(m)
+      p(paste0("Aktuell: ", m$participants$name[match(who, m$participants$pid)]))
+    })
+    observeEvent(input$mod_skip, {
+      req(is_mod(), tick_meta()$s$mode == "hot_seat")
+      maybe_advance(cfg$db_path, force = TRUE, expected = tick_meta()$s)
+    })
+    observeEvent(input$abort_btn, {
+      req(is_mod(), tick_meta()$s$mode == "hot_seat")
+      showModal(modalDialog(
+        title = "Session beenden?",
+        "Die bisherigen Beitr\u00e4ge bleiben erhalten.",
+        footer = tagList(
+          modalButton("Abbrechen"),
+          actionButton("abort_confirm", "Zur Ergebnisansicht", class = "btn-danger")
+        )
+      ))
+    })
+    observeEvent(input$abort_confirm, {
+      req(is_mod(), tick_meta()$s$mode == "hot_seat")
+      abort_session(cfg$db_path)
+      removeModal()
+    })
+    observeEvent(input$late_add, {
+      req(is_mod(), tick_meta()$s$mode == "hot_seat")
+      pid <- add_participant(cfg$db_path, input$late_name %||% "")
+      if (!is.null(pid)) shiny::updateTextInput(session, "late_name", value = "")
     })
 
     output$part_view <- renderUI({
@@ -199,12 +356,17 @@ app_server <- function(cfg) {
             p("Die Session wird gerade vorbereitet \u2014 Seite einfach offen lassen.")
           ))
         }
+        if (s$mode == "group_device") {
+          return(uiOutput("group_choices"))
+        }
         return(div(
           class = "bw-card",
           h2("Brainwriting 6-3-5"),
           p(class = "bw-status", "Mit Name oder Pseudonym beitreten:"),
+          uiOutput("roster_choices"),
           textInput("join_name", "Name / Pseudonym",
-                    placeholder = "Name / Pseudonym", width = "100%"),
+            placeholder = "Name / Pseudonym", width = "100%"
+          ),
           actionButton("join_btn", "Teilnehmen", class = "btn-primary w-100 btn-lg")
         ))
       }
@@ -214,7 +376,7 @@ app_server <- function(cfg) {
       if (s$status %in% c("setup", "lobby")) {
         return(div(
           class = "bw-card",
-          h3(paste0("Hallo ", me$name, "!")),
+          h3("Hallo ", tags$span(translate = "no", me$name), "!"),
           p("Du bist dabei. Warten auf den Start \u2026"),
           uiOutput("lobby_count")
         ))
@@ -226,9 +388,20 @@ app_server <- function(cfg) {
           p("Alle Beitraege sind gesichert. Die Ergebnisse besprechen wir jetzt gemeinsam.")
         ))
       }
+      if (s$mode == "hot_seat" && is.na(s$round_ends_at)) {
+        return(div(
+          class = "bw-card text-center",
+          h2("Weitergeben an: ", tags$span(translate = "no", me$name)),
+          p(class = "bw-status", paste("Durchgang", s$current_round, "von", s$n_rounds)),
+          actionButton("turn_start", "Los geht's", class = "btn-primary w-100 btn-lg"),
+          actionButton("turn_skip", "\u00dcberspringen", class = "btn-outline-secondary mt-3")
+        ))
+      }
       if (is.na(me$grp)) {
-        return(div(class = "bw-card",
-                   p("Einen Moment \u2014 du wirst einer Gruppe zugeteilt \u2026")))
+        return(div(
+          class = "bw-card",
+          p("Einen Moment \u2014 du wirst einer Gruppe zugeteilt \u2026")
+        ))
       }
 
       t_id <- topic_for(me$grp, s$current_round, s$n_groups)
@@ -251,21 +424,23 @@ app_server <- function(cfg) {
                   " \u00b7 Gruppe ", me$grp, " \u00b7 Bogen ", sh
                 )
               ),
-              h3(class = "mb-0", tp$title)
+              h3(class = "mb-0", translate = "no", tp$title)
             ),
             uiOutput("timer")
           )
         ),
         div(
           class = "bw-card",
-          tags$label(class = "bw-q", `for` = "a1", paste0("Frage 1 \u2014 ", tp$q1)),
+          tags$label(class = "bw-q", `for` = "a1", "Frage 1 \u2014 ",
+                     tags$span(translate = "no", tp$q1)),
           uiOutput("prev1"),
           textAreaInput("a1", NULL,
             value = if (length(mine1)) mine1[1] else "",
             placeholder = "Aufgreifen, ergaenzen, weiterentwickeln \u2026",
             width = "100%"
           ),
-          tags$label(class = "bw-q", `for` = "a2", paste0("Frage 2 \u2014 ", tp$q2)),
+          tags$label(class = "bw-q", `for` = "a2", "Frage 2 \u2014 ",
+                     tags$span(translate = "no", tp$q2)),
           uiOutput("prev2"),
           textAreaInput("a2", NULL,
             value = if (length(mine2)) mine2[1] else "",
@@ -294,15 +469,17 @@ app_server <- function(cfg) {
       rows <- e[e$topic_id == ctx$topic_id & e$sheet == ctx$sheet &
                   e$round < ctx$round & e$question == qn & nzchar(e$text), ]
       if (!nrow(rows)) {
-        return(p(class = "bw-status",
-                 "Noch keine Vorbeitraege \u2014 dieser Bogen beginnt bei dir."))
+        return(p(
+          class = "bw-status",
+          "Noch keine Vorbeitraege \u2014 dieser Bogen beginnt bei dir."
+        ))
       }
       rows <- rows[order(rows$round), ]
       lapply(seq_len(nrow(rows)), function(i) {
         div(
           class = "bw-prev",
           div(class = "who", paste0("Runde ", rows$round[i], " \u00b7 ", pn[[rows$pid[i]]])),
-          div(rows$text[i])
+          div(translate = "no", rows$text[i])
         )
       })
     }
@@ -310,7 +487,7 @@ app_server <- function(cfg) {
     output$prev2 <- renderUI(prev_block(2))
 
     draft <- function(value) {
-      list(text = value, ctx = isolate(edit_ctx()), pid = isolate(my_pid()))
+      list(text = value, ctx = isolate(edit_ctx()), pid = isolate(active_pid()))
     }
     a1_d <- debounce(reactive(draft(input$a1)), 1200)
     a2_d <- debounce(reactive(draft(input$a2)), 1200)
@@ -336,10 +513,17 @@ app_server <- function(cfg) {
       if (is.null(ctx)) {
         return()
       }
-      save_entry(cfg$db_path, my_pid(), ctx$topic_id, ctx$sheet, ctx$round,
-                 1L, input$a1 %||% "", submitted = 1L)
-      save_entry(cfg$db_path, my_pid(), ctx$topic_id, ctx$sheet, ctx$round,
-                 2L, input$a2 %||% "", submitted = 1L)
+      save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
+        1L, input$a1 %||% "",
+        submitted = 1L
+      )
+      save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
+        2L, input$a2 %||% "",
+        submitted = 1L
+      )
+      if (isolate(tick_meta())$s$mode == "hot_seat") {
+        maybe_advance(cfg$db_path, force = TRUE, expected = tick_meta()$s)
+      }
       submitted_flag(as.character(ctx$round))
       showNotification("Abgegeben \u2713", type = "message", duration = 2)
     })
@@ -350,10 +534,15 @@ app_server <- function(cfg) {
         return(NULL)
       }
       st <- tick_all()
-      pid <- my_pid() %||% ""
+      pid <- active_pid() %||% ""
       done_db <- nrow(st$entries) > 0 &&
         any(st$entries$pid == pid & st$entries$round == ctx$round & st$entries$submitted == 1)
       done <- done_db || identical(submitted_flag(), as.character(ctx$round))
+      if (st$s$mode == "hot_seat") {
+        return(actionButton("submit_btn", "Fertig \u2014 weitergeben",
+          class = "btn-primary w-100 btn-lg"
+        ))
+      }
       if (done) {
         div(
           class = "text-center bw-status py-2",
@@ -393,97 +582,305 @@ app_server <- function(cfg) {
       )
     })
 
+    setup_upload <- reactiveVal(list(topics = NULL, revision = 0L))
+    setup_render_revision <- reactiveVal(-1L)
+
+    demo_previous <- reactiveVal(NULL)
+
+    setup_apply_topics <- function(topics) {
+      shiny::updateNumericInput(session, "n_groups", value = length(topics))
+      for (i in seq_along(topics)) {
+        for (field in c("title", "q1", "q2")) {
+          shiny::updateTextInput(session, paste0("t_", field, "_", i),
+                                 value = topics[[i]][[field]])
+        }
+      }
+      setup_upload(list(topics = topics, revision = setup_upload()$revision + 1L))
+    }
+
+    observeEvent(input$demo_questions, {
+      req(is_mod())
+      con <- db(cfg$db_path)
+      status <- get_session(con)$status
+      dbDisconnect(con)
+      if (status != "setup") return()
+      if (isTRUE(input$demo_questions)) {
+        k <- input$n_groups %||% 3
+        if (!is.numeric(k) || length(k) != 1L || is.na(k) ||
+              k != floor(k) || k < 2 || k > 6) k <- 3
+        previous <- lapply(seq_len(k), function(i) {
+          list(title = input[[paste0("t_title_", i)]] %||% "",
+               q1 = input[[paste0("t_q1_", i)]] %||% "",
+               q2 = input[[paste0("t_q2_", i)]] %||% "")
+        })
+        demo_previous(previous)
+        setup_apply_topics(example_topics(input$ui_language %||% "de"))
+      } else {
+        previous <- demo_previous()
+        demo_previous(NULL)
+        if (!is.null(previous)) setup_apply_topics(previous)
+      }
+    }, ignoreInit = TRUE)
+
+
+    setup_names <- function(value) {
+      names <- trimws(strsplit(value %||% "", "\n", fixed = TRUE)[[1]])
+      names[nzchar(names)]
+    }
+
+    setup_config <- reactive({
+      k <- input$n_groups %||% 3
+      if (!is.numeric(k) || length(k) != 1L || is.na(k) ||
+            k != floor(k) || k < 2 || k > 6) {
+        return("topics: muss 2 bis 6 Themen enthalten.")
+      }
+      groups <- setup_names(input$group_names)
+      validate_settings(list(
+        format = "brainwriting635-settings/1",
+        mode = input$play_mode %||% "individual",
+        rounds = input$n_rounds %||% 3,
+        round_secs = input$round_secs %||% 300,
+        turn_secs = input$turn_secs %||% 90,
+        topics = lapply(seq_len(k), function(i) {
+          list(
+            title = input[[paste0("t_title_", i)]] %||% "",
+            q1 = input[[paste0("t_q1_", i)]] %||% "",
+            q2 = input[[paste0("t_q2_", i)]] %||% ""
+          )
+        }),
+        groups = if (length(groups)) groups else NULL,
+        participants = setup_names(input$roster)
+      ))
+    })
+
     mod_setup_ui <- function() {
       tagList(
         div(
           class = "bw-card",
           h3("Session einrichten"),
+          shiny::fileInput("settings_file", "Einstellungen laden (YAML)",
+            accept = c(".yml", ".yaml"),
+            buttonLabel = "Durchsuchen \u2026", placeholder = "Keine Datei ausgew\u00e4hlt"
+          ),
+          shiny::checkboxInput("demo_questions", "Beispiel-Fragenset verwenden", FALSE),
+          p(class = "bw-status", paste0(
+            "Drei bearbeitbare Beispielthemen. ",
+            "Abw\u00e4hlen stellt die vorherigen Themen wieder her."
+          )),
+          shiny::radioButtons("play_mode", "Spielmodus", choices = c(
+            "Alle am eigenen Ger\u00e4t" = "individual",
+            "Ein Ger\u00e4t pro Gruppe" = "group_device",
+            "Reihum an einem Ger\u00e4t" = "hot_seat"
+          ), selected = "individual"),
           div(
             class = "row g-2",
             div(
               class = "col-12 col-sm-4",
-              numericInput("n_groups", "Themen = Gruppen", 3, min = 2, max = 6, width = "100%")
+              numericInput("n_groups", "Themen = Gruppen", 3,
+                min = 2, max = 6,
+                width = "100%"
+              )
             ),
             div(
               class = "col-12 col-sm-4",
-              numericInput("n_rounds", "Runden", 3, min = 1, max = 12, width = "100%")
+              numericInput("n_rounds", "Runden / Durchg\u00e4nge", 3,
+                min = 1, max = 12,
+                width = "100%"
+              )
             ),
             div(
               class = "col-12 col-sm-4",
-              numericInput("round_secs", "Sek./Runde", 300,
-                min = 60, max = 1800,
-                step = 30, width = "100%"
+              shiny::conditionalPanel(
+                "input.play_mode !== 'hot_seat'",
+                numericInput("round_secs", "Sek./Runde", 300,
+                  min = 30, max = 1800,
+                  step = 30, width = "100%"
+                )
+              ),
+              shiny::conditionalPanel(
+                "input.play_mode === 'hot_seat'",
+                numericInput("turn_secs", "Sek./Person", 90,
+                  min = 20, max = 600,
+                  step = 10, width = "100%"
+                )
               )
             )
           ),
-          p(
-            class = "bw-status",
-            paste0("Preset 15-2-5: 3 Themen, 3 Runden, 300 s. ",
-                   "Nach K Runden hat jeder jedes Thema 1\u00d7 bearbeitet.")
-          )
+          shiny::conditionalPanel(
+            "input.play_mode !== 'group_device'",
+            textAreaInput("roster", "Namen (ein Name pro Zeile)",
+              rows = 5,
+              placeholder = "Im Einzelmodus optional", width = "100%"
+            )
+          ),
+          shiny::conditionalPanel(
+            "input.play_mode === 'group_device'",
+            textAreaInput("group_names", "Gruppennamen (ein Name pro Zeile, optional)",
+              rows = 4, width = "100%"
+            )
+          ),
+          uiOutput("duration_estimate"),
+          p(class = "bw-status", paste0(
+            "Preset 15-2-5: 3 Themen, 3 Runden, 300 s. ",
+            "Nach K Runden hat jeder jedes Thema 1\u00d7 bearbeitet."
+          ))
         ),
         uiOutput("topic_form"),
-        actionButton("setup_save", "Speichern und Lobby oeffnen",
-          class = "btn-primary w-100 btn-lg"
+        downloadButton("dl_settings", "Einstellungen exportieren (YAML)"),
+        actionButton("setup_save", "Speichern und Lobby \u00f6ffnen",
+          class = "btn-primary w-100 btn-lg mt-2"
         )
       )
     }
+
+    observeEvent(input$play_mode, {
+      shiny::updateActionButton(session, "setup_save",
+        label =
+          if (identical(input$play_mode, "hot_seat")) {
+            "Speichern und starten"
+          } else {
+            "Speichern und Lobby \u00f6ffnen"
+          }
+      )
+    })
+
+    output$duration_estimate <- renderUI({
+      hot <- identical(input$play_mode, "hot_seat")
+      seconds <- (input$n_rounds %||% 3) * if (hot) {
+        length(setup_names(input$roster)) * (input$turn_secs %||% 90)
+      } else {
+        input$round_secs %||% 300
+      }
+      if (!is.finite(seconds)) {
+        return(NULL)
+      }
+      p(class = "bw-status", sprintf(
+        "Gesch\u00e4tzte Arbeitszeit: %.1f Minuten (ohne \u00dcbergaben und Pausen).",
+        seconds / 60
+      ))
+    })
 
     output$topic_form <- renderUI({
       req(is_mod())
       k <- suppressWarnings(as.integer(input$n_groups %||% 3))
       if (is.na(k) || k < 2) k <- 3
       if (k > 6) k <- 6
-      lapply(seq_len(k), function(k) {
-        tt <- isolate(input[[paste0("t_title_", k)]]) %||% ""
-        qa <- isolate(input[[paste0("t_q1_", k)]]) %||% ""
-        qb <- isolate(input[[paste0("t_q2_", k)]]) %||% ""
+      uploaded <- setup_upload()
+      fresh <- uploaded$revision != isolate(setup_render_revision())
+      if (!fresh || k == length(uploaded$topics)) {
+        isolate(setup_render_revision(uploaded$revision))
+      }
+      if (fresh && length(uploaded$topics)) k <- length(uploaded$topics)
+      lapply(seq_len(k), function(i) {
+        seed <- if (fresh && length(uploaded$topics) >= i) uploaded$topics[[i]] else NULL
+        value <- function(field, id) {
+          if (!is.null(seed)) seed[[field]] else isolate(input[[paste0(id, i)]]) %||% ""
+        }
         div(
-          class = "bw-card",
-          strong(paste0("Thema ", k)),
-          textInput(paste0("t_title_", k), "Titel des Themas",
-            value = tt,
-            placeholder = "Titel des Themas", width = "100%"
+          class = "bw-card", strong(paste0("Thema ", i)),
+          textInput(paste0("t_title_", i), "Titel des Themas",
+            value = value("title", "t_title_"), width = "100%"
           ),
-          textInput(paste0("t_q1_", k), "Frage 1",
-            value = qa,
-            placeholder = "Frage 1", width = "100%"
+          textAreaInput(paste0("t_q1_", i), "Frage 1", rows = 2,
+            value = value("q1", "t_q1_"), width = "100%"
           ),
-          textInput(paste0("t_q2_", k), "Frage 2",
-            value = qb,
-            placeholder = "Frage 2", width = "100%"
+          textAreaInput(paste0("t_q2_", i), "Frage 2", rows = 2,
+            value = value("q2", "t_q2_"), width = "100%"
           )
         )
       })
     })
 
-    observeEvent(input$setup_save, {
+    observeEvent(input$settings_file, {
       req(is_mod())
-      k <- suppressWarnings(as.integer(input$n_groups %||% 3))
-      if (is.na(k) || k < 2 || k > 6) {
-        showNotification("Gruppenzahl 2\u20136 waehlen.", type = "warning")
+      con <- db(cfg$db_path)
+      status <- get_session(con)$status
+      dbDisconnect(con)
+      if (status != "setup") {
         return()
       }
-      vals <- lapply(seq_len(k), function(k) {
-        list(
-          t = trimws(input[[paste0("t_title_", k)]] %||% ""),
-          a = trimws(input[[paste0("t_q1_", k)]] %||% ""),
-          b = trimws(input[[paste0("t_q2_", k)]] %||% "")
+      warnings <- new.env(parent = emptyenv())
+      warnings$messages <- character()
+      parsed <- withCallingHandlers(parse_settings(input$settings_file$datapath),
+        warning = function(w) {
+          warnings$messages <- c(warnings$messages, conditionMessage(w))
+          invokeRestart("muffleWarning")
+        }
+      )
+      if (!inherits(parsed, "bw_settings")) {
+        shiny::showModal(shiny::modalDialog(
+          title = "Einstellungen pr\u00fcfen",
+          tags$ul(lapply(parsed, tags$li)), easyClose = TRUE
+        ))
+        return()
+      }
+      if (length(warnings$messages)) {
+        showNotification(paste(warnings$messages, collapse = "\n"),
+          type = "warning", duration = NULL
         )
-      })
-      if (any(vapply(
-        vals, function(v) !nzchar(v$t) || !nzchar(v$a) || !nzchar(v$b),
-        logical(1)
-      ))) {
-        showNotification("Bitte alle Titel und Fragen ausfuellen.", type = "warning")
-        return()
       }
-      nr <- input$n_rounds %||% 3
-      rs <- input$round_secs %||% 300
-      err <- configure_session(cfg$db_path, k, nr, rs, vals)
-      if (!is.null(err)) showNotification(err, type = "warning")
+      demo_previous(NULL)
+      shiny::updateCheckboxInput(session, "demo_questions", value = FALSE)
+      shiny::updateRadioButtons(session, "play_mode", selected = parsed$mode)
+      shiny::updateNumericInput(session, "n_groups", value = length(parsed$topics))
+      shiny::updateNumericInput(session, "n_rounds", value = parsed$rounds)
+      shiny::updateNumericInput(session, "round_secs", value = parsed$round_secs)
+      shiny::updateNumericInput(session, "turn_secs", value = parsed$turn_secs)
+      shiny::updateTextAreaInput(session, "roster",
+        value = paste(parsed$participants, collapse = "\n")
+      )
+      shiny::updateTextAreaInput(session, "group_names",
+        value = paste(parsed$groups, collapse = "\n")
+      )
+      for (i in seq_along(parsed$topics)) {
+        for (field in c("title", "q1", "q2")) {
+          shiny::updateTextInput(session, paste0("t_", field, "_", i),
+            value = parsed$topics[[i]][[field]]
+          )
+        }
+      }
+      setup_upload(list(topics = parsed$topics, revision = setup_upload()$revision + 1L))
+      showNotification("Einstellungen geladen. Bitte pr\u00fcfen und best\u00e4tigen.",
+        type = "message"
+      )
     })
 
+    output$dl_settings <- downloadHandler(
+      filename = function() {
+        paste0(
+          "brainwriting_einstellungen_", format(Sys.Date(), "%Y%m%d"),
+          ".yml"
+        )
+      },
+      content = function(file) {
+        req(is_mod())
+        con <- db(cfg$db_path)
+        status <- get_session(con)$status
+        dbDisconnect(con)
+        settings <- if (status == "setup") isolate(setup_config()) else get_settings(cfg$db_path)
+        write_settings(settings, file)
+      }
+    )
+
+    observeEvent(input$setup_save, {
+      req(is_mod())
+      settings <- setup_config()
+      if (!inherits(settings, "bw_settings")) {
+        shiny::showModal(shiny::modalDialog(
+          title = "Einstellungen pr\u00fcfen",
+          tags$ul(lapply(settings, tags$li)), easyClose = TRUE
+        ))
+        return()
+      }
+      vals <- lapply(settings$topics, function(topic) {
+        list(t = topic$title, a = topic$q1, b = topic$q2)
+      })
+      err <- configure_session(cfg$db_path, length(vals), settings$rounds,
+        settings$round_secs, vals,
+        settings = settings
+      )
+      if (!is.null(err)) showNotification(err, type = "warning")
+    })
     mod_lobby_ui <- function() {
       tagList(
         div(
@@ -493,7 +890,13 @@ app_server <- function(cfg) {
           tags$code(cfg$base_url),
           plotOutput("qr", height = "240px"),
           uiOutput("mod_lobby_list"),
-          actionButton("start_btn", "Session starten", class = "btn-primary w-100 btn-lg mt-2")
+          downloadButton("dl_settings", "Einstellungen exportieren (YAML)"),
+          actionButton("start_btn", "Session starten", class = "btn-primary w-100 btn-lg mt-2"),
+          if (isolate(tick_meta())$s$mode == "group_device") {
+            actionButton("start_override", "Ohne alle Gruppen starten",
+              class = "btn-outline-secondary w-100 mt-2"
+            )
+          }
         )
       )
     }
@@ -517,7 +920,7 @@ app_server <- function(cfg) {
         p(
           class = "bw-status",
           if (nrow(st$participants)) {
-            paste(st$participants$name, collapse = ", ")
+            tags$span(translate = "no", paste(st$participants$name, collapse = ", "))
           } else {
             "Noch niemand da."
           }
@@ -539,26 +942,41 @@ app_server <- function(cfg) {
           uiOutput("timer"),
           div(
             class = "mt-2 d-flex gap-2 justify-content-center",
-            actionButton("plus60_btn", "+60 s", class = "btn btn-outline-secondary"),
+            actionButton("plus60_btn", if (s$mode == "hot_seat") "+30 s" else "+60 s",
+              class = "btn btn-outline-secondary"
+            ),
             actionButton("next_btn", "Runde beenden", class = "btn-primary")
           )
         ),
+        if (s$mode == "hot_seat") {
+          div(
+            class = "bw-card",
+            uiOutput("current_turn_info"),
+            actionButton("mod_skip", "\u00dcberspringen", class = "btn-outline-secondary"),
+            actionButton("abort_btn", "Abbrechen zur Ergebnisansicht",
+              class = "btn-outline-danger"
+            ),
+            textInput("late_name", "Name / Pseudonym"),
+            actionButton("late_add", "Nachz\u00fcgler hinzuf\u00fcgen")
+          )
+        },
         uiOutput("mod_progress")
       )
     }
 
     observeEvent(input$plus60_btn, {
       req(is_mod())
-      con <- db(cfg$db_path)
-      on.exit(dbDisconnect(con), add = TRUE)
-      dbExecute(con, "
-      UPDATE session SET round_ends_at = COALESCE(round_ends_at, :n) + 60
-      WHERE id = 1 AND status = 'running'", params = list(n = now()))
+      seconds <- if (isolate(tick_meta())$s$mode == "hot_seat") 30 else 60
+      extend_clock(cfg$db_path, seconds)
     })
 
     observeEvent(input$next_btn, {
       req(is_mod())
-      maybe_advance(cfg$db_path, force = TRUE)
+      if (isolate(tick_meta())$s$mode == "hot_seat") {
+        end_pass(cfg$db_path, expected = tick_meta()$s)
+      } else {
+        maybe_advance(cfg$db_path, force = TRUE)
+      }
     })
 
     output$mod_progress <- renderUI({
@@ -579,7 +997,7 @@ app_server <- function(cfg) {
           class = "bw-card",
           strong(paste0("Gruppe ", g, " \u2192 ", tp$title)),
           div(class = "bw-status", paste0(done, " / ", nrow(members), " abgegeben")),
-          div(class = "bw-status", paste(members$name, collapse = ", "))
+          div(class = "bw-status", translate = "no", paste(members$name, collapse = ", "))
         )
       })
     })
@@ -593,12 +1011,118 @@ app_server <- function(cfg) {
             class = "d-flex gap-2 flex-wrap align-items-center",
             downloadButton("dl_csv", "CSV"),
             downloadButton("dl_md", "Markdown"),
+            downloadButton("dl_rds", "RDS"),
+            downloadButton("dl_xlsx", "XLSX"),
+            downloadButton("dl_pdf", "Bericht (PDF)"),
             actionButton("reset_btn", "Neue Session \u2026", class = "btn-outline-danger ms-auto")
           )
         ),
-        uiOutput("mod_results")
+        shiny::checkboxInput("anonymize", "Namen pseudonymisieren (TN-01, TN-02, \u2026)", FALSE),
+        shiny::tabsetPanel(
+          shiny::tabPanel("Beitr\u00e4ge", uiOutput("mod_results")),
+          shiny::tabPanel("Auswertung", uiOutput("analytics_view"))
+        )
       )
     }
+
+    output$analytics_view <- renderUI({
+      req(is_mod(), tick_meta()$s$status == "finished")
+      st <- tick_all()
+      tagList(
+        div(
+          class = "bw-card", uiOutput("analytics_kpis"),
+          shiny::checkboxInput("exclude_prompt", "Begriffe aus Themen und Fragen ausblenden", TRUE),
+          p(
+            class = "bw-status",
+            "Deskriptive Textauswertung; keine Bewertung der Ideenqualit\u00e4t."
+          )
+        ),
+        div(class = "bw-card", plotOutput("fig_contributions", height = "300px")),
+        div(class = "bw-card", plotOutput("fig_terms", height = "420px")),
+        div(
+          class = "bw-card",
+          shiny::selectInput("analytics_topic", "Thema", choices = c(
+            "Alle Themen" = "all", stats::setNames(as.character(st$topics$id), st$topics$title)
+          )),
+          numericInput("min_cooc", "Min. gemeinsames Auftreten", 2, min = 1, max = 100),
+          plotOutput("fig_network", height = "360px"),
+          plotOutput("fig_wordcloud", height = "300px")
+        ),
+        div(
+          class = "bw-card", plotOutput("fig_buildon", height = "280px"),
+          p(class = "bw-status", paste0(
+            "Ankn\u00fcpfungsgrad: mittlere Jaccard-\u00dcberlappung der Begriffe ",
+            "aufeinanderfolgender Runden je Bogen und Frage. ",
+            "Wortwiederholung ist kein Nachweis inhaltlicher Weiterentwicklung."
+          ))
+        )
+      )
+    })
+    analytics_data <- reactive({
+      req(is_mod(), tick_meta()$s$status == "finished")
+      tick_all()
+    })
+    analytics_selected <- reactive({
+      e <- analytics_data()$entries
+      topic <- input$analytics_topic %||% "all"
+      if (topic != "all") e <- e[e$topic_id == suppressWarnings(as.integer(topic)), , drop = FALSE]
+      e
+    })
+    output$analytics_kpis <- renderUI({
+      st <- analytics_data()
+      k <- bw_kpis(st$entries, st$topics, exclude_prompt = input$exclude_prompt %||% TRUE)
+      values <- c(
+        k$contributions, round(k$mean_words, 1),
+        if (is.na(k$submission_rate)) {
+          "\u2014"
+        } else {
+          paste0(round(100 * k$submission_rate), "%")
+        }, k$distinct_terms
+      )
+      values[is.na(values)] <- "\u2014"
+      labels <- c(
+        "Beitr\u00e4ge", "\u00d8 W\u00f6rter je Beitrag", "Abgabequote",
+        "Verschiedene Begriffe"
+      )
+      div(class = "row g-3", lapply(seq_along(labels), function(i) {
+        div(
+          class = "col-6 col-sm-3", div(class = "fs-3 fw-bold", values[i]),
+          div(class = "bw-status", labels[i])
+        )
+      }))
+    })
+    output$fig_contributions <- renderPlot({
+      st <- analytics_data()
+      bw_plot_language(bw_plot_contributions(st$entries, st$topics), input$ui_language %||% "de")
+    })
+    output$fig_terms <- renderPlot({
+      st <- analytics_data()
+      bw_plot_language(
+        bw_plot_terms(st$entries, st$topics, exclude_prompt = input$exclude_prompt %||% TRUE),
+        input$ui_language %||% "de"
+      )
+    })
+    output$fig_network <- renderPlot({
+      st <- analytics_data()
+      threshold <- input$min_cooc %||% 2
+      req(is.numeric(threshold), is.finite(threshold), threshold >= 1)
+      bw_plot_language(bw_plot_network(analytics_selected(), st$topics,
+                         min_cooc = threshold,
+                         exclude_prompt = input$exclude_prompt %||% TRUE
+                       ), input$ui_language %||% "de")
+    })
+    output$fig_wordcloud <- renderPlot({
+      st <- analytics_data()
+      bw_plot_language(bw_plot_wordcloud(analytics_selected(), st$topics,
+                         exclude_prompt = input$exclude_prompt %||% TRUE
+                       ), input$ui_language %||% "de")
+    })
+    output$fig_buildon <- renderPlot({
+      st <- analytics_data()
+      bw_plot_language(bw_plot_buildon(st$entries, st$topics,
+                         exclude_prompt = input$exclude_prompt %||% TRUE
+                       ), input$ui_language %||% "de")
+    })
 
     output$mod_results <- renderUI({
       req(is_mod())
@@ -609,8 +1133,11 @@ app_server <- function(cfg) {
         sub <- st$entries[st$entries$topic_id == tp$id & nzchar(st$entries$text), ]
         div(
           class = "bw-card",
-          h4(paste0("Thema ", tp$id, ": ", tp$title)),
-          p(class = "bw-status", paste0("F1: ", tp$q1, "   \u00b7   F2: ", tp$q2)),
+          h4(paste0("Thema ", tp$id, ": "), tags$span(translate = "no", tp$title)),
+          p(
+            class = "bw-status", translate = "no",
+            paste0("F1: ", tp$q1, "   \u00b7   F2: ", tp$q2)
+          ),
           if (!nrow(sub)) {
             p(class = "bw-status", "Keine Beitraege.")
           } else {
@@ -630,7 +1157,7 @@ app_server <- function(cfg) {
                         " \u00b7 ", pn[[ss$pid[j]]]
                       )
                     ),
-                    div(ss$text[j])
+                    div(translate = "no", ss$text[j])
                   )
                 })
               )
@@ -644,7 +1171,9 @@ app_server <- function(cfg) {
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".csv"),
       content = function(file) {
         req(is_mod())
-        write.csv(export_df(cfg$db_path), file, row.names = FALSE, fileEncoding = "UTF-8")
+        data <- export_df(cfg$db_path)
+        if (isTRUE(input$anonymize)) data <- export_snapshot_df(download_data())
+        write.csv(data, file, row.names = FALSE, fileEncoding = "UTF-8")
       }
     )
 
@@ -652,8 +1181,34 @@ app_server <- function(cfg) {
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".md"),
       content = function(file) {
         req(is_mod())
-        writeLines(build_md(cfg$db_path), file, useBytes = TRUE)
+        text <- if (isTRUE(input$anonymize)) {
+          build_snapshot_md(download_data())
+        } else {
+          build_md(cfg$db_path)
+        }
+        writeLines(text, file, useBytes = TRUE)
       }
+    )
+
+    download_data <- function() {
+      req(is_mod())
+      data <- collect_data(cfg$db_path)
+      if (isTRUE(input$anonymize)) data <- pseudonymize_data(data)
+      data
+    }
+    output$dl_rds <- downloadHandler(
+      filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".rds"),
+      content = function(file) write_rds(download_data(), file)
+    )
+    output$dl_xlsx <- downloadHandler(
+      filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".xlsx"),
+      content = function(file) write_xlsx(download_data(), file)
+    )
+    output$dl_pdf <- downloadHandler(
+      filename = function() {
+        paste0("brainwriting_bericht_", format(Sys.time(), "%Y%m%d_%H%M"), ".pdf")
+      },
+      content = function(file) build_report(download_data(), file)
     )
 
     observeEvent(input$reset_btn, {
