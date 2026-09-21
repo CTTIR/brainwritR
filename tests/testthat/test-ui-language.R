@@ -93,7 +93,11 @@ test_that("English example questions remain editable and disabling restores prio
   ))
   app$wait_for_js("document.documentElement.lang === 'en'")
   app$set_inputs(n_groups = 2)
-  app$wait_for_js("!document.querySelector('#t_title_3')")
+  app$wait_for_js(paste0(
+    "!document.querySelector('#t_title_3') && ",
+    "['t_title_1','t_title_2','t_q1_1','t_q2_1','t_q1_2','t_q2_2'].every(",
+    "id => document.getElementById(id)?.classList.contains('shiny-bound-input'))"
+  ))
   app$set_inputs(t_title_1 = "Custom prior topic", t_q1_1 = "Custom prior question?",
                  t_q2_1 = "Custom prior second question?", t_title_2 = "Second custom topic",
                  t_q1_2 = "Another prior question?", t_q2_2 = "Another second question?")
@@ -105,6 +109,7 @@ test_that("English example questions remain editable and disabling restores prio
   expect_equal(first, "Learning together")
   expect_equal(app$get_js("document.querySelector('#t_q1_1').value"),
                "What helps us learn from one another?")
+  app$wait_for_js("!!document.querySelector('#t_q1_1.shiny-bound-input')")
   app$set_inputs(t_q1_1 = "Our edited English example question?")
   app$run_js(paste0(
     "document.querySelector('#bw-language-slider').value='3'; ",
