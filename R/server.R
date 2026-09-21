@@ -583,7 +583,29 @@ app_server <- function(cfg) {
     })
 
     setup_upload <- reactiveVal(list(topics = NULL, revision = 0L))
-    setup_render_revision <- reactiveVal(-1L)
+    topic_form_gate <- reactiveVal(NULL)
+    pending_topic_count <- reactiveVal(NULL)
+
+    observe({
+      k <- suppressWarnings(as.integer(input$n_groups %||% 3))
+      if (length(k) != 1L || is.na(k) || k < 2L || k > 6L) k <- 3L
+      uploaded <- setup_upload()
+      old <- isolate(topic_form_gate())
+      if (is.null(old) || uploaded$revision != old$revision) {
+        target <- if (length(uploaded$topics)) length(uploaded$topics) else k
+        pending_topic_count(if (k != target) target else NULL)
+        topic_form_gate(list(k = target, revision = uploaded$revision, topics = uploaded$topics))
+        return()
+      }
+      pending <- isolate(pending_topic_count())
+      if (!is.null(pending)) {
+        if (k == pending) pending_topic_count(NULL)
+        return()
+      }
+      if (k != old$k) {
+        topic_form_gate(list(k = k, revision = old$revision, topics = NULL))
+      }
+    })
 
     demo_previous <- reactiveVal(NULL)
 
@@ -762,17 +784,10 @@ app_server <- function(cfg) {
 
     output$topic_form <- renderUI({
       req(is_mod())
-      k <- suppressWarnings(as.integer(input$n_groups %||% 3))
-      if (is.na(k) || k < 2) k <- 3
-      if (k > 6) k <- 6
-      uploaded <- setup_upload()
-      fresh <- uploaded$revision != isolate(setup_render_revision())
-      if (!fresh || k == length(uploaded$topics)) {
-        isolate(setup_render_revision(uploaded$revision))
-      }
-      if (fresh && length(uploaded$topics)) k <- length(uploaded$topics)
-      lapply(seq_len(k), function(i) {
-        seed <- if (fresh && length(uploaded$topics) >= i) uploaded$topics[[i]] else NULL
+      state <- topic_form_gate()
+      req(!is.null(state))
+      lapply(seq_len(state$k), function(i) {
+        seed <- if (length(state$topics) >= i) state$topics[[i]] else NULL
         value <- function(field, id) {
           if (!is.null(seed)) seed[[field]] else isolate(input[[paste0(id, i)]]) %||% ""
         }
@@ -1230,6 +1245,11 @@ app_server <- function(cfg) {
       req(reset_pending())
       reset_pending(FALSE)
       reset_session(cfg$db_path)
+      demo_previous(NULL)
+      setup_upload(list(
+        topics = replicate(3L, list(title = "", q1 = "", q2 = ""), simplify = FALSE),
+        revision = setup_upload()$revision + 1L
+      ))
       removeModal()
     })
   }

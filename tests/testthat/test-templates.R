@@ -64,3 +64,25 @@ test_that("a valid upload supersedes the demo and cannot restore stale topics", 
     expect_identical(setup_upload()$revision, revision)
   })
 })
+
+test_that("late topic-count acknowledgements do not rerender edited example fields", {
+  path <- withr::local_tempfile()
+  init_db(path)
+  cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
+  shiny::testServer(app_server(cfg), {
+    session$setInputs(pin = "secret", pin_btn = 1, n_groups = 2,
+                      demo_questions = FALSE, ui_language = "en")
+    session$setInputs(demo_questions = TRUE)
+    state <- topic_form_gate()
+    expect_equal(state$k, 3)
+    expect_equal(pending_topic_count(), 3)
+    session$setInputs(t_q1_1 = "An immediate edit", ui_language = "fr")
+    expect_identical(topic_form_gate(), state)
+    session$setInputs(n_groups = 3)
+    expect_identical(topic_form_gate(), state)
+    expect_null(pending_topic_count())
+    session$setInputs(n_groups = 4)
+    expect_equal(topic_form_gate()$k, 4)
+    expect_null(topic_form_gate()$topics)
+  })
+})

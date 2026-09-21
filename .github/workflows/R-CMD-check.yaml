@@ -52,6 +52,10 @@ jobs:
           browser_path=$(command -v google-chrome)
           echo "CHROMOTE_CHROME=$browser_path" >> "$GITHUB_ENV"
 
+      - name: Install XQuartz for Cairo on macOS
+        if: runner.os == 'macOS'
+        run: brew install --cask xquartz
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck

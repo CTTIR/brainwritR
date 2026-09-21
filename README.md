@@ -242,6 +242,11 @@ comparisons are averaged by topic. This is lexical continuity, **not
 evidence of idea quality or conceptual elaboration**. Discuss the
 original contributions alongside the charts.
 
+On macOS, the CRAN R build may require
+[XQuartz](https://www.xquartz.org/) for Cairo graphics. Install it
+before using PDF reports; see the [R Cairo device
+documentation](https://search.r-project.org/R/refmans/grDevices/html/cairo.html).
+
 The PDF always has two A4 portrait pages, including for an empty
 session: overview/parameters/KPIs/contributions/top terms, then
 networks/wordcloud/topic summary. Up to three topics receive separate

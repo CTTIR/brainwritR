@@ -13,7 +13,10 @@ test_that("setup modes show the relevant inputs and YAML changes the topic count
   app$set_inputs(play_mode = "group_device")
   app$wait_for_js("$('#group_names').is(':visible') && !$('#roster').is(':visible')")
   expect_true(app$get_js("$('#round_secs').is(':visible')"))
-  example <- parse_settings(testthat::test_path("../../inst/extdata/settings-example.yml"))
+  example <- parse_settings(system.file(
+    "extdata", "settings-example.yml", package = "brainwritR"
+  ))
+  expect_s3_class(example, "bw_settings")
   for (k in c(2L, 4L)) {
     settings <- example
     settings$topics <- rep(example$topics[1], k)
@@ -80,6 +83,7 @@ test_that("hot seat hands off identity without leaking the previous author's tex
   app$wait_for_js("!!document.querySelector('#a1')")
   modes_browser_capture(app, "hot-seat-answer-mobile")
   app$set_inputs(a1 = "Erste Person entwickelt eine Idee", a2 = "Ein nächster Schritt")
+  app$wait_for_js("!!document.querySelector('#submit_btn.shiny-bound-input')")
   app$click("submit_btn")
   app$wait_for_js("!!document.querySelector('#turn_start')")
   e <- read_table(path, "entries")
