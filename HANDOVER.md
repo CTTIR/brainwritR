@@ -189,7 +189,9 @@ local-time conversion, including fractional-second rounding boundaries.
   uses the deprecated `.Names` argument. Its package check still reports
   **Status: OK**. No warnings or assertions were suppressed; monitor an upstream
   qrcode update before the next R release.
-- Hosted lint and pkgdown deployment pass on `b1148e6`.
+- Hosted lint and pkgdown deployment pass on `b1148e6`. Note (found 2026-09-22):
+  Pages is set to "GitHub Actions" while pkgdown pushes `gh-pages`, so these builds
+  never went live; the site still serves 0.1.0 until Pages deploys from the branch.
 - README and pkgdown build successfully. Five actual English screenshots and both
   PDF pages were visually inspected; mobile layouts were exercised at 390 px.
 - Browser tests verify joins, reconnect/resume, input stability, all modes, YAML
