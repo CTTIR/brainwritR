@@ -3,8 +3,26 @@
 #' @noRd
 app_server <- function(cfg) {
   force(cfg)
+  auth <- moderator_auth()
   function(input, output, session) {
-    is_mod <- reactiveVal(FALSE)
+    is_mod <- moderator_login(input, session, auth, cfg$mod_pin)
+    # Each page is bound to exactly one session when it connects.
+    route <- resolve_route(cfg, request_query(session))
+    if (route$kind == "sessions") {
+      return(sessions_server(input, output, session, route$cfg, is_mod))
+    }
+    if (route$kind != "session") {
+      return(notice_server(output, route))
+    }
+    cfg <- route$cfg
+    prefill <- reactiveVal(route$prefill)
+    # A deleted session must never be recreated; its open pages reload instead.
+    session_alive <- function() {
+      if (file.exists(cfg$db_path)) return(TRUE)
+      session$sendCustomMessage("bw_reload", "")
+      FALSE
+    }
+    is_archived_now <- function() isTRUE(session_target(cfg$main_db, cfg$code)$archived)
     my_pid <- reactiveVal(NULL)
     part_state <- reactiveVal(NULL)
     mod_state <- reactiveVal(NULL)
@@ -13,6 +31,7 @@ app_server <- function(cfg) {
 
     tick_meta <- reactivePoll(cfg$poll_ms, session,
       checkFunc = function() {
+        if (!session_alive()) return("gone")
         maybe_advance(cfg$db_path)
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
@@ -24,6 +43,7 @@ app_server <- function(cfg) {
         FROM session")$v
       },
       valueFunc = function() {
+        req(session_alive())
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
         list(
@@ -36,6 +56,7 @@ app_server <- function(cfg) {
 
     tick_all <- reactivePoll(cfg$poll_ms, session,
       checkFunc = function() {
+        if (!session_alive()) return("gone")
         maybe_advance(cfg$db_path)
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
@@ -49,6 +70,7 @@ app_server <- function(cfg) {
                (SELECT COUNT(*) FROM participants) AS v")$v
       },
       valueFunc = function() {
+        req(session_alive())
         con <- db(cfg$db_path)
         on.exit(dbDisconnect(con), add = TRUE)
         list(
@@ -162,27 +184,13 @@ app_server <- function(cfg) {
 
 
     output$page <- renderUI({
-      qs <- parseQueryString(session$clientData$url_search)
-      if (identical(qs$mod, "1")) {
+      if (route$mod) {
         if (!is_mod()) {
-          return(div(
-            class = "bw-card",
-            h2("Moderator"),
-            passwordInput("pin", "PIN", width = "100%"),
-            actionButton("pin_btn", "Anmelden", class = "btn-primary w-100")
-          ))
+          return(mod_login_ui())
         }
-        return(uiOutput("mod_view"))
+        return(tagList(mod_nav_ui(cfg), uiOutput("mod_view")))
       }
       uiOutput("part_view")
-    })
-
-    observeEvent(input$pin_btn, {
-      if (identical(input$pin, cfg$mod_pin)) {
-        is_mod(TRUE)
-      } else {
-        showNotification("Falsche PIN.", type = "error")
-      }
     })
 
 
@@ -493,7 +501,7 @@ app_server <- function(cfg) {
     a2_d <- debounce(reactive(draft(input$a2)), 1200)
     save_draft <- function(value, question) {
       ctx <- value$ctx
-      if (is.null(ctx) || is.null(value$text) || is.null(value$pid)) {
+      if (is.null(ctx) || is.null(value$text) || is.null(value$pid) || !session_alive()) {
         return()
       }
       save_entry(
@@ -510,7 +518,7 @@ app_server <- function(cfg) {
 
     observeEvent(input$submit_btn, {
       ctx <- edit_ctx()
-      if (is.null(ctx)) {
+      if (is.null(ctx) || !session_alive()) {
         return()
       }
       save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
@@ -582,7 +590,7 @@ app_server <- function(cfg) {
       )
     })
 
-    setup_upload <- reactiveVal(list(topics = NULL, revision = 0L))
+    setup_upload <- reactiveVal(list(topics = route$prefill$topics, revision = 0L))
     topic_form_gate <- reactiveVal(NULL)
     pending_topic_count <- reactiveVal(NULL)
 
@@ -676,6 +684,7 @@ app_server <- function(cfg) {
     })
 
     mod_setup_ui <- function() {
+      d <- setup_defaults(isolate(prefill()))
       tagList(
         div(
           class = "bw-card",
@@ -686,26 +695,27 @@ app_server <- function(cfg) {
           ),
           shiny::checkboxInput("demo_questions", "Beispiel-Fragenset verwenden", FALSE),
           p(class = "bw-status", paste0(
-            "Drei bearbeitbare Beispielthemen. ",
+            "Drei bearbeitbare Beispielthemen nach dem 6-3-5-Prinzip: neue Ideen notieren, ",
+            "Ideen von oben weiterentwickeln. ",
             "Abw\u00e4hlen stellt die vorherigen Themen wieder her."
           )),
           shiny::radioButtons("play_mode", "Spielmodus", choices = c(
             "Alle am eigenen Ger\u00e4t" = "individual",
             "Ein Ger\u00e4t pro Gruppe" = "group_device",
             "Reihum an einem Ger\u00e4t" = "hot_seat"
-          ), selected = "individual"),
+          ), selected = d$mode),
           div(
             class = "row g-2",
             div(
               class = "col-12 col-sm-4",
-              numericInput("n_groups", "Themen = Gruppen", 3,
+              numericInput("n_groups", "Themen = Gruppen", d$k,
                 min = 2, max = 6,
                 width = "100%"
               )
             ),
             div(
               class = "col-12 col-sm-4",
-              numericInput("n_rounds", "Runden / Durchg\u00e4nge", 3,
+              numericInput("n_rounds", "Runden / Durchg\u00e4nge", d$rounds,
                 min = 1, max = 12,
                 width = "100%"
               )
@@ -714,14 +724,14 @@ app_server <- function(cfg) {
               class = "col-12 col-sm-4",
               shiny::conditionalPanel(
                 "input.play_mode !== 'hot_seat'",
-                numericInput("round_secs", "Sek./Runde", 300,
+                numericInput("round_secs", "Sek./Runde", d$round_secs,
                   min = 30, max = 1800,
                   step = 30, width = "100%"
                 )
               ),
               shiny::conditionalPanel(
                 "input.play_mode === 'hot_seat'",
-                numericInput("turn_secs", "Sek./Person", 90,
+                numericInput("turn_secs", "Sek./Person", d$turn_secs,
                   min = 20, max = 600,
                   step = 10, width = "100%"
                 )
@@ -731,14 +741,14 @@ app_server <- function(cfg) {
           shiny::conditionalPanel(
             "input.play_mode !== 'group_device'",
             textAreaInput("roster", "Namen (ein Name pro Zeile)",
-              rows = 5,
+              value = d$roster, rows = 5,
               placeholder = "Im Einzelmodus optional", width = "100%"
             )
           ),
           shiny::conditionalPanel(
             "input.play_mode === 'group_device'",
             textAreaInput("group_names", "Gruppennamen (ein Name pro Zeile, optional)",
-              rows = 4, width = "100%"
+              value = d$groups, rows = 4, width = "100%"
             )
           ),
           uiOutput("duration_estimate"),
@@ -1018,7 +1028,11 @@ app_server <- function(cfg) {
     })
 
     mod_finished_ui <- function() {
+      archived <- is_archived_now()
       tagList(
+        if (archived) {
+          div(class = "bw-card bw-status", "Archiviert \u2014 nur Ansicht und Export.")
+        },
         div(
           class = "bw-card",
           h3("Ergebnisse"),
@@ -1029,7 +1043,10 @@ app_server <- function(cfg) {
             downloadButton("dl_rds", "RDS"),
             downloadButton("dl_xlsx", "XLSX"),
             downloadButton("dl_pdf", "Bericht (PDF)"),
-            actionButton("reset_btn", "Neue Session \u2026", class = "btn-outline-danger ms-auto")
+            if (!archived) {
+              actionButton("reset_btn", "Zur\u00fccksetzen \u2026",
+                           class = "btn-outline-danger ms-auto")
+            }
           )
         ),
         shiny::checkboxInput("anonymize", "Namen pseudonymisieren (TN-01, TN-02, \u2026)", FALSE),
@@ -1128,9 +1145,11 @@ app_server <- function(cfg) {
     })
     output$fig_wordcloud <- renderPlot({
       st <- analytics_data()
-      bw_plot_language(bw_plot_wordcloud(analytics_selected(), st$topics,
-                         exclude_prompt = input$exclude_prompt %||% TRUE
-                       ), input$ui_language %||% "de")
+      plot <- bw_plot_language(bw_plot_wordcloud(analytics_selected(), st$topics,
+                                 exclude_prompt = input$exclude_prompt %||% TRUE
+                               ), input$ui_language %||% "de")
+      # ggwordcloud reseeds while drawing; keep participant and group draws random.
+      withr::with_preserve_seed(print(plot))
     })
     output$fig_buildon <- renderPlot({
       st <- analytics_data()
@@ -1228,10 +1247,10 @@ app_server <- function(cfg) {
 
     observeEvent(input$reset_btn, {
       req(is_mod())
-      req(identical(isolate(tick_meta())$s$status, "finished"))
+      req(identical(isolate(tick_meta())$s$status, "finished"), !is_archived_now())
       reset_pending(TRUE)
       showModal(modalDialog(
-        title = "Neue Session?",
+        title = "Session zur\u00fccksetzen?",
         "Alle Teilnehmer, Boegen und Beitraege werden geloescht. Vorher exportieren!",
         footer = tagList(
           modalButton("Abbrechen"),
@@ -1242,10 +1261,11 @@ app_server <- function(cfg) {
 
     observeEvent(input$reset_confirm, {
       req(is_mod())
-      req(reset_pending())
+      req(reset_pending(), !is_archived_now())
       reset_pending(FALSE)
       reset_session(cfg$db_path)
       demo_previous(NULL)
+      prefill(NULL)
       setup_upload(list(
         topics = replicate(3L, list(title = "", q1 = "", q2 = ""), simplify = FALSE),
         revision = setup_upload()$revision + 1L

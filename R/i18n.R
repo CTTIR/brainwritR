@@ -406,18 +406,99 @@ bw_language_dictionary <- function() {
 
   rbind(dictionary, data.frame(
     de = c("Beispiel-Fragenset verwenden", paste0(
-      "Drei bearbeitbare Beispielthemen. ",
+      "Drei bearbeitbare Beispielthemen nach dem 6-3-5-Prinzip: neue Ideen notieren, ",
+      "Ideen von oben weiterentwickeln. ",
       "Abw\u00e4hlen stellt die vorherigen Themen wieder her."
     )),
     en = c("Use example questions", paste0(
-      "Three editable example topics. ",
+      "Three editable example topics following the 6-3-5 principle: note new ideas, ",
+      "develop ideas from above. ",
       "Uncheck to restore the previous topics."
     )),
     fr = c("Utiliser les exemples de questions", paste0(
-      "Trois exemples de th\u00e8mes modifiables. ",
+      "Trois exemples de th\u00e8mes modifiables selon le principe 6-3-5 : noter de ",
+      "nouvelles id\u00e9es, d\u00e9velopper les id\u00e9es ci-dessus. ",
       "D\u00e9cochez pour restaurer les th\u00e8mes pr\u00e9c\u00e9dents."
     ))
-  ))
+  ), session_dictionary())
+}
+
+#' Interface strings of the session administration
+#' @return A data frame with German, English and French strings.
+#' @keywords internal
+#' @noRd
+session_dictionary <- function() {
+  rows <- list(
+    c("Standard-Session", "Standard session", "Session standard"),
+    c("Alle Sessions", "All sessions", "Toutes les sessions"),
+    c("Abmelden", "Sign out", "Se d\u00e9connecter"),
+    c("Session archiviert", "Session archived", "Session archiv\u00e9e"),
+    c("Session nicht gefunden", "Session not found", "Session introuvable"),
+    c("Diese Session ist abgeschlossen. Ein Beitritt ist nicht mehr m\u00f6glich.",
+      "This session has ended. Joining is no longer possible.",
+      "Cette session est termin\u00e9e. Il n\u2019est plus possible de la rejoindre."),
+    c("Bitte QR-Code oder Link pr\u00fcfen.", "Please check the QR code or link.",
+      "Veuillez v\u00e9rifier le code QR ou le lien."),
+    c("Zur Startseite", "To the start page", "Vers la page d\u2019accueil"),
+    c("Archiviert \u2014 nur Ansicht und Export.", "Archived \u2014 view and export only.",
+      "Archiv\u00e9e \u2014 consultation et export uniquement."),
+    c("Zur\u00fccksetzen \u2026", "Reset \u2026", "R\u00e9initialiser \u2026"),
+    c("Session zur\u00fccksetzen?", "Reset session?", "R\u00e9initialiser la session ?"),
+    c("Einrichtung", "Setup", "Pr\u00e9paration"),
+    c("L\u00e4uft", "Running", "En cours"),
+    c("Beendet", "Finished", "Termin\u00e9e"),
+    c("Datei fehlt", "File missing", "Fichier manquant"),
+    c("Archiviert", "Archived", "Archiv\u00e9e"),
+    c("Basisadresse", "Base address", "Adresse de base"),
+    c("\u00d6ffnen", "Open", "Ouvrir"),
+    c("QR-Code", "QR code", "Code QR"),
+    c("Neu starten", "Restart", "Relancer"),
+    c("Wiederherstellen", "Restore", "Restaurer"),
+    c("Archivieren", "Archive", "Archiver"),
+    c("L\u00f6schen", "Delete", "Supprimer"),
+    c("Zur\u00fccksetzen", "Reset", "R\u00e9initialiser"),
+    c("Sessions", "Sessions", "Sessions"),
+    c("Jede Session hat eine eigene Adresse und einen eigenen QR-Code.",
+      "Every session has its own address and QR code.",
+      "Chaque session a sa propre adresse et son propre code QR."),
+    c("Neue Session", "New session", "Nouvelle session"),
+    c("Aktiv", "Active", "Actives"),
+    c("Archiv", "Archive", "Archives"),
+    c("Keine Sessions.", "No sessions.", "Aucune session."),
+    c("Bezeichnung (optional)", "Label (optional)", "Intitul\u00e9 (facultatif)"),
+    c("Erstellen", "Create", "Cr\u00e9er"),
+    c("QR-Code herunterladen (PNG)", "Download QR code (PNG)",
+      "T\u00e9l\u00e9charger le code QR (PNG)"),
+    c("Schlie\u00dfen", "Close", "Fermer"),
+    c("Diese Session ist noch nicht eingerichtet.", "This session has not been set up yet.",
+      "Cette session n\u2019est pas encore pr\u00e9par\u00e9e."),
+    c("Standard-Session archivieren?", "Archive the standard session?",
+      "Archiver la session standard ?"),
+    c(paste("Die Ergebnisse werden als archivierte Session gespeichert.",
+            "Danach ist die Standard-Session f\u00fcr die n\u00e4chste Aktivit\u00e4t leer."),
+      paste("The results are saved as an archived session.",
+            "The standard session is then empty for the next activity."),
+      paste("Les r\u00e9sultats sont enregistr\u00e9s comme session archiv\u00e9e.",
+            "La session standard est ensuite vide pour la prochaine activit\u00e9.")),
+    c("Standard-Session zur\u00fccksetzen?", "Reset the standard session?",
+      "R\u00e9initialiser la session standard ?"),
+    c("Session l\u00f6schen?", "Delete session?", "Supprimer la session ?"),
+    c(paste("Die Session wird mit allen Teilnehmern und Beitr\u00e4gen",
+            "endg\u00fcltig gel\u00f6scht. Vorher exportieren!"),
+      paste("The session will be deleted permanently with all participants",
+            "and contributions. Export first!"),
+      paste("La session sera d\u00e9finitivement supprim\u00e9e avec tous les participants",
+            "et toutes les contributions. Exportez d\u2019abord !")),
+    c("Endg\u00fcltig l\u00f6schen", "Delete permanently", "Supprimer d\u00e9finitivement"),
+    c("Session nicht gefunden.", "Session not found.", "Session introuvable."),
+    c("Nur beendete Sessions k\u00f6nnen archiviert werden.",
+      "Only finished sessions can be archived.",
+      "Seules les sessions termin\u00e9es peuvent \u00eatre archiv\u00e9es."),
+    c("Die Session-Datei konnte nicht gel\u00f6scht werden.",
+      "The session file could not be deleted.",
+      "Le fichier de la session n\u2019a pas pu \u00eatre supprim\u00e9.")
+  )
+  stats::setNames(as.data.frame(do.call(rbind, rows)), c("de", "en", "fr"))
 }
 
 #' Translate exact interface strings for static figures
@@ -520,6 +601,11 @@ language_js <- function() {
       '$1: names must be unique after trimming whitespace.',
       '$1 : les noms doivent \u00eatre uniques sans les espaces ext\u00e9rieurs.'],
     [/^Unbekannte Einstellungen: (.*)$/, 'Unknown settings: $1', 'Param\u00e8tres inconnus : $1'],
+    [/^(\d+) Beitr\u00e4ge$/, '$1 contributions', '$1 contributions'],
+    [/^Erstellt: (.*)$/, 'Created: $1', 'Cr\u00e9\u00e9e : $1'],
+    [/^Zu viele Fehlversuche\. Bitte in (\d+) s erneut versuchen\.$/,
+      'Too many failed attempts. Please try again in $1 s.',
+      'Trop de tentatives \u00e9chou\u00e9es. R\u00e9essayez dans $1 s.'],
     [/^Bitte Einstellungen korrigieren:\n([\s\S]*)$/,
       'Please correct the settings:\n$1', 'Veuillez corriger les param\u00e8tres :\n$1']
   ];

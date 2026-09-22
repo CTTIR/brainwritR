@@ -1,9 +1,20 @@
-test_that("example topics are complete and translated for every supported language", {
-  first <- c(de = "Gemeinsam lernen", en = "Learning together", fr = "Apprendre ensemble")
+test_that("example topics follow 6-3-5 and are translated for every supported language", {
+  first <- c(de = "Mehr Beteiligung in Gruppenarbeit", en = "More participation in group work",
+             fr = "Plus de participation en groupe")
+  three <- c(de = "bis zu drei neue Ideen", en = "up to three new ideas",
+             fr = "jusqu'\u00e0 trois nouvelles id\u00e9es")
+  build <- c(de = "entwickle sie weiter", en = "develop it further", fr = "d\u00e9veloppez-la")
   for (language in names(first)) {
     topics <- example_topics(language)
     expect_length(topics, 3L)
     expect_identical(topics[[1]]$title, unname(first[[language]]))
+    # One open problem per sheet: new ideas first, then building on the sheet.
+    for (topic in topics) {
+      expect_match(topic$q1, "?", fixed = TRUE)
+      expect_match(topic$q1, three[[language]], fixed = TRUE)
+      expect_match(topic$q2, build[[language]], fixed = TRUE)
+    }
+    expect_length(unique(vapply(topics, `[[`, "", "q2")), 1L)
     settings <- list(format = "brainwriting635-settings/1", mode = "individual",
                      rounds = 3, round_secs = 300, turn_secs = 90, topics = topics)
     expect_s3_class(validate_settings(settings), "bw_settings")
@@ -28,7 +39,7 @@ test_that("example toggle restores previous editable topics and leaves other set
     session$setInputs(demo_questions = TRUE)
     expect_identical(demo_previous(), original)
     expect_identical(setup_upload()$topics, example_topics("en"))
-    expect_match(output$topic_form$html, "Learning together", fixed = TRUE)
+    expect_match(output$topic_form$html, "More participation in group work", fixed = TRUE)
     expect_identical(input$play_mode, "hot_seat")
     expect_equal(input$turn_secs, 45)
     expect_identical(input$roster, "Alex")
@@ -84,5 +95,19 @@ test_that("late topic-count acknowledgements do not rerender edited example fiel
     session$setInputs(n_groups = 4)
     expect_equal(topic_form_gate()$k, 4)
     expect_null(topic_form_gate()$topics)
+  })
+})
+
+test_that("the setup form explains the 6-3-5 structure of the example set in every language", {
+  path <- withr::local_tempfile()
+  init_db(path)
+  cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 50)
+  shiny::testServer(app_server(cfg), {
+    session$setInputs(pin = "secret", pin_btn = 1)
+    html <- output$mod_view$html
+    hint <- regmatches(html, regexpr("Drei bearbeitbare Beispielthemen[^<]*", html))
+    expect_match(hint, "6-3-5", fixed = TRUE)
+    expect_match(bw_translate(hint, "en"), "6-3-5 principle", fixed = TRUE)
+    expect_match(bw_translate(hint, "fr"), "principe 6-3-5", fixed = TRUE)
   })
 })

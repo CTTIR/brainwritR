@@ -20,6 +20,10 @@ test_that("settings normalize defaults and every mode", {
   expect_s3_class(config, "bw_settings")
   expect_length(config$topics, 3L)
   expect_identical(config$participants, c("Alice", "Bob"))
+  for (topic in config$topics) {
+    expect_match(topic$q1, "bis zu drei neue Ideen", fixed = TRUE)
+    expect_match(topic$q2, "entwickle sie weiter", fixed = TRUE)
+  }
 })
 
 test_that("every settings validation rule reports German errors", {

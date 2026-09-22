@@ -106,9 +106,9 @@ test_that("English example questions remain editable and disabling restores prio
   app$wait_for_js("!!document.querySelector('#t_title_3')")
   app$wait_for_js("document.querySelector('#t_title_1').value !== 'Custom prior topic'")
   first <- app$get_js("document.querySelector('#t_title_1').value")
-  expect_equal(first, "Learning together")
+  expect_equal(first, "More participation in group work")
   expect_equal(app$get_js("document.querySelector('#t_q1_1').value"),
-               "What helps us learn from one another?")
+               example_topics("en")[[1]]$q1)
   app$wait_for_js("!!document.querySelector('#t_q1_1.shiny-bound-input')")
   app$set_inputs(t_q1_1 = "Our edited English example question?")
   app$run_js(paste0(

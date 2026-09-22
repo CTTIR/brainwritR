@@ -25,7 +25,11 @@ h1, h2, h3, h4 { letter-spacing: -.01em; overflow-wrap: anywhere; }
 .bw-brand { display: flex; align-items: center; gap: 10px;
             font-size: 1.25rem; font-weight: 750; color: var(--accent); }
 .bw-footer { text-align: center; font-size: .8rem; color: var(--mut); padding: 12px 0; }
+.bw-modbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;
+             justify-content: space-between; padding: 12px 16px; }
+.bw-modbar-name { overflow-wrap: anywhere; }
 .btn { min-height: 44px; border-radius: 8px; font-weight: 600; }
+a.btn { display: inline-flex; align-items: center; justify-content: center; }
 .form-control { min-height: 44px; border-color: #9cabb7; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .bw-prev, .bw-status, code { overflow-wrap: anywhere; }
@@ -49,17 +53,34 @@ app_js <- function() {
 $(document).on('shiny:disconnected', function() {
   setTimeout(function() { location.reload(); }, 1500);
 });
-// Send the stored participant identity on every connection.
+// Each session keeps its own participant identity on this device.
+var bwPidKey = (function() {
+  var code = null;
+  try { code = new URLSearchParams(location.search).get('s'); } catch (e) {}
+  return code ? 'bw_pid:' + code.trim().toLowerCase() : 'bw_pid';
+})();
+// Send the stored identities on every connection; the moderator token lives per tab.
 $(document).on('shiny:connected', function() {
-  var pid = null;
-  try { pid = localStorage.getItem('bw_pid'); } catch (e) {}
+  var pid = null, token = null;
+  try { pid = localStorage.getItem(bwPidKey); } catch (e) {}
+  try { token = sessionStorage.getItem('bw_mod_token'); } catch (e) {}
   Shiny.setInputValue('stored_pid', pid, {priority: 'event'});
+  if (token) Shiny.setInputValue('mod_token', token, {priority: 'event'});
 });
 Shiny.addCustomMessageHandler('bw_store_pid', function(pid) {
-  try { localStorage.setItem('bw_pid', pid); } catch (e) {}
+  try { localStorage.setItem(bwPidKey, pid); } catch (e) {}
 });
 Shiny.addCustomMessageHandler('bw_clear_pid', function(x) {
-  try { localStorage.removeItem('bw_pid'); } catch (e) {}
+  try { localStorage.removeItem(bwPidKey); } catch (e) {}
 });
+Shiny.addCustomMessageHandler('bw_store_mod_token', function(token) {
+  try { sessionStorage.setItem('bw_mod_token', token); } catch (e) {}
+});
+Shiny.addCustomMessageHandler('bw_clear_mod_token', function(x) {
+  try { sessionStorage.removeItem('bw_mod_token'); } catch (e) {}
+});
+// A deleted session reloads into its notice; created sessions open directly.
+Shiny.addCustomMessageHandler('bw_reload', function(x) { location.reload(); });
+Shiny.addCustomMessageHandler('bw_navigate', function(url) { location.href = url; });
 "
 }

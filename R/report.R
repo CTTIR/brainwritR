@@ -182,6 +182,7 @@ build_report <- function(data, file, anonymize = FALSE) {
   )
   on.exit(grDevices::dev.off(), add = TRUE)
   print(page1)
-  print(page2)
+  # ggwordcloud reseeds while drawing; keep participant and group draws random.
+  withr::with_preserve_seed(print(page2))
   invisible(file)
 }

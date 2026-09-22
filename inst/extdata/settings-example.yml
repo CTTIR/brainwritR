@@ -1,4 +1,6 @@
 # Portable session preparation. The moderator PIN is never included.
+# Topics follow 6-3-5: one open problem per sheet. Each round adds new ideas
+# and develops an idea that is already on the sheet.
 format: brainwriting635-settings/1
 mode: individual
 rounds: 3
@@ -6,14 +8,14 @@ round_secs: 300
 turn_secs: 90
 topics:
   - title: "Lernen im Kurs"
-    q1: "Was unterstützt das gemeinsame Lernen?"
-    q2: "Was möchten wir ausprobieren?"
-  - title: "Zusammenarbeit"
-    q1: "Wie können wir Wissen teilen?"
-    q2: "Wie beziehen wir alle ein?"
+    q1: "Wie könnten wir das gemeinsame Lernen im Kurs stärken? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
+  - title: "Wissen teilen"
+    q1: "Wie könnten wir unser Wissen untereinander leichter teilen? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
   - title: "Transfer in den Alltag"
-    q1: "Wo können wir die Ideen anwenden?"
-    q2: "Was ist der erste konkrete Schritt?"
+    q1: "Wie könnten wir die Ideen aus dem Kurs im Alltag anwenden? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
 groups:
   - "Gruppe Nord"
   - "Gruppe Süd"

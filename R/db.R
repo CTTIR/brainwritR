@@ -1,8 +1,12 @@
 #' Open a configured database connection
+#'
+#' Only `init_db()` may create a file. A deleted session therefore fails loudly
+#' instead of being recreated empty by a lingering poll or delayed draft.
 #' @keywords internal
 #' @noRd
-db <- function(db_path) {
-  con <- dbConnect(SQLite(), db_path)
+db <- function(db_path, create = FALSE) {
+  flags <- if (create) RSQLite::SQLITE_RWC else RSQLite::SQLITE_RW
+  con <- dbConnect(SQLite(), db_path, flags = flags)
   dbExecute(con, "PRAGMA busy_timeout = 5000")
   con
 }
@@ -11,7 +15,7 @@ db <- function(db_path) {
 #' @keywords internal
 #' @noRd
 init_db <- function(db_path) {
-  con <- db(db_path)
+  con <- db(db_path, create = TRUE)
   on.exit(dbDisconnect(con), add = TRUE)
   dbExecute(con, "PRAGMA journal_mode = WAL")
   dbExecute(con, "

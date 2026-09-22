@@ -3,7 +3,13 @@
 #' Starts one multilingual Shiny application backed by SQLite. Open
 #' `base_url` for participants and append `/?mod=1` for the moderator.
 #' Configuration is resolved at invocation, never at package load time.
-#' @param db_path SQLite file path. Defaults to `DB_PATH`, then
+#'
+#' The main database holds the standard session behind `base_url` and the
+#' catalog of all further sessions. Each further session is a separate SQLite
+#' file in a `sessions` folder next to the main database, with its own address
+#' (`?s=<code>`) and QR code. Moderators create, open, restart, archive and
+#' delete sessions in the overview at `?mod=1&view=sessions`.
+#' @param db_path Main SQLite file path. Defaults to `DB_PATH`, then
 #'   `"data/brainwriting.sqlite"`.
 #' @param mod_pin Moderator PIN. Defaults to `MOD_PIN`, then `"635"`.
 #'   Set a private PIN before deployment.
@@ -13,9 +19,10 @@
 #' @param host Listening address, default `"0.0.0.0"`.
 #' @param poll_ms Database polling interval in milliseconds, default `2500`.
 #' @return Invisibly, the value returned by [shiny::runApp()] when the app stops.
-#' @details Use exactly one R process per database. No replicas or horizontal
+#' @details Use exactly one R process per data folder. No replicas or horizontal
 #'   scaling are supported. A round advances on the next connected client's poll;
-#'   with no clients connected it advances when someone reconnects.
+#'   with no clients connected it advances when someone reconnects. Moderator
+#'   logins are kept in server memory, so a restart asks for the PIN again.
 #' @export
 #' @examples
 #' if (interactive()) {

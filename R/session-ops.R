@@ -116,7 +116,7 @@ add_participant <- function(db_path, name) {
       return(NULL)
     }
     name <- trimws(name)
-    pid <- paste(sample(c(letters, 0:9), 14, replace = TRUE), collapse = "")
+    pid <- bw_participant_id()
     if (s$status == "lobby") {
       dbExecute(con, "INSERT INTO participants (pid, name, joined_at) VALUES (:p, :n, :t)",
         params = list(p = pid, n = name, t = now())
@@ -189,7 +189,7 @@ configure_session <- function(db_path, k, rounds, seconds, topics, settings = NU
       timestamp <- now()
       for (i in seq_along(settings$participants)) {
         joined <- timestamp - (length(settings$participants) - i) / 1000
-        pid <- paste(sample(c(letters, 0:9), 14, replace = TRUE), collapse = "")
+        pid <- bw_participant_id()
         dbExecute(con, "INSERT INTO participants (pid, name, joined_at) VALUES (:p, :n, :t)",
                   params = list(p = pid, n = settings$participants[i], t = joined))
       }
@@ -200,11 +200,12 @@ configure_session <- function(db_path, k, rounds, seconds, topics, settings = NU
 }
 
 #' Wipe a finished session atomically
+#' @param force Also clear a session in setup, lobby or running state.
 #' @keywords internal
 #' @noRd
-reset_session <- function(db_path) {
+reset_session <- function(db_path, force = FALSE) {
   transaction_db(db_path, function(con) {
-    if (get_session(con)$status != "finished") {
+    if (!force && get_session(con)$status != "finished") {
       return(invisible(FALSE))
     }
     dbExecute(con, "DELETE FROM entries")
@@ -313,7 +314,7 @@ claim_group <- function(db_path, grp) {
     if (nrow(existing)) {
       return(existing$pid[1])
     }
-    pid <- paste(sample(c(letters, 0:9), 14, replace = TRUE), collapse = "")
+    pid <- bw_participant_id()
     dbExecute(con, "INSERT INTO participants (pid, name, grp, idx, joined_at)
       VALUES (:p, :n, :g, 1, :t)",
       params = list(p = pid, n = settings$groups[grp], g = grp, t = now())
