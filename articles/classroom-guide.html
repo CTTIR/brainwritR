@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,12 +90,14 @@ three ideas and five minutes. This application instead provides
 groups. The 15-2-5 preset means three topics, three rounds and five
 minutes per round, intended for approximately 15 participants. It does
 not enforce a fixed number of ideas in an answer.</p>
-<p>Choose topics that benefit from elaboration, then pair each
-generative question with a practical follow-up. For example: “What helps
-a team collaborate?” and “How could we apply this in our next project?”.
-Ask participants to read, extend and combine earlier ideas. Reserve time
-after writing for discussion; the application organizes contributions
-without ranking their quality.</p>
+<p>Keep the core of 6-3-5 within the two fields: frame each topic as one
+open problem, ask for new ideas in the first field and for developing an
+idea already on the sheet in the second. For example: “How might we get
+everyone to take an active part in group work? Note up to three new
+ideas.” and “Pick up an idea from above (or one of your own) and develop
+it further.” Ask participants to read, extend and combine earlier ideas.
+Reserve time after writing for discussion; the application organizes
+contributions without ranking their quality.</p>
 <p>Use pseudonyms. Explain who can read drafts, who will receive exports
 and when records will be removed. A modern browser and reachable server
 are required. There are no participant accounts. The interface offers
@@ -130,10 +132,43 @@ at launch, with no database or directory creation during package
 loading. The default database is <code>data/brainwriting.sqlite</code>,
 relative to the working directory. Use an absolute path for a
 long-running service.</p>
-<p>The QR code uses <code>base_url</code> exactly. A phone’s
-<code>localhost</code> refers to that phone; use a URL that devices in
-the classroom can reach. The moderator route adds <code>?mod=1</code>;
-do not put this query string into the participant URL.</p>
+<p>The QR code of the standard session uses <code>base_url</code>
+exactly. A phone’s <code>localhost</code> refers to that phone; use a
+URL that devices in the classroom can reach. The moderator route adds
+<code>?mod=1</code>; do not put this query string into the participant
+URL.</p>
+</div>
+<div class="section level2">
+<h2 id="manage-several-sessions">Manage several sessions<a class="anchor" aria-label="anchor" href="#manage-several-sessions"></a>
+</h2>
+<p>One instance can hold and run several sessions at once. The bare
+<code>base_url</code> always shows the standard session. Further
+sessions receive a short code and their own address, for example
+<code>https://brainwriting.example.de/?s=k7m3pq</code>, with a matching
+QR code. After signing in, <strong>All sessions</strong> in the
+moderator bar opens the overview at
+<code>?mod=1&amp;view=sessions</code>.</p>
+<p>The overview shows each session’s state, mode, participant and
+contribution counts, topics and address. <strong>New session</strong>
+creates an empty session and opens its setup. <strong>QR code</strong>
+shows the address as a large QR code that can be downloaded as PNG.
+<strong>Restart</strong> creates a new session with the same settings
+and opens its setup for review; the original results stay untouched.
+<strong>Archive</strong> moves a finished session out of the active
+list: it refuses participants but remains readable, with all exports.
+<strong>Restore</strong> returns it. <strong>Delete</strong> permanently
+removes a session and its database file after confirmation, so export
+first.</p>
+<p>The standard session keeps the bare address and is therefore never
+deleted or archived in place. <strong>Reset</strong> clears it after
+confirmation. <strong>Archive</strong> stores its finished results as a
+new archived session and then clears it for the next activity.</p>
+<p>The PIN is entered once per browser tab. The server keeps a login
+token in memory and the tab keeps it in session storage, so opening
+other sessions does not ask again; <strong>Sign out</strong> ends it and
+a server restart signs everyone out. Five wrong PINs pause new logins
+for 15 seconds, doubling up to five minutes. Use a long, private PIN,
+because it now protects deletion as well.</p>
 </div>
 <div class="section level2">
 <h2 id="choose-a-device-mode">Choose a device mode<a class="anchor" aria-label="anchor" href="#choose-a-device-mode"></a>
@@ -232,12 +267,14 @@ does not require participant identity in browser storage.</p>
 </h2>
 <p>Select <strong>Use example questions</strong> in setup to populate
 three ready-to-use classroom topics in the currently selected interface
-language. The questions remain editable. Clearing the checkbox restores
-the previous topic count and questions. The option preserves the
-selected device mode, roster and timers. A valid YAML upload replaces
-the example selection. Switching language does not translate existing
-questions; choose the interface language before enabling the
-examples.</p>
+language. They follow the 6-3-5 principle: one open problem per topic,
+up to three new ideas in the first field, and building on an idea from
+the sheet in the second. The questions remain editable. Clearing the
+checkbox restores the previous topic count and questions. The option
+preserves the selected device mode, roster and timers. A valid YAML
+upload replaces the example selection. Switching language does not
+translate existing questions; choose the interface language before
+enabling the examples.</p>
 </div>
 <div class="section level2">
 <h2 id="reuse-session-settings">Reuse session settings<a class="anchor" aria-label="anchor" href="#reuse-session-settings"></a>
@@ -441,12 +478,16 @@ operation opens and closes its own connection, with WAL mode and a 5000
 ms busy timeout. Entry uniqueness includes author identity, so two
 people sharing a sheet do not replace each other’s contributions.
 Autosaves preserve an explicit submission flag.</p>
-<p>Existing databases migrate in place by adding <code>mode</code>,
-<code>current_turn</code> and <code>settings_yaml</code>. Older sessions
-retain individual mode. The settings column preserves prepared names and
-turn duration across restarts; no sidecar file is needed. Back up before
-upgrading and avoid operating newer-mode databases with an older
-application version.</p>
+<p>The main database at <code>db_path</code> holds the standard session
+and the catalog of further sessions. Each further session is a separate
+SQLite file with the same schema in a <code>sessions/</code> folder next
+to it; deleting a session removes its file. Existing databases migrate
+in place by adding <code>mode</code>, <code>current_turn</code> and
+<code>settings_yaml</code>, and their session becomes the standard
+session. Older sessions retain individual mode. The settings column
+preserves prepared names and turn duration across restarts; no sidecar
+file is needed. Back up before upgrading and avoid operating newer-mode
+databases with an older application version.</p>
 <p>Every connected client polls the authoritative deadline. Guarded
 updates prevent racing clock ticks from advancing twice. Hot-seat
 updates also guard the current turn, and stale repeated controls cannot
@@ -454,8 +495,9 @@ advance a later person’s turn. Without any connected clients there is no
 scheduler: the next connection resumes the expired transition, without
 replaying every missed round.</p>
 <p>A disconnect triggers a reload after 1.5 seconds. Individual and
-group devices resend their stored identity; the server resumes it or
-clears it after reset. Keep the same browser and origin. With browser
+group devices resend the identity stored for that session; the server
+resumes it or clears it after reset. One device can therefore take part
+in several sessions. Keep the same browser and origin. With browser
 storage disabled or cleared, automatic identity recovery is unavailable.
 There is no offline editing queue.</p>
 <p>Typing is debounced for 1200 milliseconds. Main answer fields are
@@ -465,23 +507,24 @@ editing context. Keystrokes in the last 1–2 seconds of a round or turn
 can still lose the race with its boundary. Submit before expiry. The
 timer turns red below one minute and can briefly show zero until the
 next poll.</p>
-<p>Use exactly one R process per instance, a writable local disk and a
-persistent database directory. Do not use replicas, ShinyProxy or
-horizontal scaling. Another course needs another container/database and
-distinct proxy routing. The supplied Docker image runs as UID 10001.
-Compose expects an existing Traefik installation, external
-<code>proxy</code> network, TLS resolver and reachable hostname.</p>
+<p>Use exactly one R process per data folder, a writable local disk and
+a persistent database directory. Do not use replicas, ShinyProxy or
+horizontal scaling. Parallel courses can share one instance as separate
+sessions. The supplied Docker image runs as UID 10001. Compose expects
+an existing Traefik installation, external <code>proxy</code> network,
+TLS resolver and reachable hostname.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="bu">export</span> <span class="va">BW_HOST</span><span class="op">=</span>brainwriting.example.de</span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
 <span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'replace-with-a-private-pin'</span></span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
-<p>Mount the whole database directory, including SQLite WAL files. For
-backups, stop the app before copying it or use SQLite’s online backup
-API. A live database file copied without its WAL can omit committed
-changes. Restarting with the same volume resumes the session; rebuilding
-an image does not reset it.</p>
+<p>Mount the whole database directory, including SQLite WAL files and
+the <code>sessions/</code> folder. For backups, stop the app before
+copying it or use SQLite’s online backup API. A live database file
+copied without its WAL can omit committed changes. Restarting with the
+same volume resumes the session; rebuilding an image does not reset
+it.</p>
 <p>Export before resetting a finished session. Confirmed reset removes
 logical session data and clears participant identity on reconnect. It
 does not remove old downloads, backups, snapshots or residual SQLite
@@ -528,15 +571,23 @@ questions</td>
 </tr>
 <tr class="odd">
 <td align="left">Old work returns after restart</td>
-<td align="left">Expected persistence; export and reset for a new
-course</td>
+<td align="left">Expected persistence; archive it or start a new
+session</td>
+</tr>
+<tr class="even">
+<td align="left">A session link shows “Session nicht gefunden”</td>
+<td align="left">The code is mistyped, or the session was deleted</td>
+</tr>
+<tr class="odd">
+<td align="left">Logins pause after wrong PINs</td>
+<td align="left">Expected throttling; wait for the shown time</td>
 </tr>
 </tbody>
 </table>
 <p>Tests cover rotation, persistence, configuration, mode transitions,
-reconnection, exports, report page counts and browser workflows. A
-passing automated suite does not replace a rehearsal on the
-institution’s actual devices and network.</p>
+reconnection, exports, report page counts, session management and
+browser workflows. A passing automated suite does not replace a
+rehearsal on the institution’s actual devices and network.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

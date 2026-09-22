@@ -21,7 +21,7 @@ run_app(
 
 - db_path:
 
-  SQLite file path. Defaults to `DB_PATH`, then
+  Main SQLite file path. Defaults to `DB_PATH`, then
   `"data/brainwriting.sqlite"`.
 
 - mod_pin:
@@ -54,9 +54,17 @@ app stops.
 
 ## Details
 
-Use exactly one R process per database. No replicas or horizontal
+The main database holds the standard session behind `base_url` and the
+catalog of all further sessions. Each further session is a separate
+SQLite file in a `sessions` folder next to the main database, with its
+own address (`?s=<code>`) and QR code. Moderators create, open, restart,
+archive and delete sessions in the overview at `?mod=1&view=sessions`.
+
+Use exactly one R process per data folder. No replicas or horizontal
 scaling are supported. A round advances on the next connected client's
 poll; with no clients connected it advances when someone reconnects.
+Moderator logins are kept in server memory, so a restart asks for the
+PIN again.
 
 ## Examples
 

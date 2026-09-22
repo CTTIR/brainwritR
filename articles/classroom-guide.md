@@ -10,12 +10,14 @@ preset means three topics, three rounds and five minutes per round,
 intended for approximately 15 participants. It does not enforce a fixed
 number of ideas in an answer.
 
-Choose topics that benefit from elaboration, then pair each generative
-question with a practical follow-up. For example: “What helps a team
-collaborate?” and “How could we apply this in our next project?”. Ask
-participants to read, extend and combine earlier ideas. Reserve time
-after writing for discussion; the application organizes contributions
-without ranking their quality.
+Keep the core of 6-3-5 within the two fields: frame each topic as one
+open problem, ask for new ideas in the first field and for developing an
+idea already on the sheet in the second. For example: “How might we get
+everyone to take an active part in group work? Note up to three new
+ideas.” and “Pick up an idea from above (or one of your own) and develop
+it further.” Ask participants to read, extend and combine earlier ideas.
+Reserve time after writing for discussion; the application organizes
+contributions without ranking their quality.
 
 Use pseudonyms. Explain who can read drafts, who will receive exports
 and when records will be removed. A modern browser and reachable server
@@ -57,10 +59,41 @@ creation during package loading. The default database is
 `data/brainwriting.sqlite`, relative to the working directory. Use an
 absolute path for a long-running service.
 
-The QR code uses `base_url` exactly. A phone’s `localhost` refers to
-that phone; use a URL that devices in the classroom can reach. The
-moderator route adds `?mod=1`; do not put this query string into the
-participant URL.
+The QR code of the standard session uses `base_url` exactly. A phone’s
+`localhost` refers to that phone; use a URL that devices in the
+classroom can reach. The moderator route adds `?mod=1`; do not put this
+query string into the participant URL.
+
+## Manage several sessions
+
+One instance can hold and run several sessions at once. The bare
+`base_url` always shows the standard session. Further sessions receive a
+short code and their own address, for example
+`https://brainwriting.example.de/?s=k7m3pq`, with a matching QR code.
+After signing in, **All sessions** in the moderator bar opens the
+overview at `?mod=1&view=sessions`.
+
+The overview shows each session’s state, mode, participant and
+contribution counts, topics and address. **New session** creates an
+empty session and opens its setup. **QR code** shows the address as a
+large QR code that can be downloaded as PNG. **Restart** creates a new
+session with the same settings and opens its setup for review; the
+original results stay untouched. **Archive** moves a finished session
+out of the active list: it refuses participants but remains readable,
+with all exports. **Restore** returns it. **Delete** permanently removes
+a session and its database file after confirmation, so export first.
+
+The standard session keeps the bare address and is therefore never
+deleted or archived in place. **Reset** clears it after confirmation.
+**Archive** stores its finished results as a new archived session and
+then clears it for the next activity.
+
+The PIN is entered once per browser tab. The server keeps a login token
+in memory and the tab keeps it in session storage, so opening other
+sessions does not ask again; **Sign out** ends it and a server restart
+signs everyone out. Five wrong PINs pause new logins for 15 seconds,
+doubling up to five minutes. Use a long, private PIN, because it now
+protects deletion as well.
 
 ## Choose a device mode
 
@@ -128,12 +161,14 @@ require participant identity in browser storage.
 ## Try the example question set
 
 Select **Use example questions** in setup to populate three ready-to-use
-classroom topics in the currently selected interface language. The
-questions remain editable. Clearing the checkbox restores the previous
-topic count and questions. The option preserves the selected device
-mode, roster and timers. A valid YAML upload replaces the example
-selection. Switching language does not translate existing questions;
-choose the interface language before enabling the examples.
+classroom topics in the currently selected interface language. They
+follow the 6-3-5 principle: one open problem per topic, up to three new
+ideas in the first field, and building on an idea from the sheet in the
+second. The questions remain editable. Clearing the checkbox restores
+the previous topic count and questions. The option preserves the
+selected device mode, roster and timers. A valid YAML upload replaces
+the example selection. Switching language does not translate existing
+questions; choose the interface language before enabling the examples.
 
 ## Reuse session settings
 
@@ -293,11 +328,15 @@ timeout. Entry uniqueness includes author identity, so two people
 sharing a sheet do not replace each other’s contributions. Autosaves
 preserve an explicit submission flag.
 
-Existing databases migrate in place by adding `mode`, `current_turn` and
-`settings_yaml`. Older sessions retain individual mode. The settings
-column preserves prepared names and turn duration across restarts; no
-sidecar file is needed. Back up before upgrading and avoid operating
-newer-mode databases with an older application version.
+The main database at `db_path` holds the standard session and the
+catalog of further sessions. Each further session is a separate SQLite
+file with the same schema in a `sessions/` folder next to it; deleting a
+session removes its file. Existing databases migrate in place by adding
+`mode`, `current_turn` and `settings_yaml`, and their session becomes
+the standard session. Older sessions retain individual mode. The
+settings column preserves prepared names and turn duration across
+restarts; no sidecar file is needed. Back up before upgrading and avoid
+operating newer-mode databases with an older application version.
 
 Every connected client polls the authoritative deadline. Guarded updates
 prevent racing clock ticks from advancing twice. Hot-seat updates also
@@ -307,8 +346,9 @@ scheduler: the next connection resumes the expired transition, without
 replaying every missed round.
 
 A disconnect triggers a reload after 1.5 seconds. Individual and group
-devices resend their stored identity; the server resumes it or clears it
-after reset. Keep the same browser and origin. With browser storage
+devices resend the identity stored for that session; the server resumes
+it or clears it after reset. One device can therefore take part in
+several sessions. Keep the same browser and origin. With browser storage
 disabled or cleared, automatic identity recovery is unavailable. There
 is no offline editing queue.
 
@@ -320,12 +360,12 @@ can still lose the race with its boundary. Submit before expiry. The
 timer turns red below one minute and can briefly show zero until the
 next poll.
 
-Use exactly one R process per instance, a writable local disk and a
+Use exactly one R process per data folder, a writable local disk and a
 persistent database directory. Do not use replicas, ShinyProxy or
-horizontal scaling. Another course needs another container/database and
-distinct proxy routing. The supplied Docker image runs as UID 10001.
-Compose expects an existing Traefik installation, external `proxy`
-network, TLS resolver and reachable hostname.
+horizontal scaling. Parallel courses can share one instance as separate
+sessions. The supplied Docker image runs as UID 10001. Compose expects
+an existing Traefik installation, external `proxy` network, TLS resolver
+and reachable hostname.
 
 ``` bash
 mkdir -p docker/data
@@ -336,11 +376,11 @@ export MOD_PIN='replace-with-a-private-pin'
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-Mount the whole database directory, including SQLite WAL files. For
-backups, stop the app before copying it or use SQLite’s online backup
-API. A live database file copied without its WAL can omit committed
-changes. Restarting with the same volume resumes the session; rebuilding
-an image does not reset it.
+Mount the whole database directory, including SQLite WAL files and the
+`sessions/` folder. For backups, stop the app before copying it or use
+SQLite’s online backup API. A live database file copied without its WAL
+can omit committed changes. Restarting with the same volume resumes the
+session; rebuilding an image does not reset it.
 
 Export before resetting a finished session. Confirmed reset removes
 logical session data and clears participant identity on reconnect. It
@@ -358,9 +398,11 @@ and pseudonyms alone do not establish legal compliance.
 | Duplicate participant | Cleared storage or a separate browser profile |
 | Timer waited while everyone was absent | Expected: no clients means no polling scheduler |
 | A sheet lacks a round | Unequal groups, late arrivals or unanswered questions |
-| Old work returns after restart | Expected persistence; export and reset for a new course |
+| Old work returns after restart | Expected persistence; archive it or start a new session |
+| A session link shows “Session nicht gefunden” | The code is mistyped, or the session was deleted |
+| Logins pause after wrong PINs | Expected throttling; wait for the shown time |
 
 Tests cover rotation, persistence, configuration, mode transitions,
-reconnection, exports, report page counts and browser workflows. A
-passing automated suite does not replace a rehearsal on the
-institution’s actual devices and network.
+reconnection, exports, report page counts, session management and
+browser workflows. A passing automated suite does not replace a
+rehearsal on the institution’s actual devices and network.

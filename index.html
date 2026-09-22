@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="index.html"><img src="logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,7 +78,7 @@
 
 <p><strong>A quiet workspace for building on each other’s ideas.</strong></p>
 <p>brainwritR brings a classroom adaptation of Rohrbach’s 6-3-5 brainwriting method onto participants’ smartphones. A facilitator sets up topics, invites the room with a QR code, and runs timed rounds. Participants read earlier contributions on their assigned sheet, add answers to two questions, and move to the next topic together. The app offers German, English and French; documentation is English.</p>
-<p>The app keeps drafts and the round clock in SQLite, resumes participants after a mobile reconnect, and avoids replacing textareas during routine polling. No accounts, webfonts, or external application services are required.</p>
+<p>The app keeps drafts and the round clock in SQLite, resumes participants after a mobile reconnect, and avoids replacing textareas during routine polling. One instance runs any number of sessions side by side, each with its own address and QR code, managed from a moderator overview. No accounts, webfonts, or external application services are required.</p>
 <p>Use the <strong>DE / EN / FR language slider</strong> to change the interface without replacing answer fields or translating contributed text. The choice is remembered in that browser. German is the default. The text-analysis method and export schemas retain their documented German defaults; the in-app chart labels follow the selected language.</p>
 <div class="section level2">
 <h2 id="install-and-start">Install and start<a class="anchor" aria-label="anchor" href="#install-and-start"></a>
@@ -113,8 +113,54 @@
 <li>
 <strong>Write and rotate:</strong> groups are balanced and randomized. Participants read previous rounds on their sheet and answer both questions. Drafts save after 1.2 seconds of quiet; <strong>Abgeben</strong> explicitly submits both answers. Submitted answers remain editable until the round ends. The moderator can add 60 seconds or end a round early.</li>
 <li>
-<strong>Debrief:</strong> after the last round, the moderator sees results by topic and sheet, downloads CSV, Markdown, RDS, XLSX or a two-page PDF, and can confirm a full session reset.</li>
+<strong>Debrief:</strong> after the last round, the moderator sees results by topic and sheet, downloads CSV, Markdown, RDS, XLSX or a two-page PDF, and can reset the session (<strong>Zurücksetzen …</strong>) or archive it and start the next one from the session overview.</li>
 </ol>
+</div>
+<div class="section level2">
+<h2 id="run-several-sessions">Run several sessions<a class="anchor" aria-label="anchor" href="#run-several-sessions"></a>
+</h2>
+<p>One instance holds any number of sessions, and several can run at the same time, for example two courses in parallel. The bare address always shows the <strong>standard session</strong>, exactly as before. Every further session has its own short code, address and QR code, such as <code>https://brainwriting.example.de/?s=k7m3pq</code>.</p>
+<p>Open <strong>All sessions</strong> (German: <strong>Alle Sessions</strong>) from the moderator bar, or go to <code>/?mod=1&amp;view=sessions</code>. The overview lists every session with its state, mode, participant and contribution counts, topics and address, and refreshes as they change.</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th align="left">Action</th>
+<th align="left">Effect</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><strong>New session</strong></td>
+<td align="left">Creates an empty session with an optional label and opens its setup</td>
+</tr>
+<tr>
+<td align="left"><strong>Open</strong></td>
+<td align="left">Opens the session’s moderator view</td>
+</tr>
+<tr>
+<td align="left"><strong>QR code</strong></td>
+<td align="left">Shows a large QR code with the address; download it as PNG for slides or handouts</td>
+</tr>
+<tr>
+<td align="left"><strong>Restart</strong></td>
+<td align="left">Creates a new session prefilled with the same mode, topics, timing and names, and opens its setup for review; the original session and its results stay unchanged</td>
+</tr>
+<tr>
+<td align="left"><strong>Archive / Restore</strong></td>
+<td align="left">Finished sessions only. Archived sessions leave the active list, refuse participants and stay readable with all exports; restoring returns them to the list</td>
+</tr>
+<tr>
+<td align="left"><strong>Delete</strong></td>
+<td align="left">Permanently removes the session and its database file after confirmation; export first</td>
+</tr>
+</tbody>
+</table>
+<p>The standard session keeps the bare address, so it is never deleted or archived in place. <strong>Reset</strong> clears it after confirmation. <strong>Archive</strong> saves its finished results as a new archived session and then clears it for the next activity.</p>
+<p>A moderator enters the PIN once per browser tab. The server then issues a login token that lives only in server memory and in the tab’s session storage, so moving between sessions and reconnecting do not ask for the PIN again. <strong>Abmelden</strong> (sign out) ends it; a server restart signs everyone out. After five wrong PINs, new logins pause for 15 seconds, doubling up to five minutes; signed-in moderators continue. Because the PIN now also protects deletion, use a long private PIN.</p>
+<p>Participants keep a separate stored identity for each session, so one device can join several sessions. Unknown codes show <strong>Session nicht gefunden</strong>; open pages of a deleted session switch to that notice within a few seconds.</p>
+<p><strong>Storage.</strong> <code>DB_PATH</code> holds the standard session and the session catalog. Every further session is a separate SQLite file with the unchanged schema in a <code>sessions/</code> folder next to it. Back up the whole folder. Existing databases need no migration: their session simply becomes the standard session.</p>
 </div>
 <div class="section level2">
 <h2 id="screenshot-gallery">Screenshot gallery<a class="anchor" aria-label="anchor" href="#screenshot-gallery"></a>
@@ -146,6 +192,15 @@
 <tbody><tr>
 <td align="left"><img src="reference/figures/group-device.png" width="320" alt="English group claim buttons"></td>
 <td align="left"><img src="reference/figures/hot-seat.png" width="320" alt="English hot-seat handover and start button"></td>
+</tr></tbody>
+</table>
+<table class="table">
+<colgroup><col width="100%"></colgroup>
+<thead><tr>
+<th align="left">Session overview</th>
+</tr></thead>
+<tbody><tr>
+<td align="left"><img src="reference/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions"></td>
 </tr></tbody>
 </table>
 <p><img src="reference/figures/analytics.png" width="720" alt="English descriptive analytics with indicators, contribution chart and term figures"></p>
@@ -192,31 +247,33 @@
 <div class="section level2">
 <h2 id="prepare-once-reuse-with-yaml">Prepare once, reuse with YAML<a class="anchor" aria-label="anchor" href="#prepare-once-reuse-with-yaml"></a>
 </h2>
-<p>For a quick demonstration, select <strong>Use example questions</strong> (German: <strong>Beispiel-Fragenset verwenden</strong>). Three classroom topics appear in the selected interface language. Edit them freely; clearing the checkbox restores your previous questions and topic count. Mode, roster and timers stay as configured. Loading a YAML file replaces the example selection. Changing interface language never translates existing prompts.</p>
+<p>For a quick demonstration, select <strong>Use example questions</strong> (German: <strong>Beispiel-Fragenset verwenden</strong>). Three classroom topics appear in the selected interface language. They follow the 6-3-5 principle within the two answer fields: each topic is one open “How might we …?” problem, the first field asks for up to three new ideas, and the second asks participants to take up an idea already on the sheet (or one of their own) and develop it further. Edit them freely; clearing the checkbox restores your previous questions and topic count. Mode, roster and timers stay as configured. Loading a YAML file replaces the example selection. Changing interface language never translates existing prompts.</p>
 <p>The setup form and <strong>Einstellungen laden (YAML)</strong> prepare the same configuration. Loading a file validates it and prefills the form; it never starts a session. Review the fields before saving. <strong>Einstellungen exportieren (YAML)</strong> is available in setup and the lobby. Save it before a hot-seat session starts if you need a standalone reusable file; the finished RDS snapshot also contains the settings.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Portable session preparation. The moderator PIN is never included.</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> brainwriting635-settings/1</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">mode</span><span class="kw">:</span><span class="at"> individual</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">rounds</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">round_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">turn_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">90</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">topics</span><span class="kw">:</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Lernen im Kurs"</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was unterstützt das gemeinsame Lernen?"</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was möchten wir ausprobieren?"</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Zusammenarbeit"</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie können wir Wissen teilen?"</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie beziehen wir alle ein?"</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Transfer in den Alltag"</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wo können wir die Ideen anwenden?"</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Was ist der erste konkrete Schritt?"</span></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="fu">groups</span><span class="kw">:</span></span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Nord"</span></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Süd"</span></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe West"</span></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="fu">participants</span><span class="kw">:</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Alice"</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Bob"</span></span></code></pre></div>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># Topics follow 6-3-5: one open problem per sheet. Each round adds new ideas</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># and develops an idea that is already on the sheet.</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> brainwriting635-settings/1</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">mode</span><span class="kw">:</span><span class="at"> individual</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">rounds</span><span class="kw">:</span><span class="at"> </span><span class="dv">3</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">round_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">300</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">turn_secs</span><span class="kw">:</span><span class="at"> </span><span class="dv">90</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="fu">topics</span><span class="kw">:</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Lernen im Kurs"</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie könnten wir das gemeinsame Lernen im Kurs stärken? Notiere bis zu drei neue Ideen."</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wissen teilen"</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie könnten wir unser Wissen untereinander leichter teilen? Notiere bis zu drei neue Ideen."</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"Transfer in den Alltag"</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="at">    </span><span class="fu">q1</span><span class="kw">:</span><span class="at"> </span><span class="st">"Wie könnten wir die Ideen aus dem Kurs im Alltag anwenden? Notiere bis zu drei neue Ideen."</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="at">    </span><span class="fu">q2</span><span class="kw">:</span><span class="at"> </span><span class="st">"Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="fu">groups</span><span class="kw">:</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Nord"</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe Süd"</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Gruppe West"</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="fu">participants</span><span class="kw">:</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Alice"</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="st">"Bob"</span></span></code></pre></div>
 <p>The compatibility identifier remains exactly <code>brainwriting635-settings/1</code>. Topics must contain 2–6 nonempty title/question pairs. Rounds are integers 1–12; parallel-round duration is 30–1800 seconds and turn duration 20–600 seconds (default 90). Optional group names must be unique and match the number of topics. Roster names must be nonempty and unique after trimming. Hot-seat start requires at least one name. Individual-mode roster names appear as one-tap join buttons; taken names are disabled, and the free-text join field remains available.</p>
 <p>The upload limit is 100 KiB. YAML expressions are never evaluated. All validation errors appear together in the selected interface language; unknown keys produce warnings and are ignored. The PIN is never read from or exported to settings. Keep it in runtime configuration.</p>
 <p>Database initialization migrates older sessions in place. It adds <code>mode</code> (default <code>individual</code>), <code>current_turn</code> (default 0), and <code>settings_yaml</code> without changing the other tables or removing data. The additional settings column is a deliberate extension to keep custom names, the prepared roster, and turn duration in SQLite across restarts. No sidecar file is required. Back up before upgrading; an older package version should not be used to operate a newer-mode database.</p>
@@ -285,7 +342,7 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 <span><span class="fu">brainwritR</span><span class="fu">::</span><span class="fu"><a href="reference/sheet_for.html">sheet_for</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, n_sheets <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1 2 3 4 5 1</span></span></code></pre></div>
 <p>A topic starts with one sheet per member of its starting group. That count is <strong>frozen at session start</strong>. A participant with index <code>i</code> receives sheet <code>((i - 1) %% n_sheets) + 1</code>. Six people visiting five sheets share the first sheet; their separate contributions are both retained. Five people visiting six sheets leave the sixth sheet untouched that round. Thus every group visits every topic over K rounds, but unequal groups do <strong>not</strong> guarantee a contribution to every sheet in every round. Completion of answers is voluntary.</p>
-<p>Latecomers join the smallest group with a new within-group index. They use the same modulo mapping without changing sheet counts. The full K-topic guarantee applies to participants present for all K rounds, not to someone joining halfway through. With fewer than K rounds, some topics are not visited; with more than K, the cycle repeats. This two-question classroom adaptation is not the literal six-person, three-ideas-per-round protocol.</p>
+<p>Latecomers join the smallest group with a new within-group index. They use the same modulo mapping without changing sheet counts. The full K-topic guarantee applies to participants present for all K rounds, not to someone joining halfway through. With fewer than K rounds, some topics are not visited; with more than K, the cycle repeats. This two-question classroom adaptation is not the literal six-person, three-ideas-per-round protocol; the example questions keep its core, new ideas plus building on the sheet, within two fields.</p>
 </div>
 <div class="section level2">
 <h2 id="mobile-robustness">Mobile robustness<a class="anchor" aria-label="anchor" href="#mobile-robustness"></a>
@@ -296,7 +353,7 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 <li>
 <strong>Any connected client drives the clock.</strong> Every poll tries the guarded round transition. A moderator disconnection does not stop an active room. With no clients connected, advancement resumes on the next connection; missed rounds are not silently skipped.</li>
 <li>
-<strong>Reconnect resumes identity.</strong> The client reloads 1.5 seconds after a Shiny disconnect and resends its participant ID from <code>localStorage</code>. Reset IDs are cleared. Keep the same browser and origin to resume. With storage disabled, automatic resume is unavailable; use one tab per participant.</li>
+<strong>Reconnect resumes identity.</strong> The client reloads 1.5 seconds after a Shiny disconnect and resends the participant ID it stored in <code>localStorage</code> for that session. Reset IDs are cleared. Keep the same browser and origin to resume. With storage disabled, automatic resume is unavailable; use one tab per participant.</li>
 <li>
 <strong>Typing stays in place.</strong> Two database polls feed live subregions. Main views change only on status, round, or assignment transitions. Debounced edits carry the context in which they were typed; later autosaves never clear submission.</li>
 <li>
@@ -348,17 +405,17 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 </tr>
 </tbody>
 </table>
-<p><strong>One session and exactly one R process per instance.</strong> Do not use replicas, ShinyProxy, or <code>docker compose --scale</code>. Parallel courses need separate containers, databases, hostnames, and Traefik router/service names. Use local persistent disk; a network filesystem is not a supported SQLite deployment.</p>
+<p><strong>Exactly one R process per data folder.</strong> Parallel courses can share one instance as separate sessions. Do not use replicas, ShinyProxy, or <code>docker compose --scale</code>. Use local persistent disk; a network filesystem is not a supported SQLite deployment.</p>
 </div>
 <div class="section level2">
 <h2 id="docker-and-traefik">Docker and Traefik<a class="anchor" aria-label="anchor" href="#docker-and-traefik"></a>
 </h2>
 <p>Build from the repository root. The image uses <code>rocker/r-ver:4.4.2</code> and runs as unprivileged UID 10001. A standalone local smoke run needs no Traefik:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-f</span> docker/Dockerfile <span class="at">-t</span> brainwritr:0.3.0 .</span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">docker</span> build <span class="at">-f</span> docker/Dockerfile <span class="at">-t</span> brainwritr:0.4.0 .</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">docker</span> volume create brainwritr-data</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">--rm</span> <span class="at">--name</span> brainwritr <span class="at">-p</span> 3838:3838 <span class="dt">\</span></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">-e</span> MOD_PIN=choose-a-private-pin <span class="dt">\</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">-v</span> brainwritr-data:/app/data brainwritr:0.3.0</span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">-v</span> brainwritr-data:/app/data brainwritr:0.4.0</span></code></pre></div>
 <p>For an existing Traefik installation with an external <code>proxy</code> network:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> docker/data</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">sudo</span> chown 10001:10001 docker/data</span>
@@ -366,14 +423,14 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="bu">export</span> <span class="va">TRAEFIK_CERTRESOLVER</span><span class="op">=</span>letsencrypt</span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">MOD_PIN</span><span class="op">=</span><span class="st">'choose-a-private-pin'</span></span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="ex">docker</span> compose <span class="at">-f</span> docker/docker-compose.yml up <span class="at">-d</span> <span class="at">--build</span></span></code></pre></div>
-<p>Replace the example hostname and certificate resolver. DNS, TLS and the existing Traefik <code>websecure</code> entrypoint must already be configured. <code>BASE_URL</code> supplies the QR-code URL. The bind mount is <strong>docker/data/</strong> relative to the Compose file; it must be writable by UID 10001. Keep the database volume when updating images. Set <code>TZ=Europe/Berlin</code> for local export timestamps (already set in Compose).</p>
+<p>Replace the example hostname and certificate resolver. DNS, TLS and the existing Traefik <code>websecure</code> entrypoint must already be configured. <code>BASE_URL</code> supplies the QR-code URL. The bind mount is <strong>docker/data/</strong> relative to the Compose file; it must be writable by UID 10001. It holds the main database and the <code>sessions/</code> folder. Keep the volume when updating images. Set <code>TZ=Europe/Berlin</code> for local export timestamps (already set in Compose).</p>
 </div>
 <div class="section level2">
 <h2 id="export-and-privacy">Export and privacy<a class="anchor" aria-label="anchor" href="#export-and-privacy"></a>
 </h2>
 <p>CSV is a UTF-8 long table with <code>Thema</code>, <code>Bogen</code>, <code>Runde</code>, <code>Frage</code>, <code>Teilnehmer</code>, <code>Beitrag</code>, <code>abgegeben</code>, and <code>Zeit</code>. <code>Zeit</code> uses SQLite local time; <code>abgegeben</code> is 0 or 1. Both drafts and submitted entries are included. Empty saved entries are included in CSV and omitted from the grouped Markdown protocol. Markdown groups Thema → Bogen → <code>R{round} · F{question} · {name}: text</code>.</p>
-<p>Use pseudonyms and avoid personal or sensitive information in contributions. The app stores names/pseudonyms, an opaque participant ID, joining and editing times, group assignments, and text on your server. Browser storage holds the participant ID and language preference. It makes no application calls to external services and has no external usage tracking. The moderator can export all contributions and reset the session. Participants can read earlier drafts as well as submissions on their assigned sheet; this is a collaborative activity, not a confidential survey.</p>
-<p>This supports data-minimizing, self-hosted use; it is <strong>not a blanket GDPR/DSGVO compliance guarantee</strong>. The operator defines access, notice, retention and backup policy. Reset deletes the session’s logical records, but is not secure forensic erasure of SQLite pages, filesystem snapshots, exports or backups. Protect those separately. Treat exported user text as untrusted when importing into spreadsheet software or rendering Markdown; use text-only spreadsheet import and a safe Markdown renderer.</p>
+<p>Use pseudonyms and avoid personal or sensitive information in contributions. The app stores names/pseudonyms, an opaque participant ID, joining and editing times, group assignments, and text on your server. Browser storage holds one participant ID per session and the language preference; a moderator tab also keeps its login token in session storage. It makes no application calls to external services and has no external usage tracking. The moderator can export all contributions and reset the session. Participants can read earlier drafts as well as submissions on their assigned sheet; this is a collaborative activity, not a confidential survey.</p>
+<p>This supports data-minimizing, self-hosted use; it is <strong>not a blanket GDPR/DSGVO compliance guarantee</strong>. The operator defines access, notice, retention and backup policy. Reset deletes the session’s logical records and Delete removes a session’s database file, but neither is secure forensic erasure of SQLite pages, filesystem snapshots, exports or backups. Archived sessions keep their data until deleted. Protect those separately. Treat exported user text as untrusted when importing into spreadsheet software or rendering Markdown; use text-only spreadsheet import and a safe Markdown renderer.</p>
 </div>
 <div class="section level2">
 <h2 id="development-and-quality">Development and quality<a class="anchor" aria-label="anchor" href="#development-and-quality"></a>
@@ -383,9 +440,9 @@ Group 3       Topic 3    Topic 1    Topic 2</code></pre>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">test</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">check</span><span class="op">(</span>args <span class="op">=</span> <span class="st">"--as-cran"</span><span class="op">)</span></span>
 <span><span class="fu">lintr</span><span class="fu">::</span><span class="fu"><a href="https://lintr.r-lib.org/reference/lint.html" class="external-link">lint_package</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">rmarkdown</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rmarkdown/man/render.html" class="external-link">render</a></span><span class="op">(</span><span class="st">"README.Rmd"</span><span class="op">)</span></span>
+<span><span class="fu">rmarkdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgs.rstudio.com/rmarkdown/reference/render.html" class="external-link">render</a></span><span class="op">(</span><span class="st">"README.Rmd"</span><span class="op">)</span></span>
 <span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Tests cover rotation, lifecycle, balanced assignment, late arrivals, upserts, clock advancement, authorization, exports and reset. <code>shinytest2</code> exercises a phone-sized browser, PIN rejection, reload/resume, polling stability, and a participant-driven round change. Browser tests skip on CRAN or if Chrome is unavailable; set <code>CHROMOTE_CHROME</code> to a Chromium executable to enable them locally. CI checks Linux, macOS and Windows, lint, and builds the CTTIR-themed pkgdown site.</p>
+<p>Tests cover rotation, lifecycle, balanced assignment, late arrivals, upserts, clock advancement, authorization, exports, reset, the session catalog, routing, overview actions and login throttling. <code>shinytest2</code> exercises a phone-sized browser, PIN rejection, reload/resume, polling stability, a participant-driven round change, separate identities per session and moderator navigation between sessions. Browser tests skip on CRAN or if Chrome is unavailable; set <code>CHROMOTE_CHROME</code> to a Chromium executable to enable them locally. CI checks Linux, macOS and Windows, lint, and builds the CTTIR-themed pkgdown site.</p>
 <p>See the <a href="https://cttir.github.io/brainwritR/articles/classroom-guide.html">classroom and deployment guide</a> for facilitation, persistence and operational details. Report bugs at <a href="https://github.com/CTTIR/brainwritR/issues" class="external-link">GitHub Issues</a>. MIT licensed.</p>
 </div>
 </div>

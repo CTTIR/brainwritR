@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,17 @@
       <small>Source: <a href="https://github.com/CTTIR/brainwritR/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.4.0" id="brainwritr-040">brainwritR 0.4.0<a class="anchor" aria-label="anchor" href="#brainwritr-040"></a></h2>
+<ul><li>Run several sessions side by side, each with its own address (<code>?s=&lt;code&gt;</code>) and QR code. The bare address keeps serving the standard session; existing databases need no migration.</li>
+<li>Add a moderator session overview to create, open, restart, archive, restore and delete sessions, with large downloadable QR codes.</li>
+<li>Restarting a session offers its settings for review in a new session and keeps the original results. Archived sessions refuse participants and stay available for review and export.</li>
+<li>Keep one participant identity per session on each device.</li>
+<li>Keep moderators signed in per browser tab and pause new logins after repeated wrong PINs.</li>
+<li>Rewrite the example question sets after the 6-3-5 principle: one open problem per topic, up to three new ideas, then develop an idea already on the sheet.</li>
+<li>Draw participant IDs from the operating system’s secure generator. Drawing a wordcloud no longer resets R’s random seed, which had made later IDs and group shuffles predictable and could make a join fail on a duplicate ID.</li>
+<li>Never recreate a deleted session file from a lingering page; open pages reload to a notice.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.0" id="brainwritr-030">brainwritR 0.3.0<a class="anchor" aria-label="anchor" href="#brainwritr-030"></a></h2>
 <ul><li><p>Add an in-place German/English/French language slider without interrupting drafts.</p></li>

@@ -11,7 +11,7 @@ Configuration is resolved at invocation, never at package load time."><meta prop
 
     <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">brainwritR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,7 +69,7 @@ Configuration is resolved at invocation, never at package load time.</p>
 
 
 <dl><dt id="arg-db-path">db_path<a class="anchor" aria-label="anchor" href="#arg-db-path"></a></dt>
-<dd><p>SQLite file path. Defaults to <code>DB_PATH</code>, then
+<dd><p>Main SQLite file path. Defaults to <code>DB_PATH</code>, then
 <code>"data/brainwriting.sqlite"</code>.</p></dd>
 
 
@@ -101,9 +101,15 @@ Set a private PIN before deployment.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Use exactly one R process per database. No replicas or horizontal
+    <p>The main database holds the standard session behind <code>base_url</code> and the
+catalog of all further sessions. Each further session is a separate SQLite
+file in a <code>sessions</code> folder next to the main database, with its own address
+(<code>?s=&lt;code&gt;</code>) and QR code. Moderators create, open, restart, archive and
+delete sessions in the overview at <code>?mod=1&amp;view=sessions</code>.</p>
+<p>Use exactly one R process per data folder. No replicas or horizontal
 scaling are supported. A round advances on the next connected client's poll;
-with no clients connected it advances when someone reconnects.</p>
+with no clients connected it advances when someone reconnects. Moderator
+logins are kept in server memory, so a restart asks for the PIN again.</p>
     </div>
 
     <div class="section level2">

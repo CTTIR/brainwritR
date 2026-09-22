@@ -1,25 +1,29 @@
 # brainwritR current state
 
-Checkpoint: 2026-09-21T13:55:47Z (UTC)
+Checkpoint: 2026-09-22T07:30:21Z (UTC)
 
-- Package: brainwritR 0.1.0; public CTTIR/brainwritR; MIT.
-- Application, Docker/Traefik files, comprehensive README and classroom
-  vignette implemented, committed and pushed. CTTIR theme and supplied
-  hex artwork wired in.
-- Archive preserved and ignored; Mode A reference retained locally in
-  dev/app.R.
-- Local package check: 0 errors / 0 warnings / 0 notes. Full tests: 145
-  passed, no failures/warnings/skips. Headless coverage: 93.13%. Lint,
-  documentation, zero-config startup, Docker HTTP and restart
-  persistence pass.
-- Hosted validation: Linux release/old-release, macOS and Windows checks
-  pass (145 assertions each). Lint, pkgdown and Pages pass; site is
-  live. R-devel dependency installation remains in progress in run
-  35607880529.
-- Direct CRAN-style check: 0 E / 0 W; expected New submission NOTE only.
-- Next authorized work: 0.2.0 modes/settings, then 0.3.0
-  analytics/reports/exports, preserving all existing regression tests
-  and completing a final readiness audit.
-- See HANDOVER.md for the file map, reference corrections, evidence and
-  deployment requirements. No CRAN submission or classroom production
-  deployment performed.
+- **brainwritR 0.4.0** on `main`, implementation commit `744be57` (based
+  on `f2929de`). Hosted CI: pending.
+- 0.4.0 adds multi-session administration: the bare URL keeps the
+  standard session; further sessions live in `sessions/<code>.sqlite`
+  with their own `?s=<code>` address and QR code. The moderator overview
+  (`?mod=1&view=sessions`) creates, opens, restarts (new prefilled
+  session), archives/restores (finished only, read-only) and deletes
+  sessions. Moderator tokens per tab; PIN throttle after five failures.
+- Example question sets follow the 6-3-5 principle within the two answer
+  fields.
+- Fixed: wordcloud drawing reset R’s seed (predictable, colliding
+  participant IDs); identifiers now come from
+  [`openssl::rand_bytes()`](https://jeroen.r-universe.dev/openssl/reference/rand_bytes.html).
+- Local validation (R 4.6.1): **1167 passing assertions**, 0
+  failures/warnings/skips, browser tests included;
+  `devtools::check(--as-cran)` **0 errors / 0 warnings / 0 notes**; lint
+  clean. Iteration-1 test files unchanged from `19e921d`.
+- Container (`rocker/r-ver:4.4.2`, image `sha256:2221b601…`, 620,507,532
+  bytes): HTTP 200, UID 10001, a created session file persisted in the
+  volume across restart and is served at `?s=<code>`; Cairo and openssl
+  2.3.2 available. Test container and volume removed.
+- Details, decisions and file map:
+  [HANDOVER.md](https://cttir.github.io/brainwritR/HANDOVER.md).
+- Next steps: confirm hosted CI and website, rehearse with classroom
+  devices. One R process per data folder remains required.
