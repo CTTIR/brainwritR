@@ -23,7 +23,7 @@ jobs:
       # Use the runner browser, without the Chromium PPA dependency.
       PKG_SYSREQS: "false"
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -51,13 +51,27 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
+      # Pages is configured to publish from GitHub Actions, not from a branch.
+      - name: Upload site for GitHub Pages
         if: github.event_name != 'pull_request'
-        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
+        uses: actions/upload-pages-artifact@v5
         with:
-          git-config-name: R. Heller
-          git-config-email: 58561665+r-heller@users.noreply.github.com
-          commit-message: "docs: deploy package website"
-          clean: false
-          branch: gh-pages
-          folder: docs
+          path: docs
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: pkgdown
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
