@@ -49,7 +49,8 @@ bw_entry_tokens <- function(entries, topics = NULL, exclude_prompt = TRUE) {
     return(tokens)
   }
   for (i in seq_len(nrow(topics))) {
-    prompt <- unique(unlist(bw_tokenize(c(topics$title[i], topics$q1[i], topics$q2[i])),
+    questions <- topic_questions(topics[i, , drop = FALSE])
+    prompt <- unique(unlist(bw_tokenize(c(topics$title[i], questions)),
                             use.names = FALSE))
     rows <- which(entries$topic_id == topics$id[i])
     tokens[rows] <- lapply(tokens[rows], function(x) x[!x %in% prompt])

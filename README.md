@@ -15,8 +15,8 @@ MIT](https://img.shields.io/badge/License-MIT-0e6e78.svg)](LICENSE.md)
 brainwritR brings a classroom adaptation of Rohrbach’s 6-3-5
 brainwriting method onto participants’ smartphones. A facilitator sets
 up topics, invites the room with a QR code, and runs timed rounds.
-Participants read earlier contributions on their assigned sheet, add
-answers to two questions, and move to the next topic together. The app
+Participants read earlier contributions on their assigned sheet, answer
+the configured questions, and move to the next topic together. The app
 offers German, English and French; documentation is English.
 
 The app keeps drafts and the round clock in SQLite, resumes participants
@@ -75,22 +75,25 @@ brainwritR::run_app(
 ## Individual-device workflow
 
 1.  **Set up:** open the moderator route, enter the PIN, and enter a
-    title and two questions for each topic. Choose 2–6 groups, 1–12
-    rounds, and 30–1800 seconds per round. Enter the planned number of
-    participants: below the fields the format is described live, for
-    example “Format 15-2-5: 3 topics, 3 rounds, 300 s per round. 5
-    people per group.” (participants, questions, minutes). Names are
-    optional; participants can enter a name or pseudonym when joining.
+    title and choose **Anzahl der Fragen** for each topic (at least one;
+    two by default). Enter every question before saving. Choose 2–6
+    groups, 1–12 rounds, and 30–1800 seconds per round. Enter the
+    planned number of participants: below the fields the format is
+    described live, for example “Format 15-2-5: 3 topics, 3 rounds, 300
+    s per round. 5 people per group.” (participants, questions,
+    minutes). Names are optional; participants can enter a name or
+    pseudonym when joining.
 2.  **Invite:** open the lobby. Participants scan the QR code and enter
     a name or pseudonym. Watch the live roster, then start once at least
     K people have joined.
 3.  **Write and rotate:** groups are balanced and randomized.
-    Participants read previous rounds on their sheet and answer both
-    questions. Drafts save after 1.2 seconds of quiet; **Abgeben**
-    explicitly submits both answers. Submitted answers remain editable
-    until the round ends. The moderator can add 60 seconds or end a
-    round early; repeated clicks or a second moderator tab end only the
-    round that is on screen, never the next one.
+    Participants read previous rounds on their sheet and answer the
+    configured questions. Drafts save after 1.2 seconds of quiet;
+    **Abgeben** explicitly submits all configured answers. Submitted
+    answers remain editable until the round ends. The moderator can add
+    60 seconds or end a round early; repeated clicks or a second
+    moderator tab end only the round that is on screen, never the next
+    one.
 4.  **Weigh (optional):** in **Analyse & Plenum**, start the weighting.
     Everyone distributes 100 % per topic across the anonymous
     contributions; the moderator ends it and discusses the ranked
@@ -228,11 +231,11 @@ Each topic has exactly one sheet.
 
 In **hot-seat mode**, enter a roster (one name per line). Setup starts
 directly at **Weitergeben an: …**, without a QR-code lobby. **Los
-geht’s** starts that person’s timer; **Fertig — weitergeben** saves both
-answers and advances. **Überspringen** skips an absent person without
-creating entries. People are assigned virtual groups using the same
-balanced randomization as individual mode; turns follow roster arrival
-order. Each pass visits everyone once.
+geht’s** starts that person’s timer; **Fertig — weitergeben** saves all
+configured answers and advances. **Überspringen** skips an absent person
+without creating entries. People are assigned virtual groups using the
+same balanced randomization as individual mode; turns follow roster
+arrival order. Each pass visits everyone once.
 
 Keep a PIN-authenticated `/?mod=1` tab open on the same machine for
 **+30 s**, skipping a turn, ending the rest of a pass, adding
@@ -296,15 +299,31 @@ participants:
   - "Bob"
 ```
 
+For a variable question count, a topic can use a `questions` sequence:
+
+``` yaml
+title: Working together
+questions:
+  - What helps our team?
+  - Which resources do we need?
+  - How will we measure progress?
+```
+
+Legacy topics with `q1` and `q2` remain supported. Counts can differ
+between topics; answer fields, autosave, voting and exports follow the
+configured questions. Results and plenum rankings show the original
+question above each answer. The analysis tab also lists the questions
+used. Existing session databases migrate automatically at startup.
+
 The compatibility identifier remains exactly
-`brainwriting635-settings/1`. Topics must contain 2–6 nonempty
-title/question pairs. Rounds are integers 1–12; parallel-round duration
-is 30–1800 seconds and turn duration 20–600 seconds (default 90).
-Optional group names must be unique and match the number of topics.
-Roster names must be nonempty and unique after trimming. Hot-seat start
-requires at least one name. Individual-mode roster names appear as
-one-tap join buttons; taken names are disabled, and the free-text join
-field remains available.
+`brainwriting635-settings/1`. There must be 2–6 topics, each with a
+nonempty title and at least one nonempty question. Rounds are integers
+1–12; parallel-round duration is 30–1800 seconds and turn duration
+20–600 seconds (default 90). Optional group names must be unique and
+match the number of topics. Roster names must be nonempty and unique
+after trimming. Hot-seat start requires at least one name.
+Individual-mode roster names appear as one-tap join buttons; taken names
+are disabled, and the free-text join field remains available.
 
 The upload limit is 100 KiB. YAML expressions are never evaluated. All
 validation errors appear together in the selected interface language;
@@ -384,7 +403,8 @@ LaTeX, Pandoc, or R Markdown report toolchain.
 **Namen pseudonymisieren (TN-01, TN-02, …)** applies stable
 arrival-order codes to all five downloads; groups receive `Gruppe-01`,
 etc. RDS/XLSX persistent author IDs and stored roster settings are
-replaced consistently. In-app views retain real names. This is
+replaced consistently. The result view updates immediately when the
+checkbox changes; the same codes are used in downloads. This is
 author-field pseudonymization: identifying information typed inside
 answers, topic titles or questions is not detected or redacted. Review
 free text before sharing. The PDF contains aggregate results, not an
@@ -423,7 +443,7 @@ use the same modulo mapping without changing sheet counts. The full
 K-topic guarantee applies to participants present for all K rounds, not
 to someone joining halfway through. With fewer than K rounds, some
 topics are not visited; with more than K, the cycle repeats. This
-two-question classroom adaptation is not the literal six-person,
+classroom adaptation is not the literal six-person,
 three-ideas-per-round protocol; the example questions keep its core, new
 ideas plus building on the sheet, within two fields.
 

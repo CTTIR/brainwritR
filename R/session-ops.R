@@ -173,8 +173,12 @@ configure_session <- function(db_path, k, rounds, seconds, topics, settings = NU
     dbExecute(con, "DELETE FROM topics")
     for (i in seq_len(k)) {
       topic <- settings$topics[[i]]
-      dbExecute(con, "INSERT INTO topics (id, title, q1, q2) VALUES (:i, :t, :a, :b)",
-                params = list(i = i, t = topic$title, a = topic$q1, b = topic$q2))
+      questions <- topic_questions(topic)
+      dbExecute(con, "INSERT INTO topics (id, title, q1, q2, questions_yaml)
+                       VALUES (:i, :t, :a, :b, :q)",
+                params = list(i = i, t = topic$title, a = questions[1],
+                              b = if (length(questions) > 1L) questions[2] else "",
+                              q = yaml::as.yaml(as.list(questions))))
     }
     dbExecute(con, "
       UPDATE session SET n_groups = :g, n_rounds = :r, round_secs = :s,

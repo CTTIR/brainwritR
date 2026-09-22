@@ -167,12 +167,19 @@ bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
   # Stretch the axis to the largest share (with room for its label), so small
   # shares in large classes stay comparable.
   upper <- min(1.2, max(0.1, 1.3 * max(d$share)))
+  # facet_wrap gained free panel space in ggplot2 4.0. Older supported
+  # installations use facet_grid, which has long supported this layout.
+  facets <- if ("space" %in% names(formals(ggplot2::facet_wrap))) {
+    ggplot2::facet_wrap(~topic, scales = "free_y", ncol = 1, space = "free_y")
+  } else {
+    ggplot2::facet_grid(rows = "topic", scales = "free_y", space = "free_y")
+  }
   ggplot2::ggplot(d, ggplot2::aes(x = .data$share, y = .data$label)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.7) +
     ggplot2::geom_text(ggplot2::aes(label = .data$value), hjust = -0.15, size = 3,
                        colour = bw_palette()[["ink"]]) +
     # Panels are as tall as their bars, so topics with many bars stay legible.
-    ggplot2::facet_wrap(~topic, scales = "free_y", ncol = 1, space = "free_y") +
+    facets +
     ggplot2::scale_x_continuous(labels = function(x) paste0(round(100 * x), " %"),
                                 limits = c(0, upper), expand = c(0, 0)) +
     ggplot2::scale_y_discrete(labels = function(x) sub("___[0-9]+$", "", x)) +

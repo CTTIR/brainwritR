@@ -426,8 +426,6 @@ app_server <- function(cfg) {
       tp <- m$topics[m$topics$id == t_id, ]
       sh <- sheet_for(me$idx, tp$n_sheets)
       ent <- isolate(tick_all())$entries
-      mine1 <- ent$text[ent$pid == pid & ent$round == s$current_round & ent$question == 1]
-      mine2 <- ent$text[ent$pid == pid & ent$round == s$current_round & ent$question == 2]
 
       tagList(
         div(
@@ -449,22 +447,18 @@ app_server <- function(cfg) {
         ),
         div(
           class = "bw-card",
-          tags$label(class = "bw-q", `for` = "a1", "Frage 1 \u2014 ",
-                     tags$span(translate = "no", tp$q1)),
-          uiOutput("prev1"),
-          textAreaInput("a1", NULL,
-            value = if (length(mine1)) mine1[1] else "",
-            placeholder = "Aufgreifen, ergaenzen, weiterentwickeln \u2026",
-            width = "100%"
-          ),
-          tags$label(class = "bw-q", `for` = "a2", "Frage 2 \u2014 ",
-                     tags$span(translate = "no", tp$q2)),
-          uiOutput("prev2"),
-          textAreaInput("a2", NULL,
-            value = if (length(mine2)) mine2[1] else "",
-            placeholder = "Aufgreifen, ergaenzen, weiterentwickeln \u2026",
-            width = "100%"
-          ),
+          lapply(seq_along(topic_questions(tp)), function(q) {
+            id <- paste0("a", q)
+            mine <- ent$text[ent$pid == pid & ent$round == s$current_round & ent$question == q]
+            tagList(
+              tags$label(class = "bw-q", `for` = id, sprintf("Frage %d", q), " \u2014 ",
+                         tags$span(translate = "no", topic_questions(tp)[q])),
+              uiOutput(paste0("prev", q)),
+              textAreaInput(id, NULL, value = if (length(mine)) mine[1] else "",
+                            placeholder = "Aufgreifen, ergaenzen, weiterentwickeln \u2026",
+                            width = "100%")
+            )
+          }),
           uiOutput("submit_area"),
           p(class = "bw-status mt-2", "Speichert automatisch beim Tippen.")
         )
@@ -501,17 +495,21 @@ app_server <- function(cfg) {
         )
       })
     }
-    output$prev1 <- renderUI(prev_block(1))
-    output$prev2 <- renderUI(prev_block(2))
 
     draft <- function(value) {
-      list(text = value, ctx = isolate(edit_ctx()), pid = isolate(active_pid()))
+      ctx <- isolate(edit_ctx())
+      topics <- isolate(tick_meta())$topics
+      count <- if (is.null(ctx)) {
+        0L
+      } else {
+        length(topic_questions(topics[topics$id == ctx$topic_id, , drop = FALSE]))
+      }
+      list(text = value, ctx = ctx, pid = isolate(active_pid()), questions = count)
     }
-    a1_d <- debounce(reactive(draft(input$a1)), 1200)
-    a2_d <- debounce(reactive(draft(input$a2)), 1200)
     save_draft <- function(value, question) {
       ctx <- value$ctx
-      if (is.null(ctx) || is.null(value$text) || is.null(value$pid) || !session_alive()) {
+      if (is.null(ctx) || is.null(value$text) || is.null(value$pid) ||
+            question > value$questions || !session_alive()) {
         return()
       }
       save_entry(
@@ -519,11 +517,25 @@ app_server <- function(cfg) {
         ctx$round, question, value$text
       )
     }
-    observeEvent(a1_d(), ignoreInit = TRUE, {
-      save_draft(a1_d(), 1L)
-    })
-    observeEvent(a2_d(), ignoreInit = TRUE, {
-      save_draft(a2_d(), 2L)
+    # Register each numbered answer once. Each debounce captures its original
+    # author and assignment, including when topics have different question counts.
+    answer_observers <- new.env(parent = emptyenv())
+    observe({
+      topics <- tick_meta()$topics
+      counts <- vapply(seq_len(nrow(topics)), function(i) length(topic_questions(topics[i, ])), 0L)
+      for (q in seq_len(max(c(2L, counts)))) {
+        id <- paste0("a", q)
+        if (exists(id, answer_observers, inherits = FALSE)) next
+        local({
+          question <- q
+          input_id <- id
+          value <- debounce(reactive(draft(input[[input_id]])), 1200)
+          answer_observers[[input_id]] <- observeEvent(value(), {
+            save_draft(value(), question)
+          }, ignoreInit = TRUE)
+          output[[paste0("prev", question)]] <- renderUI(prev_block(question))
+        })
+      }
     })
 
     observeEvent(input$submit_btn, {
@@ -531,14 +543,12 @@ app_server <- function(cfg) {
       if (is.null(ctx) || !session_alive()) {
         return()
       }
-      save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
-        1L, input$a1 %||% "",
-        submitted = 1L
-      )
-      save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
-        2L, input$a2 %||% "",
-        submitted = 1L
-      )
+      topics <- tick_meta()$topics
+      topic <- topics[topics$id == ctx$topic_id, , drop = FALSE]
+      for (q in seq_along(topic_questions(topic))) {
+        save_entry(cfg$db_path, active_pid(), ctx$topic_id, ctx$sheet, ctx$round,
+                   q, input[[paste0("a", q)]] %||% "", submitted = 1L)
+      }
       if (isolate(tick_meta())$s$mode == "hot_seat") {
         maybe_advance(cfg$db_path, force = TRUE, expected = tick_meta()$s)
       }
@@ -625,14 +635,30 @@ app_server <- function(cfg) {
       }
     })
 
+    setup_topic <- function(i) {
+      n <- input[[paste0("t_nq_", i)]] %||% 2L
+      if (!valid_question_count(n)) return(list(title = "", questions = character()))
+      questions <- vapply(seq_len(n), function(q) {
+        input[[paste0("t_q", q, "_", i)]] %||% ""
+      }, character(1))
+      title <- input[[paste0("t_title_", i)]] %||% ""
+      if (n == 2L) {
+        list(title = title, q1 = questions[1], q2 = questions[2])
+      } else {
+        list(title = title, questions = questions)
+      }
+    }
+
     demo_previous <- reactiveVal(NULL)
 
     setup_apply_topics <- function(topics) {
       shiny::updateNumericInput(session, "n_groups", value = length(topics))
       for (i in seq_along(topics)) {
-        for (field in c("title", "q1", "q2")) {
-          shiny::updateTextInput(session, paste0("t_", field, "_", i),
-                                 value = topics[[i]][[field]])
+        shiny::updateTextInput(session, paste0("t_title_", i), value = topics[[i]]$title)
+        questions <- topic_questions(topics[[i]])
+        shiny::updateNumericInput(session, paste0("t_nq_", i), value = length(questions))
+        for (q in seq_along(questions)) {
+          shiny::updateTextAreaInput(session, paste0("t_q", q, "_", i), value = questions[q])
         }
       }
       setup_upload(list(topics = topics, revision = setup_upload()$revision + 1L))
@@ -648,11 +674,7 @@ app_server <- function(cfg) {
         k <- input$n_groups %||% 3
         if (!is.numeric(k) || length(k) != 1L || is.na(k) ||
               k != floor(k) || k < 2 || k > 6) k <- 3
-        previous <- lapply(seq_len(k), function(i) {
-          list(title = input[[paste0("t_title_", i)]] %||% "",
-               q1 = input[[paste0("t_q1_", i)]] %||% "",
-               q2 = input[[paste0("t_q2_", i)]] %||% "")
-        })
+        previous <- lapply(seq_len(k), setup_topic)
         demo_previous(previous)
         setup_apply_topics(example_topics(input$ui_language %||% "de"))
       } else {
@@ -690,13 +712,7 @@ app_server <- function(cfg) {
         rounds = input$n_rounds %||% 3,
         round_secs = input$round_secs %||% 300,
         turn_secs = input$turn_secs %||% 90,
-        topics = lapply(seq_len(k), function(i) {
-          list(
-            title = input[[paste0("t_title_", i)]] %||% "",
-            q1 = input[[paste0("t_q1_", i)]] %||% "",
-            q2 = input[[paste0("t_q2_", i)]] %||% ""
-          )
-        }),
+        topics = lapply(seq_len(k), setup_topic),
         groups = if (length(groups)) groups else NULL,
         participants = setup_names(input$roster),
         expected_participants = planned_participants()
@@ -827,7 +843,11 @@ app_server <- function(cfg) {
       planned <- input$n_participants
       if (!whole(planned, 1, 500)) planned <- NA
       sentences <- format_summary(input$play_mode %||% "individual", planned, k, rounds, secs,
-                                  turn, length(setup_names(input$roster)))
+                                  turn, length(setup_names(input$roster)),
+                                  questions = vapply(seq_len(k), function(i) {
+                                    n <- input[[paste0("t_nq_", i)]] %||% 2L
+                                    if (valid_question_count(n)) n else 2
+                                  }, 0))
       p(class = "bw-status", lapply(sentences, function(x) tags$span(class = "d-block", x)))
     })
 
@@ -861,13 +881,48 @@ app_server <- function(cfg) {
           textInput(paste0("t_title_", i), "Titel des Themas",
             value = value("title", "t_title_"), width = "100%"
           ),
-          textAreaInput(paste0("t_q1_", i), "Frage 1", rows = 2,
-            value = value("q1", "t_q1_"), width = "100%"
-          ),
-          textAreaInput(paste0("t_q2_", i), "Frage 2", rows = 2,
-            value = value("q2", "t_q2_"), width = "100%"
-          )
+          numericInput(paste0("t_nq_", i), "Anzahl der Fragen",
+                       value = if (!is.null(seed)) {
+                         length(topic_questions(seed))
+                       } else {
+                         isolate(input[[paste0("t_nq_", i)]]) %||% 2L
+                       }, min = 1, step = 1, width = "100%"),
+          uiOutput(paste0("topic_questions_", i))
         )
+      })
+    })
+
+    lapply(seq_len(6L), function(i) {
+      state <- reactiveVal(NULL)
+      pending <- NULL
+      observe({
+        gate <- topic_form_gate()
+        req(!is.null(gate))
+        seed <- if (length(gate$topics) >= i) gate$topics[[i]] else NULL
+        n <- input[[paste0("t_nq_", i)]] %||% 2L
+        old <- isolate(state())
+        revision <- paste(gate$revision, gate$k, sep = ":")
+        if (is.null(old) || !identical(old$revision, revision)) {
+          count <- if (!is.null(seed)) length(topic_questions(seed)) else n
+          if (!valid_question_count(count)) count <- 2L
+          pending <<- if (!is.null(seed) && n != count) count else NULL
+          state(list(n = count, seed = seed, revision = revision))
+        } else if (!is.null(pending)) {
+          if (valid_question_count(n) && n == pending) pending <<- NULL
+        } else if (valid_question_count(n) && n != old$n) {
+          state(list(n = n, seed = NULL, revision = revision))
+        }
+      })
+      output[[paste0("topic_questions_", i)]] <- renderUI({
+        req(is_mod())
+        current <- state()
+        req(!is.null(current))
+        questions <- if (!is.null(current$seed)) topic_questions(current$seed) else character()
+        lapply(seq_len(current$n), function(q) {
+          id <- paste0("t_q", q, "_", i)
+          value <- if (q <= length(questions)) questions[q] else isolate(input[[id]]) %||% ""
+          textAreaInput(id, sprintf("Frage %d", q), value = value, rows = 2, width = "100%")
+        })
       })
     })
 
@@ -915,20 +970,14 @@ app_server <- function(cfg) {
       shiny::updateTextAreaInput(session, "group_names",
         value = paste(parsed$groups, collapse = "\n")
       )
-      for (i in seq_along(parsed$topics)) {
-        for (field in c("title", "q1", "q2")) {
-          shiny::updateTextInput(session, paste0("t_", field, "_", i),
-            value = parsed$topics[[i]][[field]]
-          )
-        }
-      }
-      setup_upload(list(topics = parsed$topics, revision = setup_upload()$revision + 1L))
+      setup_apply_topics(parsed$topics)
       showNotification("Einstellungen geladen. Bitte pr\u00fcfen und best\u00e4tigen.",
         type = "message"
       )
     })
 
     output$dl_settings <- downloadHandler(
+      contentType = "application/x-yaml",
       filename = function() {
         paste0(
           "brainwriting_einstellungen_", format(Sys.Date(), "%Y%m%d"),
@@ -941,6 +990,9 @@ app_server <- function(cfg) {
         status <- get_session(con)$status
         dbDisconnect(con)
         settings <- if (status == "setup") isolate(setup_config()) else get_settings(cfg$db_path)
+        if (!inherits(settings, "bw_settings")) {
+          stop(paste(settings, collapse = "\n"), call. = FALSE)
+        }
         write_settings(settings, file)
       }
     )
@@ -956,7 +1008,7 @@ app_server <- function(cfg) {
         return()
       }
       vals <- lapply(settings$topics, function(topic) {
-        list(t = topic$title, a = topic$q1, b = topic$q2)
+        list(t = topic$title, a = topic_questions(topic)[1], b = topic_questions(topic)[2])
       })
       err <- configure_session(cfg$db_path, length(vals), settings$rounds,
         settings$round_secs, vals,
@@ -1143,6 +1195,14 @@ app_server <- function(cfg) {
             "Deskriptive Textauswertung; keine Bewertung der Ideenqualit\u00e4t."
           )
         ),
+        div(class = "bw-card", h4("Verwendete Fragen"),
+            lapply(seq_len(nrow(st$topics)), function(i) {
+              topic <- st$topics[i, , drop = FALSE]
+              tagList(tags$h5(translate = "no", topic$title),
+                      lapply(seq_along(topic_questions(topic)), function(q) {
+                        question_heading(st$topics, topic$id, q)
+                      }))
+            })),
         div(class = "bw-card", plotOutput("fig_contributions", height = "auto")),
         div(class = "bw-card", plotOutput("fig_terms", height = "auto")),
         div(
@@ -1164,9 +1224,20 @@ app_server <- function(cfg) {
         )
       )
     })
+    display_data <- reactive({
+      req(is_mod())
+      data <- tick_all()
+      if (isTRUE(input$anonymize)) {
+        data$settings <- settings_from_tables(data$s, data$topics)
+        data$session <- data$s
+        data <- pseudonymize_data(data)
+      }
+      data
+    })
+
     analytics_data <- reactive({
       req(is_mod(), tick_meta()$s$status == "finished")
-      tick_all()
+      display_data()
     })
     analytics_selected <- reactive({
       e <- analytics_data()$entries
@@ -1244,7 +1315,7 @@ app_server <- function(cfg) {
 
     output$mod_results <- renderUI({
       req(is_mod())
-      st <- tick_all()
+      st <- display_data()
       pn <- stats::setNames(st$participants$name, st$participants$pid)
       lapply(seq_len(nrow(st$topics)), function(i) {
         tp <- st$topics[i, ]
@@ -1254,7 +1325,8 @@ app_server <- function(cfg) {
           h4(paste0("Thema ", tp$id, ": "), tags$span(translate = "no", tp$title)),
           p(
             class = "bw-status", translate = "no",
-            paste0("F1: ", tp$q1, "   \u00b7   F2: ", tp$q2)
+            paste(paste0("F", seq_along(topic_questions(tp)), ": ", topic_questions(tp)),
+                  collapse = "   \u00b7   ")
           ),
           if (!nrow(sub)) {
             p(class = "bw-status", "Keine Beitraege.")
@@ -1275,6 +1347,7 @@ app_server <- function(cfg) {
                         " \u00b7 ", pn[[ss$pid[j]]]
                       )
                     ),
+                    question_heading(st$topics, ss$topic_id[j], ss$question[j]),
                     div(translate = "no", ss$text[j])
                   )
                 })
@@ -1286,25 +1359,22 @@ app_server <- function(cfg) {
     })
 
     output$dl_csv <- downloadHandler(
+      contentType = "text/csv; charset=UTF-8",
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".csv"),
       content = function(file) {
         req(is_mod())
-        data <- export_df(cfg$db_path)
-        if (isTRUE(input$anonymize)) data <- export_snapshot_df(download_data())
+        data <- export_snapshot_df(download_data())
         if (isTRUE(input$csv_safe)) data <- spreadsheet_safe(data)
         write.csv(data, file, row.names = FALSE, fileEncoding = "UTF-8")
       }
     )
 
     output$dl_md <- downloadHandler(
+      contentType = "text/markdown; charset=UTF-8",
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".md"),
       content = function(file) {
         req(is_mod())
-        text <- if (isTRUE(input$anonymize)) {
-          build_snapshot_md(download_data())
-        } else {
-          build_md(cfg$db_path)
-        }
+        text <- build_snapshot_md(download_data())
         writeLines(text, file, useBytes = TRUE)
       }
     )
@@ -1316,19 +1386,27 @@ app_server <- function(cfg) {
       data
     }
     output$dl_rds <- downloadHandler(
+      contentType = "application/octet-stream",
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".rds"),
       content = function(file) write_rds(download_data(), file)
     )
     output$dl_xlsx <- downloadHandler(
+      contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       filename = function() paste0("brainwriting_", format(Sys.time(), "%Y%m%d_%H%M"), ".xlsx"),
       content = function(file) write_xlsx(download_data(), file)
     )
     output$dl_pdf <- downloadHandler(
+      contentType = "application/pdf",
       filename = function() {
         paste0("brainwriting_bericht_", format(Sys.time(), "%Y%m%d_%H%M"), ".pdf")
       },
       content = function(file) build_report(download_data(), file)
     )
+
+    # Download bindings must be ready even inside a currently hidden tab.
+    for (id in c("dl_settings", "dl_csv", "dl_md", "dl_rds", "dl_xlsx", "dl_pdf")) {
+      shiny::outputOptions(output, id, suspendWhenHidden = FALSE)
+    }
 
     observeEvent(input$reset_btn, {
       req(is_mod())

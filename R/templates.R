@@ -76,12 +76,13 @@ example_topics <- function(language = "de") {
 #' @param rounds Number of rounds or hot-seat passes.
 #' @param round_secs Seconds per parallel round.
 #' @param turn_secs Seconds per hot-seat turn.
+#' @param questions Number of questions per topic.
 #' @param roster Number of roster names in hot-seat mode.
 #' @return German sentences, one per element.
 #' @keywords internal
 #' @noRd
 format_summary <- function(mode, participants, k, rounds, round_secs, turn_secs = 90,
-                           roster = 0) {
+                           roster = 0, questions = 2L) {
   coverage <- if (rounds == k) {
     sprintf("Nach %d Runden hat jede Person jedes Thema 1\u00d7 bearbeitet.", k)
   } else if (rounds < k) {
@@ -106,7 +107,14 @@ format_summary <- function(mode, participants, k, rounds, round_secs, turn_secs 
   } else {
     sprintf("Je Gruppe %d\u2013%d Personen.", participants %/% k, participants %/% k + 1)
   }
-  c(paste0(sprintf("Format %d-2-%s: ", participants, minutes), timing), groups, coverage)
+  if (length(unique(questions)) == 1L) questions <- unique(questions)
+  question_label <- if (length(questions) == 1L) {
+    as.character(questions)
+  } else {
+    paste(range(questions), collapse = "\u2013")
+  }
+  c(paste0(sprintf("Format %d-%s-%s: ", participants,
+                   question_label, minutes), timing), groups, coverage)
 }
 
 #' Count sentences with correct singular forms

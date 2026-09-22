@@ -14,9 +14,14 @@ library(brainwritR)
 
 ## Plan the activity
 
+Set **Anzahl der Fragen** separately for each topic in setup. Every selected question
+needs text. The result and plenum views repeat the original question above its answers;
+the analysis tab also lists the questions. Existing two-question sessions remain readable.
+
+
 brainwritR implements a classroom adaptation of the 6-3-5 method attributed to
 Bernd Rohrbach. The original name refers to six people, three ideas and five
-minutes. This application instead provides **two questions per topic** and
+minutes. This application instead provides **a configurable number of questions per topic** (minimum one, default two) and
 rotates topics between groups. The course variant 15-2-5 means about 15
 participants, two questions and five minutes per round. In setup, enter the planned
 number of participants: the form then names the resulting format, such as
@@ -24,7 +29,7 @@ number of participants: the form then names the resulting format, such as
 The app does not enforce a fixed number of ideas in an answer. Names in setup are
 optional; participants can enter a name or a pseudonym when they join.
 
-Keep the core of 6-3-5 within the two fields: frame each topic as one open
+With the default two fields, keep the core of 6-3-5: frame each topic as one open
 problem, ask for new ideas in the first field and for developing an idea already
 on the sheet in the second. For example: “How might we get everyone to take an
 active part in group work? Note up to three new ideas.” and “Pick up an idea from
@@ -121,7 +126,7 @@ Start requires at least as many people as topics.
 
 The app randomizes balanced groups. With 16 people and three topics, the sizes
 are 6, 5 and 5. People use their own devices, read the earlier contributions on
-their assigned sheet and answer both questions. Submit marks both answers as
+their assigned sheet and answer the configured questions. Submit marks all answers as
 submitted; they remain editable until the round ends. The moderator sees group
 progress, can add 60 seconds and can end a round early.
 
@@ -140,7 +145,7 @@ last-write-wins. Unclaimed groups may join after the session has started.
 
 Enter at least one name in the roster, one per line. Saving starts directly at a
 handover screen instead of opening a QR lobby. The next person selects the start
-button to arm the timer. Finishing saves both answers and hands over to the next
+button to arm the timer. Finishing saves all configured answers and hands over to the next
 person; skipping a handover creates no entries. Turn order follows roster arrival
 order. A pass visits everyone once, then the topic rotation advances.
 
@@ -202,7 +207,7 @@ participants:
 ```
 
 The format identifier remains `brainwriting635-settings/1` for compatibility.
-Topic count must be 2–6, with nonempty titles and both questions. Rounds must be
+Topic count must be 2–6, with nonempty titles and at least one nonempty question per topic. Rounds must be
 an integer from 1–12. Parallel rounds allow 30–1800 seconds; hot-seat turns allow
 20–600 seconds. Group names must be unique and match the topic count. Optional
 roster names must be nonempty and unique after trimming.
@@ -322,7 +327,7 @@ of the interface language.
 
 Optional author pseudonymization applies stable arrival-order codes to all five
 downloads. It also replaces persistent author IDs and stored roster settings.
-On-screen views retain names. This is not complete anonymization: personal
+The result view switches to the same pseudonyms immediately when the checkbox is selected. This is not complete anonymization: personal
 information typed into answers or topic prompts remains unchanged. Review such
 content before sharing. CSV values should be imported as text, and Markdown
 should be rendered with raw HTML disabled. For spreadsheet software, tick **Make CSV

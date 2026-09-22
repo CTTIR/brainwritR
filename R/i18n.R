@@ -402,7 +402,10 @@ bw_language_dictionary <- function() {
       "nouvelles id\u00e9es, d\u00e9velopper les id\u00e9es ci-dessus. ",
       "D\u00e9cochez pour restaurer les th\u00e8mes pr\u00e9c\u00e9dents."
     ))
-  ), session_dictionary(), plenum_dictionary())
+  ), data.frame(de = c("Anzahl der Fragen", "Verwendete Fragen"),
+                en = c("Number of questions", "Questions used"),
+                fr = c("Nombre de questions", "Questions utilis\u00e9es")),
+  session_dictionary(), plenum_dictionary())
 }
 
 #' Interface strings of the plenum weighting

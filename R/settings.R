@@ -50,16 +50,29 @@ validate_settings <- function(x) {
     errors <- c(errors, "topics: muss 2 bis 6 Themen enthalten.")
   }
   if (valid_topics) {
-    labels <- c(title = "keinen Titel", q1 = "keine Frage 1", q2 = "keine Frage 2")
     for (i in seq_along(topics)) {
       topic <- topics[[i]]
-      for (field in names(labels)) {
-        if (!is.list(topic) || !scalar_text(topic[[field]])) {
-          errors <- c(errors, sprintf("topics: Thema %s hat %s.", i, labels[[field]]))
+      if (!is.list(topic) || !scalar_text(topic$title)) {
+        errors <- c(errors, sprintf("topics: Thema %s hat keinen Titel.", i))
+      }
+      if (is.list(topic) && !is.null(topic$questions)) {
+        questions <- topic$questions
+        if (!(is.character(questions) || is.list(questions)) || !length(questions) ||
+              !all(vapply(as.list(questions), scalar_text, logical(1)))) {
+          errors <- c(errors, sprintf(
+            "topics: Thema %s braucht mindestens eine nicht-leere Frage.", i
+          ))
+        }
+      } else {
+        for (q in 1:2) {
+          if (!is.list(topic) || !scalar_text(topic[[paste0("q", q)]])) {
+            errors <- c(errors, sprintf("topics: Thema %s hat keine Frage %s.", i, q))
+          }
         }
       }
     }
   }
+
   name_vector <- function(value, field) {
     if (is.null(value)) return(character())
     # read_yaml returns YAML sequences as lists; accept R character vectors too.
@@ -95,7 +108,11 @@ validate_settings <- function(x) {
     rounds = as.integer(x$rounds), round_secs = as.integer(x$round_secs),
     turn_secs = as.integer(x$turn_secs),
     topics = lapply(topics, function(topic) {
-      lapply(topic[c("title", "q1", "q2")], trimws)
+      if (!is.null(topic$questions)) {
+        list(title = trimws(topic$title), questions = trimws(topic_questions(topic)))
+      } else {
+        lapply(topic[c("title", "q1", "q2")], trimws)
+      }
     }),
     groups = if (is.null(x$groups)) paste("Gruppe", seq_along(topics)) else as.vector(groups),
     participants = as.vector(participants)

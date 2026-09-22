@@ -23,7 +23,8 @@ weights_ui <- function(items, topics, handover = FALSE) {
         id <- x$id[i]
         div(
           class = "bw-weight-item",
-          div(id = paste0("bw-q-", id), class = "who", sprintf("Frage %d", x$question[i])),
+          div(id = paste0("bw-q-", id), class = "who",
+              question_heading(topics, topic, x$question[i])),
           div(id = paste0("bw-t-", id), class = "bw-weight-text", translate = "no", x$text[i]),
           div(
             class = "d-flex align-items-center gap-2",
@@ -90,6 +91,7 @@ plenum_results_ui <- function(results, topics) {
           div(
             div(class = "who", sprintf("R%d \u00b7 F%d \u00b7 %d Unterst\u00fctzende",
                                        x$round[i], x$question[i], x$supporters[i])),
+            question_heading(topics, topic, x$question[i]),
             div(class = "bw-rank-text", translate = "no", x$text[i])
           )
         )

@@ -37,6 +37,9 @@ h1, h2, h3, h4 { letter-spacing: -.01em; overflow-wrap: anywhere; }
 .bw-modbar-name { overflow-wrap: anywhere; }
 .bw-weight-item { border-top: 1px solid var(--line); padding: 10px 0 4px; }
 .bw-weight-text { white-space: pre-wrap; overflow-wrap: anywhere; margin: 2px 0 4px; }
+.bw-question-heading { font-size: .9rem; color: var(--ink); margin: 4px 0 6px;
+                       overflow-wrap: anywhere; white-space: normal; }
+.bw-question-heading span { white-space: pre-wrap; }
 .bw-weight-value { min-width: 3.5em; text-align: right; font-variant-numeric: tabular-nums;
                    font-weight: 600; color: var(--accent); }
 .bw-weight { flex: 1; min-height: 32px; }

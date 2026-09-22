@@ -91,7 +91,8 @@ build_snapshot_md <- function(data) {
            paste0("_", format(data$generated_at, "%d.%m.%Y %H:%M"), "_"), "")
   for (i in seq_len(nrow(t))) {
     out <- c(out, paste0("## Thema ", t$id[i], ": ", t$title[i]),
-             paste0("- **F1:** ", t$q1[i]), paste0("- **F2:** ", t$q2[i]), "")
+             paste0("- **F", seq_along(topic_questions(t[i, ])), ":** ",
+                    topic_questions(t[i, ])), "")
     rows <- which(e$topic_id == t$id[i] & bw_has_text(e$text))
     for (sheet in sort(unique(e$sheet[rows]))) {
       out <- c(out, paste0("### Bogen ", sheet), "")
@@ -166,8 +167,16 @@ write_rds <- function(data, file) {
 #' @noRd
 write_xlsx <- function(data, file) {
   workbook <- openxlsx::createWorkbook()
+  topics <- data$topics
+  questions <- lapply(seq_len(nrow(topics)), function(i) topic_questions(topics[i, ]))
+  for (q in seq_len(max(c(0L, lengths(questions))))) {
+    topics[[paste0("q", q)]] <- vapply(questions, function(x) {
+      if (q <= length(x)) x[q] else ""
+    }, character(1))
+  }
+  topics$questions_yaml <- NULL
   tables <- list("Beitr\u00e4ge" = export_snapshot_df(data),
-                 "Teilnehmer" = data$participants, "Themen" = data$topics)
+                 "Teilnehmer" = data$participants, "Themen" = topics)
   header <- openxlsx::createStyle(textDecoration = "bold")
   for (sheet in names(tables)) {
     openxlsx::addWorksheet(workbook, sheet)

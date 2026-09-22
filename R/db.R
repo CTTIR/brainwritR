@@ -60,6 +60,9 @@ init_db <- function(db_path) {
       updated_at REAL,
       UNIQUE (topic_id, sheet, round, question, pid)
     )")
+  if (!"questions_yaml" %in% dbGetQuery(con, "PRAGMA table_info(topics)")$name) {
+    dbExecute(con, "ALTER TABLE topics ADD COLUMN questions_yaml TEXT")
+  }
   columns <- dbGetQuery(con, "PRAGMA table_info(session)")$name
   if (!"mode" %in% columns) {
     dbExecute(con, "ALTER TABLE session ADD COLUMN mode TEXT NOT NULL DEFAULT 'individual'")
@@ -116,14 +119,13 @@ get_settings <- function(db_path) {
   con <- db(db_path)
   on.exit(dbDisconnect(con), add = TRUE)
   settings_from_tables(get_session(con),
-                       dbGetQuery(con, "SELECT title, q1, q2 FROM topics ORDER BY id"))
+                       dbGetQuery(con, "SELECT * FROM topics ORDER BY id"))
 }
 
 #' Reconstruct settings from a single consistent database snapshot
 #' @keywords internal
 #' @noRd
 settings_from_tables <- function(s, topics) {
-  topics <- topics[, c("title", "q1", "q2"), drop = FALSE]
   if (length(s$settings_yaml) == 1L && !is.na(s$settings_yaml) && nzchar(s$settings_yaml)) {
     parsed <- yaml::yaml.load(s$settings_yaml, eval.expr = FALSE)
     validated <- validate_settings(parsed)
@@ -134,7 +136,14 @@ settings_from_tables <- function(s, topics) {
     format = "brainwriting635-settings/1", mode = s$mode %||% "individual",
     rounds = s$n_rounds,
     round_secs = s$round_secs, turn_secs = 90L,
-    topics = lapply(seq_len(nrow(topics)), function(i) as.list(topics[i, ])),
+    topics = lapply(seq_len(nrow(topics)), function(i) {
+      topic <- topics[i, , drop = FALSE]
+      if ("questions_yaml" %in% names(topic) && !is.na(topic$questions_yaml)) {
+        list(title = topic$title, questions = topic_questions(topic))
+      } else {
+        as.list(topic[, c("title", "q1", "q2"), drop = FALSE])
+      }
+    }),
     groups = paste("Gruppe", seq_len(s$n_groups)), participants = character()
   ), class = "bw_settings")
 }

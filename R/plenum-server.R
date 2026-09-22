@@ -215,6 +215,7 @@ plenum_server <- function(input, output, session, cfg, ctx) {
     bw_weights_height(weights_results(), compact = compact("fig_weights"))
   }, res = 96)
   output$dl_weights <- downloadHandler(
+    contentType = "text/csv; charset=UTF-8",
     filename = function() {
       paste0("brainwriting_gewichtung_", format(Sys.time(), "%Y%m%d_%H%M"), ".csv")
     },
@@ -224,6 +225,8 @@ plenum_server <- function(input, output, session, cfg, ctx) {
       write.csv(data, file, row.names = FALSE, fileEncoding = "UTF-8")
     }
   )
+
+  shiny::outputOptions(output, "dl_weights", suspendWhenHidden = FALSE)
 
   list(part_ui = plenum_part_ui)
 }

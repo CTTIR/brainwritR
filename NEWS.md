@@ -1,3 +1,18 @@
+# brainwritR 0.6.0
+
+- Configure any positive number of questions separately for each topic. Answer
+  fields, drafts, submissions, YAML, prompt exclusion and exports follow that
+  count; existing two-question settings and databases remain supported.
+- Show the authored question above each answer in results and plenum views, and
+  list the questions in the analysis tab.
+- Apply the pseudonymization checkbox immediately to the result view as well as
+  downloads, without changing stored participant identities.
+- Fix weighted plots and PDF generation on ggplot2 3.5.x, where `facet_wrap()`
+  does not accept `space`. Keep download handlers active and send explicit MIME
+  types for PDF, XLSX, RDS, CSV, Markdown and YAML files.
+- Add server and real-browser regressions for variable questions, immediate
+  pseudonyms, weighted plots and downloaded binary file contents.
+
 # brainwritR 0.5.0
 
 * Add **Analyse & Plenum** to finished sessions: participants see all contributions

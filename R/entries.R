@@ -56,8 +56,7 @@ build_md <- function(db_path) {
     out <- c(
       out,
       paste0("## Thema ", tp$id[i], ": ", tp$title[i]),
-      paste0("- **F1:** ", tp$q1[i]),
-      paste0("- **F2:** ", tp$q2[i]), ""
+      paste0("- **F", seq_along(topic_questions(tp[i, ])), ":** ", topic_questions(tp[i, ])), ""
     )
     sub <- en[en$topic_id == tp$id[i] & bw_has_text(en$text), ]
     for (sh in sort(unique(sub$sheet))) {
