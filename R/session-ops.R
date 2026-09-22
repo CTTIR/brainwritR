@@ -208,6 +208,7 @@ reset_session <- function(db_path, force = FALSE) {
     if (!force && get_session(con)$status != "finished") {
       return(invisible(FALSE))
     }
+    dbExecute(con, "DELETE FROM votes")
     dbExecute(con, "DELETE FROM entries")
     dbExecute(con, "DELETE FROM participants")
     dbExecute(con, "DELETE FROM topics")
@@ -215,7 +216,8 @@ reset_session <- function(db_path, force = FALSE) {
     dbExecute(con, "
       UPDATE session SET status = 'setup', current_round = 0, round_ends_at = NULL,
                          n_groups = 3, n_rounds = 3, round_secs = 300,
-                         mode = 'individual', current_turn = 0, settings_yaml = NULL
+                         mode = 'individual', current_turn = 0, settings_yaml = NULL,
+                         plenum = 'none', plenum_turn = 0
       WHERE id = 1")
     invisible(TRUE)
   })

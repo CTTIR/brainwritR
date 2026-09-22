@@ -91,11 +91,12 @@ bw_report_table <- function(entries, topics) {
   plot
 }
 
-#' Build a fixed two-page A4 descriptive report
+#' Build a two- or three-page A4 descriptive report
 #'
 #' Uses the same figure functions and text statistics as the application. No
 #' Pandoc, LaTeX or browser is required. The submission rate refers to non-empty
 #' saved entries; lexical overlap describes shared vocabulary, not idea quality.
+#' A third page with the plenum weights is added when weights exist.
 #' @param data Snapshot list containing session, topics, participants and entries
 #'   data frames, optionally generated_at, package_version and settings.
 #' @param file Destination PDF path.
@@ -184,5 +185,43 @@ build_report <- function(data, file, anonymize = FALSE) {
   print(page1)
   # ggwordcloud reseeds while drawing; keep participant and group draws random.
   withr::with_preserve_seed(print(page2))
+  if (has_votes(data$votes)) print(bw_report_weights(data))
   invisible(file)
+}
+
+#' Third report page with the plenum weights
+#' @param data Snapshot with a votes table.
+#' @return A patchwork page.
+#' @keywords internal
+#' @noRd
+bw_report_weights <- function(data) {
+  votes <- data$votes[data$votes$points > 0, , drop = FALSE]
+  results <- plenum_results(data$entries, data$topics, votes)
+  # With more than three topics, fewer and shorter labels keep one page legible.
+  many <- nrow(data$topics) > 3L
+  patchwork::wrap_plots(
+    bw_report_text(bw_report_weights_lines(data), "Gewichtung im Plenum", size = 3),
+    bw_plot_weights(results, data$topics, top_n = if (many) 4L else 6L, compact = many) +
+      ggplot2::labs(title = NULL),
+    ncol = 1, heights = c(1, 8)
+  )
+}
+
+#' Explanatory lines of the report's weighting page
+#' @keywords internal
+#' @noRd
+bw_report_weights_lines <- function(data) {
+  voters <- length(unique(data$votes$pid[data$votes$points > 0]))
+  shown <- if (nrow(data$topics) > 3L) "vier" else "sechs"
+  who <- if (voters == 1L) {
+    "1 Person hat gewichtet;"
+  } else {
+    sprintf("%d Personen haben gewichtet;", voters)
+  }
+  c(
+    paste(who, "je Thema standen jeder Person 100 % zur Verf\u00fcgung."),
+    paste("Anteil: Teil aller in einem Thema vergebenen Punkte; gezeigt sind bis zu",
+          shown, "Beitr\u00e4ge."),
+    "Die Gewichtung ist ein Meinungsbild der Gruppe, keine Bewertung der Ideenqualit\u00e4t."
+  )
 }

@@ -6,8 +6,11 @@
 #' @noRd
 db <- function(db_path, create = FALSE) {
   flags <- if (create) RSQLite::SQLITE_RWC else RSQLite::SQLITE_RW
-  con <- dbConnect(SQLite(), db_path, flags = flags)
+  # RSQLite would set synchronous = OFF before the busy timeout exists; wait for
+  # busy files first, then use NORMAL, SQLite's durable setting for WAL files.
+  con <- dbConnect(SQLite(), db_path, flags = flags, synchronous = NULL)
   dbExecute(con, "PRAGMA busy_timeout = 5000")
+  dbExecute(con, "PRAGMA synchronous = NORMAL")
   con
 }
 
@@ -67,6 +70,22 @@ init_db <- function(db_path) {
   if (!"settings_yaml" %in% columns) {
     dbExecute(con, "ALTER TABLE session ADD COLUMN settings_yaml TEXT")
   }
+  # Plenum weighting after the writing phase: none, open or closed.
+  if (!"plenum" %in% columns) {
+    dbExecute(con, "ALTER TABLE session ADD COLUMN plenum TEXT NOT NULL DEFAULT 'none'")
+  }
+  if (!"plenum_turn" %in% columns) {
+    dbExecute(con, "ALTER TABLE session ADD COLUMN plenum_turn INTEGER NOT NULL DEFAULT 0")
+  }
+  dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS votes (
+      pid TEXT NOT NULL,
+      entry_id INTEGER NOT NULL,
+      topic_id INTEGER NOT NULL,
+      points INTEGER NOT NULL,
+      updated_at REAL,
+      PRIMARY KEY (pid, entry_id)
+    )")
   if (nrow(dbGetQuery(con, "SELECT id FROM session")) == 0) {
     dbExecute(con, "INSERT INTO session (id) VALUES (1)")
   }

@@ -101,3 +101,38 @@ test_that("snapshot timestamps preserve SQLite subsecond rounding", {
   expect_identical(export_snapshot_df(snapshot), export_df(path))
   expect_identical(export_snapshot_df(pseudonymize_data(snapshot))$Zeit, export_df(path)$Zeit)
 })
+
+test_that("an optional spreadsheet-safe CSV defuses formula-like cells", {
+  x <- data.frame(Beitrag = c("=1+1", "+49 Idee", "-Liste", "@SUMME(A1)", "\tTab",
+                              "\rCR", "normal", "a=b", NA), Runde = 1:9)
+  safe <- spreadsheet_safe(x)
+  expect_identical(safe$Beitrag, c("'=1+1", "'+49 Idee", "'-Liste", "'@SUMME(A1)", "'\tTab",
+                                   "'\rCR", "normal", "a=b", NA))
+  expect_identical(safe$Runde, x$Runde)
+})
+
+test_that("CSV downloads stay raw unless the moderator asks for safe cells", {
+  path <- new_db(withr::local_tempfile(), n = 3)
+  start_session(path)
+  pid <- read_table(path, "participants")$pid[1]
+  save_entry(path, pid, 1, 1, 1, 1, "=1+1", 1)
+  for (i in 1:3) maybe_advance(path, TRUE)
+  cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 50)
+  shiny::testServer(app_server(cfg), {
+    session$setInputs(pin = "secret", pin_btn = 1)
+    expect_match(output$mod_view$html, "csv_safe", fixed = TRUE)
+    raw <- utils::read.csv(output$dl_csv, check.names = FALSE)
+    expect_identical(raw$Beitrag, "=1+1")
+    session$setInputs(csv_safe = TRUE)
+    safe <- utils::read.csv(output$dl_csv, check.names = FALSE)
+    expect_identical(safe$Beitrag, "'=1+1")
+  })
+})
+
+test_that("formula triggers after embedded separators or line breaks are defused too", {
+  x <- data.frame(Beitrag = c("x;=1+1;y", "a,=1+1", "Zeile\n=1+1", "Zeile\r+2", "a - b",
+                              "a;b", "\t=1"))
+  expect_identical(spreadsheet_safe(x)$Beitrag,
+                   c("x;'=1+1;y", "a,'=1+1", "Zeile\n'=1+1", "Zeile\r'+2", "a - b",
+                     "a;b", "'\t'=1"))
+})

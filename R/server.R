@@ -24,6 +24,7 @@ app_server <- function(cfg) {
     }
     is_archived_now <- function() isTRUE(session_target(cfg$main_db, cfg$code)$archived)
     my_pid <- reactiveVal(NULL)
+    plenum_armed <- reactiveVal(NULL)
     part_state <- reactiveVal(NULL)
     mod_state <- reactiveVal(NULL)
     submitted_flag <- reactiveVal(NULL)
@@ -37,7 +38,7 @@ app_server <- function(cfg) {
         on.exit(dbDisconnect(con), add = TRUE)
         dbGetQuery(con, "
         SELECT status || '|' || current_round || '|' || current_turn || '|' ||
-               COALESCE(round_ends_at, 0) || '|' ||
+               COALESCE(round_ends_at, 0) || '|' || plenum || '|' || plenum_turn || '|' ||
                (SELECT COUNT(*) FROM participants) || '|' ||
                (SELECT COALESCE(MAX(joined_at), 0) FROM participants) AS v
         FROM session")$v
@@ -62,7 +63,10 @@ app_server <- function(cfg) {
         on.exit(dbDisconnect(con), add = TRUE)
         dbGetQuery(con, "
         SELECT (SELECT status || current_round || '|' || current_turn ||
-                       COALESCE(round_ends_at, 0) FROM session)
+                       COALESCE(round_ends_at, 0) || plenum || plenum_turn FROM session)
+               || '|' ||
+               (SELECT COUNT(*) || '-' || COALESCE(SUM(points), 0) || '-' ||
+                       COALESCE(MAX(updated_at), 0) FROM votes)
                || '|' ||
                (SELECT COUNT(*) || '-' || COALESCE(MAX(updated_at), 0) || '-' ||
                        COALESCE(SUM(submitted), 0) FROM entries)
@@ -77,7 +81,8 @@ app_server <- function(cfg) {
           s            = get_session(con),
           topics       = dbGetQuery(con, "SELECT * FROM topics ORDER BY id"),
           participants = dbGetQuery(con, "SELECT * FROM participants ORDER BY joined_at, rowid"),
-          entries      = dbGetQuery(con, "SELECT * FROM entries")
+          entries      = dbGetQuery(con, "SELECT * FROM entries"),
+          votes        = dbGetQuery(con, "SELECT * FROM votes")
         )
       }
     )
@@ -138,7 +143,8 @@ app_server <- function(cfg) {
           idx <- me$idx
         }
       }
-      key <- paste(m$s$status, m$s$current_round, pid %||% "-", grp, idx, sep = "|")
+      key <- paste(m$s$status, m$s$current_round, pid %||% "-", grp, idx, m$s$plenum,
+                   m$s$plenum_turn, plenum_armed() %||% 0L, sep = "|")
       if (m$s$mode == "hot_seat") {
         key <- paste(key, m$s$current_turn, is.na(m$s$round_ends_at), sep = "|")
       }
@@ -350,6 +356,10 @@ app_server <- function(cfg) {
       s <- m$s
       pid <- ps$pid
 
+      if (s$status == "finished" && s$plenum != "none" &&
+            (s$mode == "hot_seat" || !is.null(pid))) {
+        return(plenum$part_ui(m, pid))
+      }
       if (is.null(pid)) {
         if (s$status == "finished") {
           return(div(
@@ -475,7 +485,7 @@ app_server <- function(cfg) {
       pn <- stats::setNames(st$participants$name, st$participants$pid)
       e <- st$entries
       rows <- e[e$topic_id == ctx$topic_id & e$sheet == ctx$sheet &
-                  e$round < ctx$round & e$question == qn & nzchar(e$text), ]
+                  e$round < ctx$round & e$question == qn & bw_has_text(e$text), ]
       if (!nrow(rows)) {
         return(p(
           class = "bw-status",
@@ -658,6 +668,15 @@ app_server <- function(cfg) {
       names[nzchar(names)]
     }
 
+    # The planned group size is optional: an emptied field is simply not stored.
+    planned_participants <- function() {
+      planned <- input$n_participants
+      if (identical(input$play_mode, "hot_seat") || length(planned) != 1L || is.na(planned)) {
+        return(NULL)
+      }
+      planned
+    }
+
     setup_config <- reactive({
       k <- input$n_groups %||% 3
       if (!is.numeric(k) || length(k) != 1L || is.na(k) ||
@@ -679,7 +698,8 @@ app_server <- function(cfg) {
           )
         }),
         groups = if (length(groups)) groups else NULL,
-        participants = setup_names(input$roster)
+        participants = setup_names(input$roster),
+        expected_participants = planned_participants()
       ))
     })
 
@@ -705,23 +725,32 @@ app_server <- function(cfg) {
             "Reihum an einem Ger\u00e4t" = "hot_seat"
           ), selected = d$mode),
           div(
-            class = "row g-2",
+            class = "row g-2 align-items-end",
             div(
-              class = "col-12 col-sm-4",
+              class = "col-6 col-sm-3",
+              shiny::conditionalPanel(
+                "input.play_mode !== 'hot_seat'",
+                numericInput("n_participants", "Teilnehmende (geplant)", d$planned,
+                  min = 1, max = 500, width = "100%"
+                )
+              )
+            ),
+            div(
+              class = "col-6 col-sm-3",
               numericInput("n_groups", "Themen = Gruppen", d$k,
                 min = 2, max = 6,
                 width = "100%"
               )
             ),
             div(
-              class = "col-12 col-sm-4",
+              class = "col-6 col-sm-3",
               numericInput("n_rounds", "Runden / Durchg\u00e4nge", d$rounds,
                 min = 1, max = 12,
                 width = "100%"
               )
             ),
             div(
-              class = "col-12 col-sm-4",
+              class = "col-6 col-sm-3",
               shiny::conditionalPanel(
                 "input.play_mode !== 'hot_seat'",
                 numericInput("round_secs", "Sek./Runde", d$round_secs,
@@ -740,10 +769,22 @@ app_server <- function(cfg) {
           ),
           shiny::conditionalPanel(
             "input.play_mode !== 'group_device'",
-            textAreaInput("roster", "Namen (ein Name pro Zeile)",
+            textAreaInput("roster", roster_label(d$mode),
               value = d$roster, rows = 5,
-              placeholder = "Im Einzelmodus optional", width = "100%"
+              placeholder = "Alex\nRobin\n\u2026", width = "100%"
             )
+          ),
+          shiny::conditionalPanel(
+            "input.play_mode === 'individual'",
+            p(class = "bw-status", paste(
+              "Teilnehmende k\u00f6nnen ihren Namen auch beim Beitritt selbst eingeben",
+              "\u2013 gerne ein Pseudonym."
+            ))
+          ),
+          shiny::conditionalPanel(
+            "input.play_mode === 'hot_seat'",
+            p(class = "bw-status",
+              "Die Namen legen die Reihenfolge fest \u2013 gerne Pseudonyme.")
           ),
           shiny::conditionalPanel(
             "input.play_mode === 'group_device'",
@@ -751,11 +792,8 @@ app_server <- function(cfg) {
               value = d$groups, rows = 4, width = "100%"
             )
           ),
-          uiOutput("duration_estimate"),
-          p(class = "bw-status", paste0(
-            "Preset 15-2-5: 3 Themen, 3 Runden, 300 s. ",
-            "Nach K Runden hat jeder jedes Thema 1\u00d7 bearbeitet."
-          ))
+          uiOutput("format_summary"),
+          uiOutput("duration_estimate")
         ),
         uiOutput("topic_form"),
         downloadButton("dl_settings", "Einstellungen exportieren (YAML)"),
@@ -766,6 +804,7 @@ app_server <- function(cfg) {
     }
 
     observeEvent(input$play_mode, {
+      shiny::updateTextAreaInput(session, "roster", label = roster_label(input$play_mode))
       shiny::updateActionButton(session, "setup_save",
         label =
           if (identical(input$play_mode, "hot_seat")) {
@@ -774,6 +813,22 @@ app_server <- function(cfg) {
             "Speichern und Lobby \u00f6ffnen"
           }
       )
+    })
+
+    output$format_summary <- renderUI({
+      whole <- function(x, lo, hi) {
+        is.numeric(x) && length(x) == 1L && !is.na(x) && x == floor(x) && x >= lo && x <= hi
+      }
+      k <- input$n_groups %||% 3
+      rounds <- input$n_rounds %||% 3
+      secs <- input$round_secs %||% 300
+      turn <- input$turn_secs %||% 90
+      req(whole(k, 2, 6), whole(rounds, 1, 12), whole(secs, 1, 1800), whole(turn, 1, 600))
+      planned <- input$n_participants
+      if (!whole(planned, 1, 500)) planned <- NA
+      sentences <- format_summary(input$play_mode %||% "individual", planned, k, rounds, secs,
+                                  turn, length(setup_names(input$roster)))
+      p(class = "bw-status", lapply(sentences, function(x) tags$span(class = "d-block", x)))
     })
 
     output$duration_estimate <- renderUI({
@@ -851,6 +906,9 @@ app_server <- function(cfg) {
       shiny::updateNumericInput(session, "n_rounds", value = parsed$rounds)
       shiny::updateNumericInput(session, "round_secs", value = parsed$round_secs)
       shiny::updateNumericInput(session, "turn_secs", value = parsed$turn_secs)
+      if (!is.null(parsed$expected_participants)) {
+        shiny::updateNumericInput(session, "n_participants", value = parsed$expected_participants)
+      }
       shiny::updateTextAreaInput(session, "roster",
         value = paste(parsed$participants, collapse = "\n")
       )
@@ -941,7 +999,17 @@ app_server <- function(cfg) {
       st <- tick_all()
       div(
         class = "mt-2",
-        strong(paste0(nrow(st$participants), " Teilnehmer")),
+        strong({
+          planned <- get_settings(cfg$db_path)$expected_participants
+          if (identical(st$s$mode, "group_device")) {
+            # Each connected group device is one author.
+            sprintf("%d von %d Gruppen", nrow(st$participants), st$s$n_groups)
+          } else if (is.null(planned)) {
+            paste0(nrow(st$participants), " Teilnehmer")
+          } else {
+            sprintf("%d von %d Teilnehmenden", nrow(st$participants), planned)
+          }
+        }),
         p(
           class = "bw-status",
           if (nrow(st$participants)) {
@@ -1000,7 +1068,9 @@ app_server <- function(cfg) {
       if (isolate(tick_meta())$s$mode == "hot_seat") {
         end_pass(cfg$db_path, expected = tick_meta()$s)
       } else {
-        maybe_advance(cfg$db_path, force = TRUE)
+        # Only the rendered round may be ended; repeated clicks or a second
+        # moderator tab must not skip the next round.
+        maybe_advance(cfg$db_path, force = TRUE, expected = tick_meta()$s)
       }
     })
 
@@ -1050,9 +1120,13 @@ app_server <- function(cfg) {
           )
         ),
         shiny::checkboxInput("anonymize", "Namen pseudonymisieren (TN-01, TN-02, \u2026)", FALSE),
+        shiny::checkboxInput(
+          "csv_safe", "CSV f\u00fcr Tabellenkalkulation absichern (Formeln entsch\u00e4rfen)", FALSE
+        ),
         shiny::tabsetPanel(
           shiny::tabPanel("Beitr\u00e4ge", uiOutput("mod_results")),
-          shiny::tabPanel("Auswertung", uiOutput("analytics_view"))
+          shiny::tabPanel("Auswertung", uiOutput("analytics_view")),
+          shiny::tabPanel("Analyse & Plenum", uiOutput("plenum_view"))
         )
       )
     }
@@ -1069,19 +1143,19 @@ app_server <- function(cfg) {
             "Deskriptive Textauswertung; keine Bewertung der Ideenqualit\u00e4t."
           )
         ),
-        div(class = "bw-card", plotOutput("fig_contributions", height = "300px")),
-        div(class = "bw-card", plotOutput("fig_terms", height = "420px")),
+        div(class = "bw-card", plotOutput("fig_contributions", height = "auto")),
+        div(class = "bw-card", plotOutput("fig_terms", height = "auto")),
         div(
           class = "bw-card",
           shiny::selectInput("analytics_topic", "Thema", choices = c(
             "Alle Themen" = "all", stats::setNames(as.character(st$topics$id), st$topics$title)
           )),
           numericInput("min_cooc", "Min. gemeinsames Auftreten", 2, min = 1, max = 100),
-          plotOutput("fig_network", height = "360px"),
-          plotOutput("fig_wordcloud", height = "300px")
+          plotOutput("fig_network", height = "auto"),
+          plotOutput("fig_wordcloud", height = "auto")
         ),
         div(
-          class = "bw-card", plotOutput("fig_buildon", height = "280px"),
+          class = "bw-card", plotOutput("fig_buildon", height = "auto"),
           p(class = "bw-status", paste0(
             "Ankn\u00fcpfungsgrad: mittlere Jaccard-\u00dcberlappung der Begriffe ",
             "aufeinanderfolgender Runden je Bogen und Frage. ",
@@ -1123,40 +1197,50 @@ app_server <- function(cfg) {
         )
       }))
     })
+    # Phones get single-column facets, fewer network terms and taller plots.
+    compact <- function(id) bw_compact(session$clientData[[paste0("output_", id, "_width")]])
+    topic_count <- function() nrow(analytics_data()$topics)
     output$fig_contributions <- renderPlot({
       st <- analytics_data()
       bw_plot_language(bw_plot_contributions(st$entries, st$topics), input$ui_language %||% "de")
-    })
+    }, height = function() 120 + 60 * max(1, topic_count()), res = 96)
     output$fig_terms <- renderPlot({
       st <- analytics_data()
       bw_plot_language(
-        bw_plot_terms(st$entries, st$topics, exclude_prompt = input$exclude_prompt %||% TRUE),
+        bw_plot_terms(st$entries, st$topics, exclude_prompt = input$exclude_prompt %||% TRUE,
+                      ncol = if (compact("fig_terms")) 1L else 2L),
         input$ui_language %||% "de"
       )
-    })
+    }, height = function() {
+      if (compact("fig_terms")) 90 + 210 * max(1, topic_count()) else 460
+    }, res = 96)
     output$fig_network <- renderPlot({
       st <- analytics_data()
       threshold <- input$min_cooc %||% 2
       req(is.numeric(threshold), is.finite(threshold), threshold >= 1)
+      small <- compact("fig_network")
       bw_plot_language(bw_plot_network(analytics_selected(), st$topics,
                          min_cooc = threshold,
-                         exclude_prompt = input$exclude_prompt %||% TRUE
+                         exclude_prompt = input$exclude_prompt %||% TRUE,
+                         max_nodes = if (small) 20L else 40L,
+                         label_size = if (small) 2.8 else 3
                        ), input$ui_language %||% "de")
-    })
+    }, height = function() if (compact("fig_network")) 400 else 380, res = 96)
     output$fig_wordcloud <- renderPlot({
       st <- analytics_data()
       plot <- bw_plot_language(bw_plot_wordcloud(analytics_selected(), st$topics,
-                                 exclude_prompt = input$exclude_prompt %||% TRUE
+                                 exclude_prompt = input$exclude_prompt %||% TRUE,
+                                 size_factor = if (compact("fig_wordcloud")) 0.8 else 1
                                ), input$ui_language %||% "de")
       # ggwordcloud reseeds while drawing; keep participant and group draws random.
       withr::with_preserve_seed(print(plot))
-    })
+    }, height = 320, res = 96)
     output$fig_buildon <- renderPlot({
       st <- analytics_data()
       bw_plot_language(bw_plot_buildon(st$entries, st$topics,
                          exclude_prompt = input$exclude_prompt %||% TRUE
                        ), input$ui_language %||% "de")
-    })
+    }, height = function() 110 + 55 * max(1, topic_count()), res = 96)
 
     output$mod_results <- renderUI({
       req(is_mod())
@@ -1164,7 +1248,7 @@ app_server <- function(cfg) {
       pn <- stats::setNames(st$participants$name, st$participants$pid)
       lapply(seq_len(nrow(st$topics)), function(i) {
         tp <- st$topics[i, ]
-        sub <- st$entries[st$entries$topic_id == tp$id & nzchar(st$entries$text), ]
+        sub <- st$entries[st$entries$topic_id == tp$id & bw_has_text(st$entries$text), ]
         div(
           class = "bw-card",
           h4(paste0("Thema ", tp$id, ": "), tags$span(translate = "no", tp$title)),
@@ -1207,6 +1291,7 @@ app_server <- function(cfg) {
         req(is_mod())
         data <- export_df(cfg$db_path)
         if (isTRUE(input$anonymize)) data <- export_snapshot_df(download_data())
+        if (isTRUE(input$csv_safe)) data <- spreadsheet_safe(data)
         write.csv(data, file, row.names = FALSE, fileEncoding = "UTF-8")
       }
     )
@@ -1272,5 +1357,14 @@ app_server <- function(cfg) {
       ))
       removeModal()
     })
+
+    # Plenum weighting: participant sliders, hot-seat handover and the
+    # moderator's Analyse & Plenum tab (R/plenum-server.R).
+    plenum <- plenum_server(input, output, session, cfg, list(
+      is_mod = is_mod, my_pid = my_pid, tick_meta = tick_meta, tick_all = tick_all,
+      part_state = part_state, plenum_armed = plenum_armed, session_alive = session_alive,
+      is_archived_now = is_archived_now, analytics_data = analytics_data, compact = compact,
+      download_data = download_data
+    ))
   }
 }

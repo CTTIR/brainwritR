@@ -1,3 +1,18 @@
+#' Whether saved text holds a visible contribution
+#'
+#' The single blank-text rule for analytics, weighting, protocols and views.
+#' Whitespace follows Unicode (spaces, tabs, line breaks, no-break and ideographic
+#' spaces); invisible format characters such as zero-width spaces count as blank.
+#' Intentional line breaks inside real text are kept by callers.
+#' @param text Character vector; missing values are blank.
+#' @return Logical vector.
+#' @keywords internal
+#' @noRd
+bw_has_text <- function(text) {
+  text <- as.character(text)
+  !is.na(text) & grepl("[^\\h\\v\\p{Cf}]", text, perl = TRUE)
+}
+
 #' Tokenize German contributions without stemming
 #'
 #' Splits on Unicode nonletters, lowercases, removes tokens shorter than three
@@ -167,7 +182,7 @@ bw_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
 #' @keywords internal
 #' @noRd
 bw_kpis <- function(entries, topics = NULL, exclude_prompt = TRUE) {
-  keep <- !is.na(entries$text) & nzchar(trimws(entries$text))
+  keep <- bw_has_text(entries$text)
   entries <- entries[keep, , drop = FALSE]
   n <- nrow(entries)
   words <- stringi::stri_count_regex(entries$text, "\\p{L}+")

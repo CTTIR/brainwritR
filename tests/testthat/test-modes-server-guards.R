@@ -74,3 +74,22 @@ test_that("forged kiosk moderator controls and downloads require authentication"
     expect_identical(read_table(path, "session")$status, "finished")
   })
 })
+
+test_that("repeated round-end events from one rendered round advance only once", {
+  for (mode in c("individual", "group_device")) {
+    path <- new_db(withr::local_tempfile(), n = 3)
+    exec_sql(path, sprintf("UPDATE session SET mode = '%s'", mode))
+    start_session(path, force = TRUE)
+    cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
+    shiny::testServer(app_server(cfg), {
+      session$setInputs(pin = "secret", pin_btn = 1)
+      session$setInputs(next_btn = 1)
+      session$setInputs(next_btn = 2)
+      expect_equal(read_table(path, "session")$current_round, 2, label = mode)
+      # Once the new round has been rendered, the next action advances normally.
+      session$elapse(3000)
+      session$setInputs(next_btn = 3)
+      expect_equal(read_table(path, "session")$current_round, 3, label = mode)
+    })
+  }
+})

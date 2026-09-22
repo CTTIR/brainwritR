@@ -44,3 +44,29 @@ test_that("one device keeps separate identities per session and moderators stay 
                   timeout = 15000)
   expect_false(file.exists(path))
 })
+
+test_that("a reconnecting participant returns straight to the sheet without the join form", {
+  modes_browser_ready()
+  path <- new_db(withr::local_tempfile(), n = 2)
+  cfg <- app_config(path, "secret", "http://localhost:3838")
+  app <- modes_browser_app(cfg, "reconnect-sheet")
+  app$wait_for_js("!!document.querySelector('#join_name')")
+  app$set_inputs(join_name = "Mobil")
+  app$click("join_btn")
+  app$wait_for_js("document.body.innerText.includes('Hallo Mobil')")
+  start_session(path)
+  app$wait_for_js("!!document.querySelector('#a1')")
+  # Watch every new page from its first byte: did the join form ever show?
+  app$get_chromote_session()$Page$enable()
+  app$get_chromote_session()$Page$addScriptToEvaluateOnNewDocument(source = paste0(
+    "window.bwLoad = Number(sessionStorage.getItem('bwLoads') || 0) + 1;",
+    "sessionStorage.setItem('bwLoads', String(window.bwLoad));",
+    "new MutationObserver(function() {",
+    "  if (document.querySelector('#join_name')) window.bwJoinSeen = true;",
+    "}).observe(document, {subtree: true, childList: true});"
+  ))
+  app$run_js("location.reload()")
+  app$wait_for_js(paste0("window.bwLoad === 1 && document.readyState === 'complete' && ",
+                         "!!document.querySelector('#a1')"), timeout = 15000)
+  expect_false(isTRUE(app$get_js("window.bwJoinSeen")))
+})

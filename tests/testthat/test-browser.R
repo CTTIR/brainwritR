@@ -82,6 +82,9 @@ test_that("mobile participant text survives polls and reconnect", {
     timeout = 15000
   )
   restore_browser_tracer(app)
+  # The first wait can pass while the reload is still committing; wait for the
+  # new page's bound textarea before reading the restored draft.
+  app$wait_for_js("!!document.querySelector('#a1.shiny-bound-input')", timeout = 15000)
   expect_equal(app$get_js("document.querySelector('#a1').value"), "Nach Abgabe bearbeitet")
   expect_equal(nrow(read_table(path, "participants")), 3)
   expect_identical(app$get_js("localStorage.getItem('bw_pid')"), pid)

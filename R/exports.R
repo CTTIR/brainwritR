@@ -7,9 +7,9 @@ collect_data <- function(db_path) {
   con <- db(db_path)
   on.exit(dbDisconnect(con), add = TRUE)
   data <- DBI::dbWithTransaction(con, {
-    stats::setNames(lapply(c("session", "topics", "participants", "entries"),
-                           function(table) DBI::dbReadTable(con, table)),
-                    c("session", "topics", "participants", "entries"))
+    tables <- c("session", "topics", "participants", "entries")
+    if (DBI::dbExistsTable(con, "votes")) tables <- c(tables, "votes")
+    stats::setNames(lapply(tables, function(table) DBI::dbReadTable(con, table)), tables)
   })
   data$generated_at <- Sys.time()
   data$package_version <- as.character(utils::packageVersion("brainwritR"))
@@ -35,6 +35,7 @@ pseudonymize_data <- function(data) {
   codes[order] <- sprintf("%s%02d", prefix, seq_len(nrow(p)))
   mapped <- match(data$entries$pid, p$pid)
   data$entries$pid <- codes[mapped]
+  if (!is.null(data$votes)) data$votes$pid <- codes[match(data$votes$pid, p$pid)]
   data$participants$name <- codes
   data$participants$pid <- codes
   if (!is.null(data$settings)) {
@@ -91,7 +92,7 @@ build_snapshot_md <- function(data) {
   for (i in seq_len(nrow(t))) {
     out <- c(out, paste0("## Thema ", t$id[i], ": ", t$title[i]),
              paste0("- **F1:** ", t$q1[i]), paste0("- **F2:** ", t$q2[i]), "")
-    rows <- which(e$topic_id == t$id[i] & nzchar(e$text))
+    rows <- which(e$topic_id == t$id[i] & bw_has_text(e$text))
     for (sheet in sort(unique(e$sheet[rows]))) {
       out <- c(out, paste0("### Bogen ", sheet), "")
       for (j in rows[e$sheet[rows] == sheet]) {
@@ -101,7 +102,49 @@ build_snapshot_md <- function(data) {
       out <- c(out, "")
     }
   }
-  paste(out, collapse = "\n")
+  paste(c(out, weights_md(data$entries, data$topics, data$votes)), collapse = "\n")
+}
+
+#' Whether a snapshot holds any plenum weights
+#' @keywords internal
+#' @noRd
+has_votes <- function(votes) {
+  !is.null(votes) && nrow(votes) > 0L && any(votes$points > 0)
+}
+
+#' Ranked plenum weights for the Markdown protocol
+#' @return Markdown lines, or nothing when no weights exist.
+#' @keywords internal
+#' @noRd
+weights_md <- function(entries, topics, votes) {
+  if (!has_votes(votes)) return(character())
+  r <- plenum_results(entries, topics, votes)
+  r <- r[r$points > 0, , drop = FALSE]
+  out <- c("## Gewichtung im Plenum", "",
+           "_Anteil an allen im Thema vergebenen Punkten; je Person standen 100 % bereit._", "")
+  for (id in unique(r$topic_id)) {
+    x <- r[r$topic_id == id, , drop = FALSE]
+    out <- c(out, paste0("### Thema ", id, ": ", x$title[1]), "",
+             paste0(x$rank, ". **", round(100 * x$share), " %** ", x$text,
+                    " _(R", x$round, " \u00b7 F", x$question, " \u00b7 Bogen ", x$sheet, ")_"),
+             "")
+  }
+  out
+}
+
+#' Ranked plenum weights with German column names
+#' @param data Snapshot returned by collect_data().
+#' @return One row per nonempty contribution, ranked within each topic.
+#' @keywords internal
+#' @noRd
+export_weights_df <- function(data) {
+  r <- plenum_results(data$entries, data$topics, data$votes)
+  data.frame(
+    Thema = r$title, Rang = r$rank, Beitrag = r$text, Frage = r$question, Bogen = r$sheet,
+    Runde = r$round, Punkte = r$points, Anteil = round(r$share, 4),
+    "Durchschnitt je Person" = round(r$mean, 1), "Unterst\u00fctzende" = r$supporters,
+    check.names = FALSE
+  )
 }
 
 #' Write the complete lossless analysis snapshot
@@ -143,6 +186,15 @@ write_xlsx <- function(data, file) {
   openxlsx::writeData(workbook, "Kennzahlen", summary, startRow = 5, headerStyle = header)
   openxlsx::freezePane(workbook, "Kennzahlen", firstRow = TRUE)
   openxlsx::setColWidths(workbook, "Kennzahlen", seq_len(ncol(summary)), "auto")
+  if (has_votes(data$votes)) {
+    weights <- export_weights_df(data)
+    openxlsx::addWorksheet(workbook, "Gewichtung")
+    openxlsx::writeData(workbook, "Gewichtung", weights, headerStyle = header)
+    openxlsx::addStyle(workbook, "Gewichtung", openxlsx::createStyle(numFmt = "0%"),
+                       rows = seq_len(nrow(weights)) + 1L, cols = 8L)
+    openxlsx::freezePane(workbook, "Gewichtung", firstRow = TRUE)
+    openxlsx::setColWidths(workbook, "Gewichtung", seq_len(ncol(weights)), "auto")
+  }
   openxlsx::saveWorkbook(workbook, file, overwrite = TRUE)
   invisible(file)
 }
@@ -160,4 +212,27 @@ export_localtime <- function(epoch) {
   on.exit(DBI::dbClearResult(query), add = TRUE, after = FALSE)
   DBI::dbBind(query, list(epoch = epoch))
   DBI::dbFetch(query)$time
+}
+
+#' Defuse spreadsheet formulas in text cells for an optional CSV mode
+#'
+#' Formula triggers (=, +, -, @, tab, carriage return) at the start of a text
+#' cell, and after an embedded comma, semicolon, tab or line break, are prefixed
+#' with an apostrophe, following the OWASP guidance on CSV injection. Spreadsheets
+#' that split on another separator (German Excel and LibreOffice use ';') or start
+#' a new record at a line break therefore see no live formula either. The default
+#' CSV stays raw for statistical use; RDS remains lossless.
+#' @param data Data frame about to be written as CSV.
+#' @return The data frame with defused character columns.
+#' @keywords internal
+#' @noRd
+spreadsheet_safe <- function(data) {
+  for (column in names(data)) {
+    x <- data[[column]]
+    if (!is.character(x)) next
+    ok <- !is.na(x)
+    x[ok] <- gsub("(?:^|(?<=[,;\t\r\n]))([=+@\t\r-])", "'\\1", x[ok], perl = TRUE)
+    data[[column]] <- x
+  }
+  data
 }

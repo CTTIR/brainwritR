@@ -27,11 +27,17 @@ app_ui <- function(cfg) {
         ),
         div(class = "bw-status", "Gemeinsam Ideen weiterdenken")
       ),
-      language_switch_ui(),
+      div(class = "bw-controls", language_switch_ui(), theme_toggle_ui()),
       uiOutput("page"),
       tags$footer(
         class = "bw-footer",
-        "6-3-5 \u00b7 Kursvariante 15-2-5 \u00b7 Pseudonyme willkommen"
+        tags$a(
+          href = "https://github.com/CTTIR/brainwritR", target = "_blank", rel = "noopener",
+          class = "bw-footer-link", translate = "no",
+          # Inline SVG: no icon webfont and no external request.
+          HTML(fontawesome::fa("github", fill = "currentColor", height = "1.1em", a11y = "deco")),
+          "CTTIR \u00b7 brainwritR"
+        )
       )
     )
   )
@@ -44,4 +50,22 @@ app_icon_uri <- function() {
   path <- system.file("app/www/icon.svg", package = "brainwritR")
   svg <- paste(readLines(path, warn = FALSE), collapse = "\n")
   paste0("data:image/svg+xml,", utils::URLencode(svg, reserved = TRUE))
+}
+
+#' Button switching between the light and the dark colour theme
+#'
+#' The choice is applied in the browser and remembered there; without a stored
+#' choice the device preference decides. Figures and QR codes stay light.
+#' @keywords internal
+#' @noRd
+theme_toggle_ui <- function() {
+  icon <- function(name) {
+    HTML(fontawesome::fa(name, fill = "currentColor", height = "1.1em", a11y = "deco"))
+  }
+  tags$button(
+    type = "button", id = "bw-theme-toggle", class = "btn btn-outline-secondary bw-theme-toggle",
+    `aria-label` = "Dunkles Design", title = "Dunkles Design", `aria-pressed` = "false",
+    tags$span(class = "bw-icon-moon", icon("moon")),
+    tags$span(class = "bw-icon-sun", icon("sun"))
+  )
 }

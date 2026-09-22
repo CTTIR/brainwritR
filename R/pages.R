@@ -76,14 +76,26 @@ notice_server <- function(output, route) {
 setup_defaults <- function(prefill = NULL) {
   if (!inherits(prefill, "bw_settings")) {
     return(list(mode = "individual", k = 3L, rounds = 3L, round_secs = 300L,
-                turn_secs = 90L, roster = "", groups = ""))
+                turn_secs = 90L, roster = "", groups = "", planned = 15L))
   }
   generic <- paste("Gruppe", seq_along(prefill$topics))
   list(
     mode = prefill$mode, k = length(prefill$topics), rounds = prefill$rounds,
     round_secs = prefill$round_secs, turn_secs = prefill$turn_secs,
     roster = paste(prefill$participants, collapse = "\n"),
+    planned = prefill$expected_participants %||% 15L,
     # Generic names are regenerated; only custom names need to be carried over.
     groups = if (identical(prefill$groups, generic)) "" else paste(prefill$groups, collapse = "\n")
   )
+}
+
+#' Label of the names field: optional unless the names set the hot-seat order
+#' @keywords internal
+#' @noRd
+roster_label <- function(mode) {
+  if (identical(mode, "hot_seat")) {
+    "Namen (ein Name pro Zeile)"
+  } else {
+    "Namen (optional, ein Name pro Zeile)"
+  }
 }

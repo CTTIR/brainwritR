@@ -65,3 +65,70 @@ example_topics <- function(language = "de") {
     stats::setNames(as.list(c(topic, build[[language]])), c("title", "q1", "q2"))
   })
 }
+
+#' Describe the configured format in plain sentences
+#'
+#' The classroom format is named after participants, questions per round and
+#' minutes per round, like 6-3-5 and its course variant 15-2-5.
+#' @param mode Device mode.
+#' @param participants Planned participants, or NA when unknown.
+#' @param k Number of topics and groups.
+#' @param rounds Number of rounds or hot-seat passes.
+#' @param round_secs Seconds per parallel round.
+#' @param turn_secs Seconds per hot-seat turn.
+#' @param roster Number of roster names in hot-seat mode.
+#' @return German sentences, one per element.
+#' @keywords internal
+#' @noRd
+format_summary <- function(mode, participants, k, rounds, round_secs, turn_secs = 90,
+                           roster = 0) {
+  coverage <- if (rounds == k) {
+    sprintf("Nach %d Runden hat jede Person jedes Thema 1\u00d7 bearbeitet.", k)
+  } else if (rounds < k) {
+    sprintf("Mit %d Runden bearbeitet jede Person %d von %d Themen.", rounds, rounds, k)
+  } else {
+    sprintf(paste("Nach %d Runden hat jede Person jedes Thema bearbeitet;",
+                  "danach wiederholen sich die Themen."), k)
+  }
+  if (identical(mode, "hot_seat")) {
+    return(c(sprintf("Reihum: %d Personen, %d Durchg\u00e4nge, %d s je Person.",
+                     roster, rounds, turn_secs), coverage))
+  }
+  timing <- sprintf("%d Themen, %d Runden, %d s pro Runde.", k, rounds, round_secs)
+  if (is.null(participants) || is.na(participants)) return(c(timing, coverage))
+  minutes <- trimws(formatC(round_secs / 60, format = "fg", digits = 3, decimal.mark = ","))
+  groups <- if (participants < k) {
+    sprintf("F\u00fcr %d Themen sind mindestens %d Teilnehmende n\u00f6tig.", k, k)
+  } else if (participants == k) {
+    "Je Gruppe 1 Person."
+  } else if (participants %% k == 0) {
+    sprintf("Je Gruppe %d Personen.", participants %/% k)
+  } else {
+    sprintf("Je Gruppe %d\u2013%d Personen.", participants %/% k, participants %/% k + 1)
+  }
+  c(paste0(sprintf("Format %d-2-%s: ", participants, minutes), timing), groups, coverage)
+}
+
+#' Count sentences with correct singular forms
+#' @param n,done,total Counts.
+#' @return German interface text, translated in the browser.
+#' @keywords internal
+#' @noRd
+plenum_count_text <- function(n) {
+  if (n == 1L) "1 Person hat gewichtet." else sprintf("%d Personen haben gewichtet.", n)
+}
+
+#' @rdname plenum_count_text
+#' @keywords internal
+#' @noRd
+progress_text <- function(done, total) {
+  sprintf(if (done == 1L) "%d von %d hat 100 %% vergeben" else "%d von %d haben 100 %% vergeben",
+          done, total)
+}
+
+#' @rdname plenum_count_text
+#' @keywords internal
+#' @noRd
+contributions_text <- function(n) {
+  if (n == 1L) "1 Beitrag" else sprintf("%d Beitr\u00e4ge", n)
+}

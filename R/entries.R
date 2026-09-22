@@ -47,6 +47,7 @@ build_md <- function(db_path) {
     SELECT e.*, p.name FROM entries e
     JOIN participants p ON p.pid = e.pid
     ORDER BY e.topic_id, e.sheet, e.round, e.question")
+  votes <- if (DBI::dbExistsTable(con, "votes")) dbGetQuery(con, "SELECT * FROM votes")
   out <- c(
     "# Brainwriting 6-3-5 \u2014 Ergebnisse",
     paste0("_", format(Sys.time(), "%d.%m.%Y %H:%M"), "_"), ""
@@ -58,7 +59,7 @@ build_md <- function(db_path) {
       paste0("- **F1:** ", tp$q1[i]),
       paste0("- **F2:** ", tp$q2[i]), ""
     )
-    sub <- en[en$topic_id == tp$id[i] & nzchar(en$text), ]
+    sub <- en[en$topic_id == tp$id[i] & bw_has_text(en$text), ]
     for (sh in sort(unique(sub$sheet))) {
       out <- c(out, paste0("### Bogen ", sh), "")
       ss <- sub[sub$sheet == sh, ]
@@ -71,5 +72,5 @@ build_md <- function(db_path) {
       out <- c(out, "")
     }
   }
-  paste(out, collapse = "\n")
+  paste(c(out, weights_md(en, tp, votes)), collapse = "\n")
 }

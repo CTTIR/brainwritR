@@ -113,3 +113,15 @@ test_that("the standard session is archived or reset only after confirmation", {
     expect_equal(nrow(read_table(x$main, "participants")), 0)
   })
 })
+
+test_that("the overview shows sessions whose plenum weighting is running", {
+  x <- multi_fixture()
+  code <- create_session(x$main, "Kurs Plenum")
+  plenum_fixture(session_path(x$main, code))
+  expect_identical(list_sessions(x$main, "http://x.org")$plenum, c("none", "open"))
+  route_to(mod = "1", view = "sessions")
+  shiny::testServer(app_server(x$cfg), {
+    session$setInputs(pin = "secret", pin_btn = 1)
+    expect_match(output$sessions_list$html, "Gewichtung l\u00e4uft", fixed = TRUE)
+  })
+})

@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev libtiff-dev fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 RUN install2.r --error --skipinstalled shiny bslib DBI RSQLite shinyjs qrcode yaml \
-    ggplot2 patchwork ggraph igraph ggwordcloud stringi stopwords openxlsx rlang withr openssl
+    ggplot2 patchwork ggraph igraph ggwordcloud stringi stopwords openxlsx rlang withr openssl \
+    fontawesome
 
 WORKDIR /app
 COPY . /app

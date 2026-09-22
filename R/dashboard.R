@@ -1,8 +1,9 @@
 #' Display label of a session lifecycle state
 #' @keywords internal
 #' @noRd
-status_label <- function(status, archived = FALSE) {
+status_label <- function(status, archived = FALSE, plenum = "none") {
   if (isTRUE(archived)) return("Archiviert")
+  if (identical(status, "finished") && identical(plenum, "open")) return("Gewichtung l\u00e4uft")
   labels <- c(setup = "Einrichtung", lobby = "Lobby", running = "L\u00e4uft",
               finished = "Beendet", missing = "Datei fehlt")
   unname(labels[status]) %||% status
@@ -49,7 +50,7 @@ session_card <- function(row) {
     paste("Erstellt:", format(as.POSIXct(row$created_at, origin = "1970-01-01"), "%d.%m.%Y %H:%M"))
   }
   facts <- c(mode_label(row$mode), round, paste(row$participants, "Teilnehmer"),
-             paste(row$contributions, "Beitr\u00e4ge"))
+             contributions_text(row$contributions))
   div(
     class = "bw-card bw-session",
     div(
@@ -63,7 +64,8 @@ session_card <- function(row) {
           tags$code(translate = "no", row$code)
         }
       ),
-      tags$span(class = "badge text-bg-secondary", status_label(row$status, row$archived))
+      tags$span(class = "badge text-bg-secondary",
+                status_label(row$status, row$archived, row$plenum))
     ),
     div(class = "bw-status", lapply(facts, function(x) tags$span(class = "me-2", x))),
     if (nzchar(row$topics)) div(class = "bw-status", translate = "no", row$topics),

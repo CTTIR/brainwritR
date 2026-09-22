@@ -64,7 +64,7 @@ bw_topic_labels <- function(x, topics) {
 #' @noRd
 bw_plot_contributions <- function(entries, topics = NULL) {
   title <- "Beitr\u00e4ge je Thema und Runde"
-  entries <- entries[!is.na(entries$text) & nzchar(trimws(entries$text)), , drop = FALSE]
+  entries <- entries[bw_has_text(entries$text), , drop = FALSE]
   if (!nrow(entries)) {
     return(bw_placeholder(title))
   }
@@ -87,7 +87,8 @@ bw_plot_contributions <- function(entries, topics = NULL) {
 #' Most frequent terms per topic
 #' @keywords internal
 #' @noRd
-bw_plot_terms <- function(entries, topics = NULL, top_n = 8L, exclude_prompt = TRUE) {
+bw_plot_terms <- function(entries, topics = NULL, top_n = 8L, exclude_prompt = TRUE,
+                          ncol = 2L) {
   title <- "Top-Begriffe je Thema"
   d <- bw_term_counts(entries, by = "topic", topics = topics, exclude_prompt = exclude_prompt)
   if (!nrow(d)) {
@@ -102,17 +103,93 @@ bw_plot_terms <- function(entries, topics = NULL, top_n = 8L, exclude_prompt = T
   )
   ggplot2::ggplot(d, ggplot2::aes(x = .data$n, y = .data$label)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.7) +
-    ggplot2::facet_wrap(~topic, scales = "free_y", ncol = 2) +
+    ggplot2::facet_wrap(~topic, scales = "free_y", ncol = ncol) +
     ggplot2::scale_y_discrete(labels = function(x) sub("___[0-9]+$", "", x)) +
     ggplot2::labs(title = title, x = "Nennungen", y = NULL) +
     bw_theme()
+}
+
+#' Whether a plot area is narrow enough for the compact phone layout
+#' @param width Plot width in CSS pixels, or NULL before the first render.
+#' @keywords internal
+#' @noRd
+bw_compact <- function(width) {
+  is.numeric(width) && length(width) == 1L && !is.na(width) && width < 560
+}
+
+#' Axis labels of the weighting chart
+#' @param d Rows of plenum_results() that are shown.
+#' @param compact Shorter, narrower labels for phones.
+#' @param numbered Prefix the rank, matching the ranking list in the app.
+#' @keywords internal
+#' @noRd
+bw_weight_labels <- function(d, compact = FALSE, numbered = FALSE) {
+  limit <- if (compact) 44L else 70L
+  text <- ifelse(nchar(d$text) > limit, paste0(substr(d$text, 1, limit - 3L), "..."), d$text)
+  if (numbered) text <- paste0(d$rank, ". ", text)
+  lines <- stringi::stri_wrap(text, if (compact) 24L else 36L, simplify = FALSE)
+  vapply(lines, paste, "", collapse = "\n")
+}
+
+#' Pixel height of the weighting chart for the bars it shows
+#' @keywords internal
+#' @noRd
+bw_weights_height <- function(results, top_n = 8L, compact = FALSE) {
+  d <- results[!is.na(results$share) & results$points > 0, , drop = FALSE]
+  if (!nrow(d)) return(200)
+  rows <- vapply(split(d$entry_id, d$topic_id), function(x) min(length(x), top_n), 0)
+  as.numeric(60 + sum(40 + rows * if (compact) 46 else 40))
+}
+
+#' Plenum weights: the highest-weighted contributions per topic
+#' @param results Output of plenum_results().
+#' @param topics Raw topics table.
+#' @param top_n Contributions shown per topic.
+#' @param compact Phone layout with short labels.
+#' @param numbered Rank-numbered labels without a title, as in the app where the
+#'   ranking list below carries the full text.
+#' @keywords internal
+#' @noRd
+bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
+                            numbered = FALSE) {
+  title <- "Gewichtung im Plenum"
+  d <- results[!is.na(results$share) & results$points > 0, , drop = FALSE]
+  if (!nrow(d)) {
+    return(bw_placeholder(title))
+  }
+  d <- do.call(rbind, lapply(split(d, d$topic_id), function(x) {
+    utils::head(x[order(x$rank, x$entry_id), ], top_n)
+  }))
+  d <- bw_topic_labels(d, topics)
+  keys <- paste(bw_weight_labels(d, compact, numbered), d$entry_id, sep = "___")
+  d$label <- factor(keys, levels = rev(unique(keys)))
+  d$value <- paste0(round(100 * d$share), " %")
+  # Stretch the axis to the largest share (with room for its label), so small
+  # shares in large classes stay comparable.
+  upper <- min(1.2, max(0.1, 1.3 * max(d$share)))
+  ggplot2::ggplot(d, ggplot2::aes(x = .data$share, y = .data$label)) +
+    ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.7) +
+    ggplot2::geom_text(ggplot2::aes(label = .data$value), hjust = -0.15, size = 3,
+                       colour = bw_palette()[["ink"]]) +
+    # Panels are as tall as their bars, so topics with many bars stay legible.
+    ggplot2::facet_wrap(~topic, scales = "free_y", ncol = 1, space = "free_y") +
+    ggplot2::scale_x_continuous(labels = function(x) paste0(round(100 * x), " %"),
+                                limits = c(0, upper), expand = c(0, 0)) +
+    ggplot2::scale_y_discrete(labels = function(x) sub("___[0-9]+$", "", x)) +
+    ggplot2::labs(title = if (!numbered) title,
+                  x = if (compact) "Anteil" else "Anteil der vergebenen Punkte", y = NULL) +
+    bw_theme() +
+    ggplot2::theme(axis.text.y = ggplot2::element_text(size = if (compact) 9 else 10),
+                   strip.text = ggplot2::element_text(face = "bold", size = 11),
+                   plot.title.position = "plot",
+                   plot.margin = ggplot2::margin(4, 16, 4, 4))
 }
 
 #' Co-occurrence network with deterministic initial positions
 #' @keywords internal
 #' @noRd
 bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
-                            max_nodes = 40L, exclude_prompt = TRUE) {
+                            max_nodes = 40L, exclude_prompt = TRUE, label_size = 3) {
   title <- "Begriffsnetz"
   edges <- bw_cooccurrence(entries, min_cooc, max_nodes, topics, exclude_prompt)
   if (!nrow(edges)) {
@@ -134,7 +211,7 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   ggraph::ggraph(graph, layout = "manual", x = layout[, 1], y = layout[, 2]) +
     ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), colour = "#9dbbc0", alpha = 0.65) +
     ggraph::geom_node_point(ggplot2::aes(size = .data$n), colour = bw_palette()[["petrol"]]) +
-    ggraph::geom_node_text(ggplot2::aes(label = .data$name), size = 3, vjust = -0.8) +
+    ggraph::geom_node_text(ggplot2::aes(label = .data$name), size = label_size, vjust = -0.8) +
     ggraph::scale_edge_width(range = c(0.3, 1.7), guide = "none") +
     ggplot2::scale_size_continuous(range = c(3, 10), guide = "none") +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.18)) +
@@ -150,7 +227,7 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
 #' @keywords internal
 #' @noRd
 bw_plot_wordcloud <- function(entries, topics = NULL, max_terms = 60L,
-                              exclude_prompt = TRUE) {
+                              exclude_prompt = TRUE, size_factor = 1) {
   title <- "Wordcloud"
   d <- bw_term_counts(entries, by = "topic", topics = topics, exclude_prompt = exclude_prompt)
   if (!nrow(d)) {
@@ -160,7 +237,8 @@ bw_plot_wordcloud <- function(entries, topics = NULL, max_terms = 60L,
   d <- utils::head(d[order(-d$n, d$term), ], max_terms)
   ggplot2::ggplot(d, ggplot2::aes(label = .data$term, size = .data$n)) +
     ggwordcloud::geom_text_wordcloud(seed = 635, colour = bw_palette()[["petrol"]]) +
-    ggplot2::scale_size_area(max_size = min(
+    # Narrow panels scale the budget down so no word is placed beyond the edge.
+    ggplot2::scale_size_area(max_size = size_factor * min(
       13, 30 / sqrt(sum(d$n / max(d$n))),
       90 / max(nchar(d$term))
     )) +
@@ -183,10 +261,10 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
     return(bw_placeholder(title))
   }
   d <- bw_topic_labels(d, topics)
-  ggplot2::ggplot(d, ggplot2::aes(x = .data$topic, y = .data$buildon)) +
+  ggplot2::ggplot(d, ggplot2::aes(x = .data$buildon, y = .data$topic)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.65) +
-    ggplot2::scale_y_continuous(limits = c(0, 1), labels = function(x) paste0(x * 100, "%")) +
-    ggplot2::labs(title = title, x = NULL, y = "Mittlere Begriffsoverlappung") +
+    ggplot2::scale_x_continuous(limits = c(0, 1), labels = function(x) paste0(x * 100, "%")) +
+    ggplot2::labs(title = title, x = "Mittlere Begriffsoverlappung", y = NULL) +
     bw_theme()
 }
 
@@ -203,20 +281,23 @@ bw_plot_language <- function(plot, language = "de") {
   labels <- c(
     "Beitr\u00e4ge je Thema und Runde", "Top-Begriffe je Thema", "Begriffsnetz",
     "Wordcloud", "Ankn\u00fcpfung \u00fcber Runden", "Beitr\u00e4ge", "Runde",
-    "Nennungen", "Mittlere Begriffsoverlappung", "Zu wenig Text f\u00fcr diese Ansicht."
+    "Nennungen", "Mittlere Begriffsoverlappung", "Zu wenig Text f\u00fcr diese Ansicht.",
+    "Gewichtung im Plenum", "Anteil der vergebenen Punkte", "Anteil"
   )
   values <- if (language == "en") {
     c(
       "Contributions by topic and round", "Top terms by topic", "Term network",
       "Wordcloud", "Continuity across rounds", "Contributions", "Round",
-      "Occurrences", "Mean lexical overlap", "Not enough text for this view."
+      "Occurrences", "Mean lexical overlap", "Not enough text for this view.",
+      "Plenum weighting", "Share of points given", "Share"
     )
   } else {
     c(
       "Contributions par th\u00e8me et tour", "Termes principaux par th\u00e8me",
       "R\u00e9seau de termes", "Nuage de mots", "Continuit\u00e9 entre les tours",
       "Contributions", "Tour", "Occurrences", "Recouvrement lexical moyen",
-      "Texte insuffisant pour cette vue."
+      "Texte insuffisant pour cette vue.", "Pond\u00e9ration en pl\u00e9ni\u00e8re",
+      "Part des points attribu\u00e9s", "Part"
     )
   }
   translate <- function(x) {

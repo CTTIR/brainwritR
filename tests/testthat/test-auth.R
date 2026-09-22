@@ -78,3 +78,31 @@ test_that("the server refuses a correct PIN while the login is locked", {
     expect_false(is_mod())
   })
 })
+
+test_that("an open moderator connection ends when its login expires or is revoked", {
+  path <- withr::local_tempfile()
+  init_db(path)
+  server <- app_server(app_config(path, "secret", "http://localhost:3838", poll_ms = 50))
+  session <- capturing_session()
+  shiny::testServer(server, session = session, {
+    session$setInputs(pin = "secret", pin_btn = 1)
+    expect_true(is_mod())
+    session$elapse(61000)
+    expect_true(is_mod())
+    # Thirteen hours later every 12-hour login is past its lifetime. The mock is
+    # limited to this one step so later tests keep a real clock.
+    later <- as.numeric(Sys.time()) + 13 * 3600
+    testthat::with_mocked_bindings(session$elapse(61000), now = function() later)
+    expect_false(is_mod())
+    session$setInputs(start_btn = 1)
+  })
+  expect_length(sent(session, "bw_clear_mod_token"), 1L)
+  expect_identical(read_table(path, "session")$status, "setup")
+})
+
+test_that("the clock is real again after the expiry test", {
+  before <- now()
+  Sys.sleep(0.05)
+  expect_gt(now(), before)
+  expect_lt(abs(now() - as.numeric(Sys.time())), 5)
+})

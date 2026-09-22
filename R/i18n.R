@@ -6,7 +6,6 @@ bw_language_dictionary <- function() {
   dictionary <- data.frame(
     de = c(
       "Gemeinsam Ideen weiterdenken",
-      "6-3-5 \u00b7 Kursvariante 15-2-5 \u00b7 Pseudonyme willkommen",
       "Moderator",
       "Anmelden",
       "Falsche PIN.",
@@ -47,12 +46,7 @@ bw_language_dictionary <- function() {
       "Sek./Runde",
       "Sek./Person",
       "Namen (ein Name pro Zeile)",
-      "Im Einzelmodus optional",
       "Gruppennamen (ein Name pro Zeile, optional)",
-      paste0(
-        "Preset 15-2-5: 3 Themen, 3 Runden, 300 s. Nach K Runden hat jeder jedes Thema ",
-        "1\u00d7 bearbeitet."
-      ),
       "Einstellungen exportieren (YAML)",
       "Speichern und Lobby \u00f6ffnen",
       "Speichern und Lobby oeffnen",
@@ -136,7 +130,6 @@ bw_language_dictionary <- function() {
     ),
     en = c(
       "Develop ideas together",
-      "6-3-5 \u00b7 Classroom format 15-2-5 \u00b7 Pseudonyms welcome",
       "Moderator",
       "Sign in",
       "Incorrect PIN.",
@@ -177,12 +170,7 @@ bw_language_dictionary <- function() {
       "Seconds / round",
       "Seconds / person",
       "Names (one name per line)",
-      "Optional in individual mode",
       "Group names (one per line, optional)",
-      paste0(
-        "Preset 15-2-5: 3 topics, 3 rounds, 300 s. After K rounds everyone has worked ",
-        "on every topic once."
-      ),
       "Export settings (YAML)",
       "Save and open lobby",
       "Save and open lobby",
@@ -265,7 +253,6 @@ bw_language_dictionary <- function() {
     ),
     fr = c(
       "D\u00e9velopper les id\u00e9es ensemble",
-      "6-3-5 \u00b7 Format de cours 15-2-5 \u00b7 Pseudonymes bienvenus",
       "Animation",
       "Se connecter",
       "Code PIN incorrect.",
@@ -309,12 +296,7 @@ bw_language_dictionary <- function() {
       "Secondes / ronde",
       "Secondes / personne",
       "Noms (un nom par ligne)",
-      "Facultatif en mode individuel",
       "Noms des groupes (un par ligne, facultatif)",
-      paste0(
-        "Pr\u00e9r\u00e9glage 15-2-5 : 3 th\u00e8mes, 3 rondes, 300 s. Apr\u00e8s K ",
-        "rondes, chacun a travaill\u00e9 une fois sur chaque th\u00e8me."
-      ),
       "Exporter les param\u00e8tres (YAML)",
       "Enregistrer et ouvrir la salle d\u2019attente",
       "Enregistrer et ouvrir la salle d\u2019attente",
@@ -420,7 +402,62 @@ bw_language_dictionary <- function() {
       "nouvelles id\u00e9es, d\u00e9velopper les id\u00e9es ci-dessus. ",
       "D\u00e9cochez pour restaurer les th\u00e8mes pr\u00e9c\u00e9dents."
     ))
-  ), session_dictionary())
+  ), session_dictionary(), plenum_dictionary())
+}
+
+#' Interface strings of the plenum weighting
+#' @return A data frame with German, English and French strings.
+#' @keywords internal
+#' @noRd
+plenum_dictionary <- function() {
+  rows <- list(
+    c("Gewichtung", "Weighting", "Pond\u00e9ration"),
+    c("Gewichtung im Plenum", "Plenum weighting", "Pond\u00e9ration en pl\u00e9ni\u00e8re"),
+    c("Analyse & Plenum", "Analysis & plenum", "Analyse & pl\u00e9ni\u00e8re"),
+    c("Danke!", "Thank you!", "Merci !"),
+    c(paste("Verteile je Thema 100 % auf die Beitr\u00e4ge, die dir am wichtigsten sind.",
+            "Alle Beitr\u00e4ge sind anonym; gespeichert wird automatisch."),
+      paste("Distribute 100 % per topic across the contributions that matter most to you.",
+            "All contributions are anonymous; changes save automatically."),
+      paste("R\u00e9partissez 100 % par th\u00e8me entre les contributions qui comptent le plus",
+            "pour vous. Toutes sont anonymes ; l\u2019enregistrement est automatique.")),
+    c("Die Gewichtung ist abgeschlossen. Die Ergebnisse besprechen wir jetzt im Plenum.",
+      "The weighting has ended. We will now discuss the results together.",
+      paste("La pond\u00e9ration est termin\u00e9e.",
+            "Nous discutons maintenant des r\u00e9sultats ensemble.")),
+    c("Alle haben gewichtet.", "Everyone has weighted.", "Tout le monde a pond\u00e9r\u00e9."),
+    c("Die Moderation beendet die Gewichtung.", "The facilitator ends the weighting.",
+      "L\u2019animation termine la pond\u00e9ration."),
+    c("Es wurden keine Gewichte vergeben.", "No weights were given.",
+      "Aucune pond\u00e9ration n\u2019a \u00e9t\u00e9 attribu\u00e9e."),
+    c("Es gibt noch keine Beitr\u00e4ge zum Gewichten.",
+      "There are no contributions to weight yet.",
+      "Il n\u2019y a pas encore de contributions \u00e0 pond\u00e9rer."),
+    c("Gewichtung starten", "Start weighting", "Lancer la pond\u00e9ration"),
+    c("Gewichtung l\u00e4uft.", "Weighting in progress.", "Pond\u00e9ration en cours."),
+    c("Gewichtung l\u00e4uft", "Weighting", "Pond\u00e9ration en cours"),
+    c("Gewichtung beenden", "End weighting", "Terminer la pond\u00e9ration"),
+    c("Ergebnisse erscheinen nach dem Beenden.", "Results appear once the weighting ends.",
+      "Les r\u00e9sultats s\u2019affichent \u00e0 la fin de la pond\u00e9ration."),
+    c("Gewichtung beendet.", "Weighting ended.", "Pond\u00e9ration termin\u00e9e."),
+    c("Wieder \u00f6ffnen", "Reopen", "Rouvrir"),
+    c("Alle verteilen je Thema 100 % auf die anonym gezeigten Beitr\u00e4ge, auch auf eigene.",
+      "Everyone distributes 100 % per topic across the anonymous contributions, own ones included.",
+      paste("Chacun r\u00e9partit 100 % par th\u00e8me entre les contributions anonymes,",
+            "y compris les siennes.")),
+    c("Gewichtung (CSV)", "Weighting (CSV)", "Pond\u00e9ration (CSV)"),
+    c("Die Gewichtung ist auch in XLSX, RDS, Markdown und im PDF-Bericht enthalten.",
+      "The weighting is also included in XLSX, RDS, Markdown and the PDF report.",
+      "La pond\u00e9ration figure aussi dans les exports XLSX, RDS, Markdown et le rapport PDF."),
+    c("Die Gewichtung ist erst nach der Schreibphase m\u00f6glich.",
+      "Weighting is only possible after the writing phase.",
+      "La pond\u00e9ration n\u2019est possible qu\u2019apr\u00e8s la phase d\u2019\u00e9criture."),
+    c("Die Gewichtung l\u00e4uft nicht.", "The weighting is not running.",
+      "La pond\u00e9ration n\u2019est pas en cours."),
+    c("Bitte zuerst die Gewichtung beenden.", "Please end the weighting first.",
+      "Veuillez d\u2019abord terminer la pond\u00e9ration.")
+  )
+  stats::setNames(as.data.frame(do.call(rbind, rows)), c("de", "en", "fr"))
 }
 
 #' Interface strings of the session administration
@@ -429,6 +466,25 @@ bw_language_dictionary <- function() {
 #' @noRd
 session_dictionary <- function() {
   rows <- list(
+    c("Dunkles Design", "Dark theme", "Th\u00e8me sombre"),
+    c("CSV f\u00fcr Tabellenkalkulation absichern (Formeln entsch\u00e4rfen)",
+      "Make CSV safe for spreadsheets (defuse formulas)",
+      "S\u00e9curiser le CSV pour les tableurs (neutraliser les formules)"),
+    c("Die Anmeldung ist abgelaufen. Bitte PIN erneut eingeben.",
+      "The sign-in has expired. Please enter the PIN again.",
+      "La connexion a expir\u00e9. Veuillez saisir \u00e0 nouveau le PIN."),
+    c("Teilnehmende (geplant)", "Participants (planned)", "Participants (pr\u00e9vus)"),
+    c("Namen (optional, ein Name pro Zeile)", "Names (optional, one name per line)",
+      "Noms (facultatif, un nom par ligne)"),
+    c("Alex\nRobin\n\u2026", "Alex\nRobin\n\u2026", "Alex\nRobin\n\u2026"),
+    c(paste("Teilnehmende k\u00f6nnen ihren Namen auch beim Beitritt selbst eingeben",
+            "\u2013 gerne ein Pseudonym."),
+      "Participants can also enter their own name when joining \u2013 a pseudonym is welcome.",
+      paste("Les participants peuvent aussi saisir leur nom en rejoignant",
+            "\u2013 un pseudonyme convient.")),
+    c("Die Namen legen die Reihenfolge fest \u2013 gerne Pseudonyme.",
+      "The names set the order \u2013 pseudonyms are welcome.",
+      "Les noms fixent l\u2019ordre \u2013 les pseudonymes sont bienvenus."),
     c("Standard-Session", "Standard session", "Session standard"),
     c("Alle Sessions", "All sessions", "Toutes les sessions"),
     c("Abmelden", "Sign out", "Se d\u00e9connecter"),
@@ -587,7 +643,7 @@ language_js <- function() {
     [/^Mindestens (\d+) Teilnehmer noetig \(aktuell (\d+)\)\.$/,
       'At least $1 participants required (currently $2).',
       'Au moins $1 participants requis (actuellement $2).'],
-    [/^(rounds|round_secs|turn_secs): muss zwischen (\d+) und (\d+) liegen \(ganze Zahl\)\.$/,
+    [/^(\w+): muss zwischen (\d+) und (\d+) liegen \(ganze Zahl\)\.$/,
       '$1: must be an integer between $2 and $3.',
       '$1 : doit \u00eatre un entier entre $2 et $3.'],
     [/^topics: Thema (\d+) hat keinen Titel\.$/,
@@ -602,6 +658,50 @@ language_js <- function() {
       '$1 : les noms doivent \u00eatre uniques sans les espaces ext\u00e9rieurs.'],
     [/^Unbekannte Einstellungen: (.*)$/, 'Unknown settings: $1', 'Param\u00e8tres inconnus : $1'],
     [/^(\d+) Beitr\u00e4ge$/, '$1 contributions', '$1 contributions'],
+    [/^(\d+) Beitrag$/, '$1 contribution', '$1 contribution'],
+    [/^Noch (\d+) % zu vergeben$/, '$1 % left to distribute', 'Encore $1 % \u00e0 r\u00e9partir'],
+    [/^(\d+) von (\d+) hat 100 % vergeben$/, '$1 of $2 has distributed 100 %',
+      '$1 sur $2 a r\u00e9parti 100 %'],
+    [/^(\d+) von (\d+) haben 100 % vergeben$/, '$1 of $2 have distributed 100 %',
+      '$1 sur $2 ont r\u00e9parti 100 %'],
+    [/^1 Person hat gewichtet\.$/, '1 person weighted.', '1 personne a pond\u00e9r\u00e9.'],
+    [/^(\d+) Personen haben gewichtet\.$/, '$1 people weighted.',
+      '$1 personnes ont pond\u00e9r\u00e9.'],
+    [/^R(\d+) \u00b7 F(\d+) \u00b7 1 Unterst\u00fctzende$/, 'R$1 \u00b7 Q$2 \u00b7 1 supporter',
+      'R$1 \u00b7 Q$2 \u00b7 1 soutien'],
+    [/^R(\d+) \u00b7 F(\d+) \u00b7 (\d+) Unterst\u00fctzende$/,
+      'R$1 \u00b7 Q$2 \u00b7 $3 supporters',
+      'R$1 \u00b7 Q$2 \u00b7 $3 soutiens'],
+    [/^Format (\d+)-2-([\d,]+): (\d+) Themen, (\d+) Runden, (\d+) s pro Runde\.$/,
+      function(match, people, minutes, topics, rounds, secs) {
+        return 'Format ' + people + '-2-' + minutes.replace(',', '.') + ': ' + topics +
+          ' topics, ' + rounds + ' rounds, ' + secs + ' s per round.';
+      },
+      'Format $1-2-$2 : $3 th\u00e8mes, $4 rondes, $5 s par ronde.'],
+    [/^(\d+) Themen, (\d+) Runden, (\d+) s pro Runde\.$/,
+      '$1 topics, $2 rounds, $3 s per round.', '$1 th\u00e8mes, $2 rondes, $3 s par ronde.'],
+    [/^Je Gruppe 1 Person\.$/, '1 person per group.', '1 personne par groupe.'],
+    [/^Je Gruppe (\d+) Personen\.$/, '$1 people per group.', '$1 personnes par groupe.'],
+    [/^Je Gruppe (\d+)\u2013(\d+) Personen\.$/, '$1\u2013$2 people per group.',
+      '$1\u2013$2 personnes par groupe.'],
+    [/^F\u00fcr (\d+) Themen sind mindestens (\d+) Teilnehmende n\u00f6tig\.$/,
+      '$1 topics need at least $2 participants.',
+      '$1 th\u00e8mes n\u00e9cessitent au moins $2 participants.'],
+    [/^Nach (\d+) Runden hat jede Person jedes Thema 1\u00d7 bearbeitet\.$/,
+      'After $1 rounds everyone has worked on every topic once.',
+      'Apr\u00e8s $1 rondes, chacun a travaill\u00e9 une fois sur chaque th\u00e8me.'],
+    [/^Mit (\d+) Runden bearbeitet jede Person (\d+) von (\d+) Themen\.$/,
+      'With $1 rounds everyone works on $2 of $3 topics.',
+      'Avec $1 rondes, chacun travaille sur $2 des $3 th\u00e8mes.'],
+    [/^Nach (\d+) Runden hat jede Person jedes Thema bearbeitet; danach wiederholen .*$/,
+      'After $1 rounds everyone has worked on every topic; after that the topics repeat.',
+      'Apr\u00e8s $1 rondes, chacun a travaill\u00e9 sur chaque th\u00e8me ; ' +
+      'ensuite les th\u00e8mes se r\u00e9p\u00e8tent.'],
+    [/^Reihum: (\d+) Personen, (\d+) Durchg\u00e4nge, (\d+) s je Person\.$/,
+      'Taking turns: $1 people, $2 passes, $3 s per person.',
+      '\u00c0 tour de r\u00f4le : $1 personnes, $2 passages, $3 s par personne.'],
+    [/^(\d+) von (\d+) Teilnehmenden$/, '$1 of $2 participants', '$1 participants sur $2'],
+    [/^(\d+) von (\d+) Gruppen$/, '$1 of $2 groups', '$1 groupes sur $2'],
     [/^Erstellt: (.*)$/, 'Created: $1', 'Cr\u00e9\u00e9e : $1'],
     [/^Zu viele Fehlversuche\. Bitte in (\d+) s erneut versuchen\.$/,
       'Too many failed attempts. Please try again in $1 s.',

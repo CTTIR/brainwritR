@@ -136,14 +136,19 @@ create_session <- function(main_db, label = NULL, prefill = NULL) {
   code
 }
 
+#' Session row stored in a session file
+#' @keywords internal
+#' @noRd
+session_state <- function(path) {
+  con <- db(path)
+  on.exit(dbDisconnect(con), add = TRUE)
+  get_session(con)
+}
+
 #' Lifecycle status stored in a session file
 #' @keywords internal
 #' @noRd
-session_status <- function(path) {
-  con <- db(path)
-  on.exit(dbDisconnect(con), add = TRUE)
-  get_session(con)$status
-}
+session_status <- function(path) session_state(path)$status
 
 #' Offer the settings of a configured session as a new session
 #' @return The new code, or NULL when the source is unknown or still in setup.
@@ -169,9 +174,11 @@ rerun_session <- function(main_db, code) {
 archive_session <- function(main_db, code) {
   target <- session_target(main_db, code)
   if (is.null(target) || !file.exists(target$path)) return("Session nicht gefunden.")
-  if (session_status(target$path) != "finished") {
+  state <- session_state(target$path)
+  if (state$status != "finished") {
     return("Nur beendete Sessions k\u00f6nnen archiviert werden.")
   }
+  if (identical(state$plenum, "open")) return("Bitte zuerst die Gewichtung beenden.")
   if (is_standard(code)) return(archive_standard(main_db))
   transaction_db(main_db, function(con) {
     dbExecute(con, "UPDATE catalog SET archived_at = COALESCE(archived_at, :t) WHERE code = :c",
@@ -238,7 +245,7 @@ session_summary <- function(path) {
   if (!file.exists(path)) {
     return(data.frame(status = "missing", mode = NA_character_, current_round = NA_integer_,
                       n_rounds = NA_integer_, participants = 0L, contributions = 0L,
-                      topics = ""))
+                      topics = "", plenum = "none"))
   }
   con <- db(path)
   on.exit(dbDisconnect(con), add = TRUE)
@@ -246,9 +253,10 @@ session_summary <- function(path) {
   data.frame(
     status = s$status, mode = s$mode, current_round = s$current_round, n_rounds = s$n_rounds,
     participants = dbGetQuery(con, "SELECT COUNT(*) AS n FROM participants")$n,
-    contributions = dbGetQuery(con, "SELECT COUNT(*) AS n FROM entries WHERE TRIM(text) <> ''")$n,
+    contributions = sum(bw_has_text(dbGetQuery(con, "SELECT text FROM entries")$text)),
     topics = paste(dbGetQuery(con, "SELECT title FROM topics ORDER BY id")$title,
-                   collapse = " \u00b7 ")
+                   collapse = " \u00b7 "),
+    plenum = s$plenum %||% "none"
   )
 }
 
@@ -307,4 +315,18 @@ resolve_route <- function(cfg, query) {
     db_path = session_path(main, code), base_url = session_url(cfg$base_url, code),
     code = code, label = row$label, archived = archived
   )))
+}
+
+#' Bring every catalogued session file to the current schema
+#'
+#' Missing files are skipped and never recreated; the overview reports them.
+#' @param main_db Main database path.
+#' @keywords internal
+#' @noRd
+migrate_sessions <- function(main_db) {
+  for (code in catalog_rows(main_db)$code) {
+    path <- session_path(main_db, code)
+    if (file.exists(path)) init_db(path)
+  }
+  invisible(NULL)
 }

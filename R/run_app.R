@@ -36,6 +36,7 @@ run_app <- function(db_path = Sys.getenv("DB_PATH", "data/brainwriting.sqlite"),
   cfg <- app_config(db_path, mod_pin, base_url, port, host, poll_ms)
   dir.create(dirname(cfg$db_path), showWarnings = FALSE, recursive = TRUE)
   init_db(cfg$db_path)
+  migrate_sessions(cfg$db_path)
   invisible(shiny::runApp(shiny::shinyApp(app_ui(cfg), app_server(cfg)),
     host = cfg$host, port = cfg$port
   ))

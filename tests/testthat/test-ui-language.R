@@ -1,3 +1,28 @@
+test_that("a dark mode toggle sits next to the language control", {
+  html <- as.character(app_ui(app_config(tempfile(), "x", "http://localhost:3838")))
+  expect_match(html, 'id="bw-theme-toggle"', fixed = TRUE)
+  expect_match(html, 'aria-label="Dunkles Design"', fixed = TRUE)
+  expect_match(app_css(), "[data-bs-theme='dark']", fixed = TRUE)
+  js <- app_js()
+  expect_match(js, "bw_theme", fixed = TRUE)
+  expect_match(js, "prefers-color-scheme", fixed = TRUE)
+  expect_match(app_css(), "[data-bs-theme='dark'] .form-range::-webkit-slider-thumb", fixed = TRUE)
+  expect_match(app_css(), "[data-bs-theme='dark'] .form-range::-moz-range-thumb", fixed = TRUE)
+  expect_true("Dunkles Design" %in% bw_language_dictionary()$de)
+  # A toggle button keeps its label; only its pressed state changes.
+  expect_false(grepl("Helles Design", js, fixed = TRUE))
+})
+
+test_that("the footer credits CTTIR with a GitHub link and an inline icon", {
+  html <- as.character(app_ui(app_config(tempfile(), "x", "http://localhost:3838")))
+  footer <- regmatches(html, regexpr("<footer[\\s\\S]*</footer>", html, perl = TRUE))
+  expect_match(footer, 'href="https://github.com/CTTIR/brainwritR"', fixed = TRUE)
+  expect_match(footer, "CTTIR", fixed = TRUE)
+  expect_match(footer, "<svg", fixed = TRUE)
+  expect_false(grepl("Pseudonyme willkommen", html, fixed = TRUE))
+  expect_false(grepl("font-awesome|fontawesome", html))
+})
+
 test_that("language changes preserve focused drafts and never translate course content", {
   modes_browser_ready()
   path <- new_db(withr::local_tempfile(), n = 3)
@@ -164,4 +189,56 @@ test_that("analytics selectors preserve topic names that match translated interf
   expect_equal(app$get_js("document.querySelector('#analytics_topic option[value=\"1\"]').text"),
                "Abgeben")
   expect_identical(read_table(path, "topics")$title[1], "Abgeben")
+})
+
+test_that("the dark mode toggle switches colours in place and is remembered", {
+  modes_browser_ready()
+  path <- new_db(withr::local_tempfile(), n = 2)
+  cfg <- app_config(path, "secret", "http://localhost:3838")
+  app <- modes_browser_app(cfg, "dark-mode")
+  app$wait_for_js("!!document.querySelector('#join_name')")
+  # Do not depend on the runner's colour scheme: start from an explicit light one.
+  app$get_chromote_session()$Emulation$setEmulatedMedia(
+    features = list(list(name = "prefers-color-scheme", value = "light"))
+  )
+  app$run_js("window.originalJoin = document.querySelector('#join_name')")
+  background <- "getComputedStyle(document.body).backgroundColor"
+  light <- app$get_js(background)
+  app$run_js("document.querySelector('#bw-theme-toggle').click()")
+  app$wait_for_js("document.documentElement.getAttribute('data-bs-theme') === 'dark'")
+  expect_false(identical(app$get_js(background), light))
+  expect_true(app$get_js("document.querySelector('#join_name') === window.originalJoin"))
+  expect_identical(app$get_js("localStorage.getItem('bw_theme')"), "dark")
+  toggle <- "document.querySelector('#bw-theme-toggle')"
+  expect_identical(app$get_js(paste0(toggle, ".getAttribute('aria-label')")), "Dunkles Design")
+  expect_identical(app$get_js(paste0(toggle, ".getAttribute('aria-pressed')")), "true")
+  app$run_js("location.reload()")
+  app$wait_for_js(paste0("!!document.querySelector('#join_name') && ",
+                         "document.documentElement.getAttribute('data-bs-theme') === 'dark'"),
+                  timeout = 15000)
+  app$run_js("document.querySelector('#bw-theme-toggle').click()")
+  app$wait_for_js("document.documentElement.getAttribute('data-bs-theme') === 'light'")
+  expect_identical(app$get_js(background), light)
+  expect_true(app$get_js("document.documentElement.scrollWidth <= window.innerWidth"))
+})
+
+test_that("without a stored choice the theme follows the device preference", {
+  modes_browser_ready()
+  path <- new_db(withr::local_tempfile(), n = 2)
+  cfg <- app_config(path, "secret", "http://localhost:3838")
+  app <- modes_browser_app(cfg, "dark-preference")
+  app$wait_for_js("!!document.querySelector('#join_name')")
+  app$get_chromote_session()$Emulation$setEmulatedMedia(
+    features = list(list(name = "prefers-color-scheme", value = "dark"))
+  )
+  theme <- "document.documentElement.getAttribute('data-bs-theme')"
+  app$run_js("localStorage.removeItem('bw_theme'); location.reload()")
+  app$wait_for_js(paste0("!!document.querySelector('#join_name') && ", theme, " === 'dark'"),
+                  timeout = 15000)
+  expect_identical(app$get_js(
+    "document.querySelector('#bw-theme-toggle').getAttribute('aria-pressed')"
+  ), "true")
+  app$run_js("localStorage.setItem('bw_theme', 'light'); location.reload()")
+  app$wait_for_js(paste0("!!document.querySelector('#join_name') && ", theme, " === 'light'"),
+                  timeout = 15000)
 })

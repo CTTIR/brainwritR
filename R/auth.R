@@ -69,6 +69,8 @@ auth_revoke <- function(auth, token) {
 #'
 #' Accepts the PIN or a token the tab stored after an earlier login, so
 #' navigating between sessions and reconnecting do not ask for the PIN again.
+#' The token lifetime is also the session lifetime: an open connection is
+#' signed out within a minute of its login expiring or being revoked.
 #' @return A reactive value that is TRUE while the connection is authorized.
 #' @keywords internal
 #' @noRd
@@ -93,6 +95,17 @@ moderator_login <- function(input, session, auth, pin) {
     if (auth_check_token(auth, input$mod_token)) {
       current <<- input$mod_token
       is_mod(TRUE)
+    }
+  })
+  # The login lifetime also bounds an open connection: revalidate every minute.
+  observe({
+    invalidateLater(60000)
+    if (isTRUE(isolate(is_mod())) && !auth_check_token(auth, current)) {
+      current <<- NULL
+      is_mod(FALSE)
+      session$sendCustomMessage("bw_clear_mod_token", "")
+      showNotification("Die Anmeldung ist abgelaufen. Bitte PIN erneut eingeben.",
+                       type = "warning", duration = NULL)
     }
   })
   observeEvent(input$mod_logout, {

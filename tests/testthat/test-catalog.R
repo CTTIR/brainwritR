@@ -142,3 +142,41 @@ test_that("deleting removes a session completely while the standard session is r
   expect_identical(read_table(main, "session")$status, "setup")
   expect_equal(nrow(read_table(main, "participants")), 0)
 })
+
+test_that("startup migrates every catalogued session file to the current schema", {
+  main <- catalog_fixture()
+  code <- create_session(main, "Aus Version 0.4")
+  path <- session_path(main, code)
+  exec_sql(path, "DROP TABLE votes")
+  exec_sql(path, "ALTER TABLE session DROP COLUMN plenum_turn")
+  exec_sql(path, "ALTER TABLE session DROP COLUMN plenum")
+  gone <- create_session(main, "Datei fehlt")
+  unlink(session_path(main, gone))
+  migrate_sessions(main)
+  expect_identical(read_table(path, "session")$plenum, "none")
+  expect_equal(nrow(read_table(path, "votes")), 0)
+  expect_false(file.exists(session_path(main, gone)))
+})
+
+test_that("starting the app upgrades catalogued session files from 0.4.0", {
+  main <- catalog_fixture()
+  code <- create_session(main, "Aus Version 0.4")
+  path <- session_path(main, code)
+  exec_sql(path, "DROP TABLE votes")
+  exec_sql(path, "ALTER TABLE session DROP COLUMN plenum_turn")
+  exec_sql(path, "ALTER TABLE session DROP COLUMN plenum")
+  testthat::local_mocked_bindings(runApp = function(...) "stopped", .package = "shiny")
+  run_app(main, "pin", "http://127.0.0.1:4569", port = 4569)
+  expect_identical(read_table(path, "session")$plenum, "none")
+  expect_equal(nrow(read_table(path, "votes")), 0)
+})
+
+test_that("connections favour durability and wait for busy files before any pragma", {
+  path <- withr::local_tempfile()
+  init_db(path)
+  con <- db(path)
+  on.exit(DBI::dbDisconnect(con))
+  # NORMAL (1) is SQLite's recommendation for WAL; RSQLite's default is OFF (0).
+  expect_equal(DBI::dbGetQuery(con, "PRAGMA synchronous")[[1]], 1)
+  expect_equal(DBI::dbGetQuery(con, "PRAGMA busy_timeout")[[1]], 5000)
+})

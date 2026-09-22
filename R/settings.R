@@ -10,7 +10,7 @@ validate_settings <- function(x) {
   }
   errors <- character()
   allowed <- c("format", "mode", "rounds", "round_secs", "turn_secs", "topics",
-               "groups", "participants")
+               "groups", "participants", "expected_participants")
   unknown <- setdiff(names(x), allowed)
   if (length(unknown)) {
     warning(paste0("Unbekannte Einstellungen: ", paste(unknown, collapse = ", "), "."),
@@ -30,8 +30,11 @@ validate_settings <- function(x) {
         !x$mode %in% c("individual", "group_device", "hot_seat")) {
     errors <- c(errors, "mode: muss individual, group_device oder hot_seat sein.")
   }
-  ranges <- list(rounds = c(1, 12), round_secs = c(30, 1800), turn_secs = c(20, 600))
+  ranges <- list(rounds = c(1, 12), round_secs = c(30, 1800), turn_secs = c(20, 600),
+                 expected_participants = c(1, 500))
   for (field in names(ranges)) {
+    # The planned number of participants is optional.
+    if (field == "expected_participants" && is.null(x[[field]])) next
     value <- x[[field]]
     bounds <- ranges[[field]]
     if (!is.numeric(value) || length(value) != 1L || is.na(value) ||
@@ -87,7 +90,7 @@ validate_settings <- function(x) {
     errors <- c(errors, participants)
   }
   if (length(errors)) return(errors)
-  structure(list(
+  config <- structure(list(
     format = "brainwriting635-settings/1", mode = x$mode,
     rounds = as.integer(x$rounds), round_secs = as.integer(x$round_secs),
     turn_secs = as.integer(x$turn_secs),
@@ -97,6 +100,10 @@ validate_settings <- function(x) {
     groups = if (is.null(x$groups)) paste("Gruppe", seq_along(topics)) else as.vector(groups),
     participants = as.vector(participants)
   ), class = c("bw_settings", "list"))
+  if (!is.null(x$expected_participants)) {
+    config$expected_participants <- as.integer(x$expected_participants)
+  }
+  config
 }
 
 #' Read and validate a YAML settings file

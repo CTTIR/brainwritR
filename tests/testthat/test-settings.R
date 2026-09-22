@@ -82,8 +82,8 @@ test_that("unknown keys warn while portable settings round-trip exactly", {
   path <- withr::local_tempfile(fileext = ".yml")
   write_settings(config, path)
   expect_identical(parse_settings(path), config)
-  config$participants <- c(" Änne ", "Bob")
-  config$groups <- c("Nord", "Süd")
+  config$participants <- c(" \u00c4nne ", "Bob")
+  config$groups <- c("Nord", "S\u00fcd")
   normalized <- validate_settings(config)
   write_settings(normalized, path)
   expect_identical(parse_settings(path), normalized)
@@ -94,12 +94,28 @@ test_that("unknown keys warn while portable settings round-trip exactly", {
 
 test_that("settings parser enforces size, YAML syntax and disables expressions", {
   expect_match(parse_settings("/does/not/exist.yml"), "nicht gefunden")
-  expect_match(parse_settings(tempdir()), "höchstens")
+  expect_match(parse_settings(tempdir()), "h\u00f6chstens")
   path <- withr::local_tempfile(fileext = ".yml")
   writeLines(strrep("x", 100 * 1024 + 1), path)
-  expect_match(parse_settings(path), "höchstens")
+  expect_match(parse_settings(path), "h\u00f6chstens")
   writeLines("topics: [", path)
   expect_match(parse_settings(path), "Syntax")
   writeLines("format: !expr stop('must not execute')", path)
   expect_type(suppressWarnings(parse_settings(path)), "character")
+})
+
+test_that("the planned number of participants is optional, bounded and round-trips", {
+  x <- settings_fixture()
+  expect_null(validate_settings(x)$expected_participants)
+  x$expected_participants <- 15
+  config <- validate_settings(x)
+  expect_identical(config$expected_participants, 15L)
+  file <- withr::local_tempfile(fileext = ".yml")
+  write_settings(config, file)
+  expect_identical(parse_settings(file), config)
+  for (bad in list(0, 501, 2.5, "15")) {
+    x$expected_participants <- bad
+    expect_match(validate_settings(x), "expected_participants: muss zwischen 1 und 500",
+                 all = FALSE)
+  }
 })
