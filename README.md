@@ -26,10 +26,13 @@ with its own address and QR code, managed from a moderator overview. No
 accounts, webfonts, or external application services are required.
 
 Use the **DE / EN / FR language slider** to change the interface without
-replacing answer fields or translating contributed text. The choice is
-remembered in that browser. German is the default. The text-analysis
-method and export schemas retain their documented German defaults; the
-in-app chart labels follow the selected language.
+replacing answer fields or translating contributed text. The button next
+to it switches between a light and a dark theme; the choice is
+remembered in that browser, and without one the device setting decides.
+Charts and QR codes stay light for legibility and scanning. German is
+the default. The text-analysis method and export schemas retain their
+documented German defaults; the in-app chart labels follow the selected
+language.
 
 ## Install and start
 
@@ -73,9 +76,11 @@ brainwritR::run_app(
 
 1.  **Set up:** open the moderator route, enter the PIN, and enter a
     title and two questions for each topic. Choose 2–6 groups, 1–12
-    rounds, and 30–1800 seconds per round. The **15-2-5** preset is
-    three topics, three rounds, five minutes per round, designed for
-    roughly 13–17 participants.
+    rounds, and 30–1800 seconds per round. Enter the planned number of
+    participants: below the fields the format is described live, for
+    example “Format 15-2-5: 3 topics, 3 rounds, 300 s per round. 5
+    people per group.” (participants, questions, minutes). Names are
+    optional; participants can enter a name or pseudonym when joining.
 2.  **Invite:** open the lobby. Participants scan the QR code and enter
     a name or pseudonym. Watch the live roster, then start once at least
     K people have joined.
@@ -84,11 +89,51 @@ brainwritR::run_app(
     questions. Drafts save after 1.2 seconds of quiet; **Abgeben**
     explicitly submits both answers. Submitted answers remain editable
     until the round ends. The moderator can add 60 seconds or end a
-    round early.
-4.  **Debrief:** after the last round, the moderator sees results by
-    topic and sheet, downloads CSV, Markdown, RDS, XLSX or a two-page
-    PDF, and can reset the session (**Zurücksetzen …**) or archive it
-    and start the next one from the session overview.
+    round early; repeated clicks or a second moderator tab end only the
+    round that is on screen, never the next one.
+4.  **Weigh (optional):** in **Analyse & Plenum**, start the weighting.
+    Everyone distributes 100 % per topic across the anonymous
+    contributions; the moderator ends it and discusses the ranked
+    overview with the room.
+5.  **Debrief:** the moderator sees results by topic and sheet,
+    downloads CSV, Markdown, RDS, XLSX or the PDF report, and can reset
+    the session (**Zurücksetzen …**) or archive it and start the next
+    one from the session overview.
+
+## Weigh contributions in the plenum
+
+After the writing phase, the finished moderator view has an **Analyse &
+Plenum** tab. **Gewichtung starten** switches every participant’s device
+to the weighting: all nonempty contributions of each topic appear
+without names and in a personal random order. Each person has **100 %
+per topic** and distributes it with sliders in steps of 5 %; a slider
+cannot pass the remaining budget, and every change saves at once. Each
+slider is named by its question and contribution for screen readers and
+announces the topic’s remaining budget. If the same person has the page
+open twice, or a group device is taken over, every open page follows the
+stored weights within a few seconds. Everyone may weight all
+contributions, including their own. In group-device mode each group
+weights as one author. On a shared hot-seat device the weighting passes
+from person to person (**Weitergeben an: …**, **Los geht’s**, **Fertig —
+weitergeben**); the moderator can skip an absent person.
+
+While the weighting runs, the moderator sees per topic how many people
+have used their full budget; results stay hidden so they cannot steer
+the vote. **Gewichtung beenden** shows the collected overview: a chart
+of the highest-weighted contributions per topic and the full ranking
+with share of all points given in the topic, mean per person and number
+of supporters. **Wieder öffnen** continues with the saved weights. The
+weighting is a snapshot of the group’s opinion, not a measure of idea
+quality.
+
+The weights are stored with the voter’s participant ID so that each
+person keeps one budget; the app never shows who gave which weight.
+**Gewichtung (CSV)** exports the ranking, and the XLSX workbook (sheet
+**Gewichtung**), the Markdown protocol and a third PDF page include it;
+all of these are aggregated per contribution. Only the RDS snapshot
+keeps the individual weights (table `votes`), linked to participant IDs
+and therefore to names unless **Namen pseudonymisieren** is ticked,
+which replaces the voter IDs with the same codes as the authors.
 
 ## Run several sessions
 
@@ -122,8 +167,10 @@ a login token that lives only in server memory and in the tab’s session
 storage, so moving between sessions and reconnecting do not ask for the
 PIN again. **Abmelden** (sign out) ends it; a server restart signs
 everyone out. After five wrong PINs, new logins pause for 15 seconds,
-doubling up to five minutes; signed-in moderators continue. Because the
-PIN now also protects deletion, use a long private PIN.
+doubling up to five minutes; signed-in moderators continue. A login
+lasts 12 hours: an open moderator tab is signed out within a minute once
+it expires. Because the PIN now also protects deletion, use a long
+private PIN.
 
 Participants keep a separate stored identity for each session, so one
 device can join several sessions. Unknown codes show **Session nicht
@@ -133,8 +180,9 @@ a few seconds.
 **Storage.** `DB_PATH` holds the standard session and the session
 catalog. Every further session is a separate SQLite file with the
 unchanged schema in a `sessions/` folder next to it. Back up the whole
-folder. Existing databases need no migration: their session simply
-becomes the standard session.
+folder. Existing databases migrate automatically when the app starts,
+including every catalogued session file; their session becomes the
+standard session. Back up before upgrading.
 
 ## Screenshot gallery
 
@@ -149,9 +197,11 @@ content.
 |:---|:---|
 | <img src="man/figures/group-device.png" width="320" alt="English group claim buttons" /> | <img src="man/figures/hot-seat.png" width="320" alt="English hot-seat handover and start button" /> |
 
-| Session overview |
-|:---|
-| <img src="man/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions" /> |
+| Session overview | Plenum weighting |
+|:---|:---|
+| <img src="man/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions" /> | <img src="man/figures/plenum-vote.png" width="320" alt="English weighting sliders distributing 100 percent per topic" /> |
+
+<img src="man/figures/plenum-results.png" width="720" alt="English plenum overview with ranked contributions and chart" />
 
 <img src="man/figures/analytics.png" width="720" alt="English descriptive analytics with indicators, contribution chart and term figures" />
 
@@ -262,21 +312,25 @@ unknown keys produce warnings and are ignored. The PIN is never read
 from or exported to settings. Keep it in runtime configuration.
 
 Database initialization migrates older sessions in place. It adds `mode`
-(default `individual`), `current_turn` (default 0), and `settings_yaml`
-without changing the other tables or removing data. The additional
-settings column is a deliberate extension to keep custom names, the
-prepared roster, and turn duration in SQLite across restarts. No sidecar
-file is required. Back up before upgrading; an older package version
-should not be used to operate a newer-mode database.
+(default `individual`), `current_turn` (default 0), `settings_yaml`, and
+for the plenum `plenum` (default `none`) and `plenum_turn` (default 0),
+and creates the `votes` table, without changing the other tables or
+removing data. `run_app()` applies this to the main database and to
+every catalogued session file at startup. The additional settings column
+is a deliberate extension to keep custom names, the prepared roster, and
+turn duration in SQLite across restarts. No sidecar file is required.
+Back up before upgrading; an older package version should not be used to
+operate a newer-mode database.
 
 ## Analytics and reports
 
-The moderator’s finished screen has **Beiträge** and **Auswertung**
-tabs. Four indicators summarize nonempty saved answers: contribution
-count, average raw word count, submitted share, and distinct filtered
-terms. Drafts count as contributions; **Abgabequote** is submitted
-nonempty entries divided by all nonempty entries, not a measure of
-attendance or the proportion of possible answers completed.
+The moderator’s finished screen has **Beiträge**, **Auswertung** and
+**Analyse & Plenum** tabs. Four indicators summarize nonempty saved
+answers: contribution count, average raw word count, submitted share,
+and distinct filtered terms. Drafts count as contributions;
+**Abgabequote** is submitted nonempty entries divided by all nonempty
+entries, not a measure of attendance or the proportion of possible
+answers completed.
 
 The figures show contributions by topic/round, the top eight terms per
 topic, a term network, a wordcloud, and adjacent-round lexical overlap.
@@ -284,7 +338,12 @@ Network and wordcloud share a topic selector. The network defaults to at
 least two entries containing a pair and at most 40 frequent terms; the
 cloud uses at most 60 terms. Layouts use fixed seeds. The same plotting
 functions create app and report figures. Empty or insufficient input
-produces a labelled placeholder instead of an error.
+produces a labelled placeholder instead of an error. On phones the app
+switches to single-column term charts, a smaller network, horizontal
+continuity bars and a rank-numbered weighting chart whose height follows
+the bars shown. Contributions consisting only of whitespace (including
+tabs, line breaks, no-break or ideographic spaces and zero-width
+characters) never count as contributions.
 
 Text processing is deliberately simple: Unicode letter boundaries,
 German lowercasing, at least three letters, German Snowball stopwords,
@@ -305,9 +364,10 @@ On macOS, the CRAN R build may require
 before using PDF reports; see the [R Cairo device
 documentation](https://search.r-project.org/R/refmans/grDevices/html/cairo.html).
 
-The PDF always has two A4 portrait pages, including for an empty
-session: overview/parameters/KPIs/contributions/top terms, then
-networks/wordcloud/topic summary. Up to three topics receive separate
+The PDF has two A4 portrait pages, including for an empty session:
+overview/parameters/KPIs/contributions/top terms, then
+networks/wordcloud/topic summary. A third page with the plenum weighting
+follows when weights exist. Up to three topics receive separate
 networks; larger sessions receive one combined network. Cairo and
 patchwork compose the report directly: the runtime container needs no
 LaTeX, Pandoc, or R Markdown report toolchain.
@@ -316,9 +376,10 @@ LaTeX, Pandoc, or R Markdown report toolchain.
 |:---|:---|:---|
 | CSV | Spreadsheet or statistical import | Existing UTF-8 long contribution table |
 | Markdown | Readable classroom protocol | Questions and nonempty answers by topic/sheet |
-| RDS | Lossless re-analysis in R | Four raw tables, settings, generation time, package version |
-| XLSX | Workbook for review | Beiträge, Teilnehmer, Themen, Kennzahlen; styled headers |
-| PDF | Shareable two-page debrief | Session overview and the shared descriptive figures |
+| RDS | Lossless re-analysis in R | Raw tables (plus `votes`), settings, generation time, package version |
+| XLSX | Workbook for review | Beiträge, Teilnehmer, Themen, Kennzahlen (plus Gewichtung); styled headers |
+| PDF | Shareable debrief | Session overview and the shared figures; plenum page when weighted |
+| Gewichtung (CSV) | Plenum ranking | Topic, rank, contribution, points, share, mean, supporters |
 
 **Namen pseudonymisieren (TN-01, TN-02, …)** applies stable
 arrival-order codes to all five downloads; groups receive `Gruppe-01`,
@@ -422,11 +483,11 @@ runs as unprivileged UID 10001. A standalone local smoke run needs no
 Traefik:
 
 ``` sh
-docker build -f docker/Dockerfile -t brainwritr:0.4.0 .
+docker build -f docker/Dockerfile -t brainwritr:0.5.0 .
 docker volume create brainwritr-data
 docker run --rm --name brainwritr -p 3838:3838 \
   -e MOD_PIN=choose-a-private-pin \
-  -v brainwritr-data:/app/data brainwritr:0.4.0
+  -v brainwritr-data:/app/data brainwritr:0.5.0
 ```
 
 For an existing Traefik installation with an external `proxy` network:
@@ -459,14 +520,15 @@ grouped Markdown protocol. Markdown groups Thema → Bogen →
 
 Use pseudonyms and avoid personal or sensitive information in
 contributions. The app stores names/pseudonyms, an opaque participant
-ID, joining and editing times, group assignments, and text on your
-server. Browser storage holds one participant ID per session and the
-language preference; a moderator tab also keeps its login token in
-session storage. It makes no application calls to external services and
-has no external usage tracking. The moderator can export all
-contributions and reset the session. Participants can read earlier
-drafts as well as submissions on their assigned sheet; this is a
-collaborative activity, not a confidential survey.
+ID, joining and editing times, group assignments, plenum weights, and
+text on your server. Browser storage holds one participant ID per
+session and the language and light/dark theme preferences; a moderator
+tab also keeps its login token in session storage. It makes no
+application calls to external services and has no external usage
+tracking. The moderator can export all contributions and reset the
+session. Participants can read earlier drafts as well as submissions on
+their assigned sheet; this is a collaborative activity, not a
+confidential survey.
 
 This supports data-minimizing, self-hosted use; it is **not a blanket
 GDPR/DSGVO compliance guarantee**. The operator defines access, notice,
@@ -476,7 +538,13 @@ forensic erasure of SQLite pages, filesystem snapshots, exports or
 backups. Archived sessions keep their data until deleted. Protect those
 separately. Treat exported user text as untrusted when importing into
 spreadsheet software or rendering Markdown; use text-only spreadsheet
-import and a safe Markdown renderer.
+import and a safe Markdown renderer. The CSV downloads stay raw by
+default for statistical use. **CSV für Tabellenkalkulation absichern**
+prefixes `=`, `+`, `-`, `@`, a tab or a carriage return with an
+apostrophe (OWASP CSV-injection guidance) at the start of a cell and
+after an embedded comma, semicolon, tab or line break, so spreadsheets
+that split on `;` or start a new record at a line break see no live
+formula; RDS stays lossless.
 
 ## Development and quality
 
@@ -491,13 +559,14 @@ pkgdown::build_site()
 
 Tests cover rotation, lifecycle, balanced assignment, late arrivals,
 upserts, clock advancement, authorization, exports, reset, the session
-catalog, routing, overview actions and login throttling. `shinytest2`
-exercises a phone-sized browser, PIN rejection, reload/resume, polling
-stability, a participant-driven round change, separate identities per
-session and moderator navigation between sessions. Browser tests skip on
-CRAN or if Chrome is unavailable; set `CHROMOTE_CHROME` to a Chromium
-executable to enable them locally. CI checks Linux, macOS and Windows,
-lint, and builds the CTTIR-themed pkgdown site.
+catalog, routing, overview actions, login throttling, plenum budgets,
+results and exports. `shinytest2` exercises a phone-sized browser, PIN
+rejection, reload/resume, polling stability, a participant-driven round
+change, separate identities per session, moderator navigation between
+sessions and the weighting sliders’ budget in the browser. Browser tests
+skip on CRAN or if Chrome is unavailable; set `CHROMOTE_CHROME` to a
+Chromium executable to enable them locally. CI checks Linux, macOS and
+Windows, lint, and builds the CTTIR-themed pkgdown site.
 
 See the [classroom and deployment
 guide](https://cttir.github.io/brainwritR/articles/classroom-guide.html)

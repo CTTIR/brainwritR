@@ -1,3 +1,42 @@
+# brainwritR 0.5.0
+
+* Add **Analyse & Plenum** to finished sessions: participants see all contributions
+  anonymously and distribute 100 % per topic with sliders, their own contributions
+  included. On a shared hot-seat device the weighting passes from person to person.
+* The moderator starts, ends and reopens the weighting, follows progress per topic and
+  then sees a ranked overview with a chart; results stay hidden while voting is open.
+* Weights appear in a new CSV download, an extra XLSX sheet, the RDS snapshot, the
+  Markdown protocol and a third PDF page. For sessions without weights, CSV, XLSX,
+  Markdown and PDF are unchanged; the RDS snapshot always carries the `votes` table and
+  the new `plenum` and `plenum_turn` session columns.
+* Ask for the planned number of participants in setup and describe the resulting format
+  live, for example "Format 16-2-5 … 5–6 people per group"; the lobby counts joins
+  against it. Names in setup are marked optional; pseudonyms are welcome.
+* Replace the footer line with a CTTIR link and an inline GitHub icon.
+* Add a light/dark toggle next to the language control. It switches in place without
+  touching drafts, is remembered per browser and follows the device setting by default.
+* Migrate session files created by 0.4.0 at startup.
+
+Follow-up to an external audit of this release:
+
+* Ending a round only ends the round on screen: repeated clicks or a second moderator tab
+  no longer skip a round in individual and group-device mode.
+* Weighting sliders are named by their question and contribution and announce the
+  remaining budget; their values are spoken as percentages.
+* Charts adapt to phones: rank-numbered weighting chart sized to its bars, single-column
+  terms, smaller network and wordcloud, horizontal continuity bars, larger text.
+* One rule decides what counts as a contribution: whitespace-only text (tabs, line
+  breaks, no-break, ideographic and zero-width characters included) is ignored by
+  analytics, weighting, protocols and the previous-contribution view.
+* Open voting pages of the same person follow weights stored from another tab or device.
+* Moderator logins also expire in open tabs after 12 hours.
+* Optional spreadsheet-safe CSV downloads that defuse formula-like cells, also after
+  embedded separators and line breaks.
+* Publish the website through GitHub Pages actions, matching the repository setting.
+* Open SQLite files with `synchronous = NORMAL` (SQLite's durable setting for WAL) after
+  the busy timeout, instead of RSQLite's default `OFF`, so recently saved contributions
+  survive an operating-system crash or power loss.
+
 # brainwritR 0.4.0
 
 * Run several sessions side by side, each with its own address (`?s=<code>`) and QR code.

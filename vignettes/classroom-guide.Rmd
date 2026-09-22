@@ -17,9 +17,12 @@ library(brainwritR)
 brainwritR implements a classroom adaptation of the 6-3-5 method attributed to
 Bernd Rohrbach. The original name refers to six people, three ideas and five
 minutes. This application instead provides **two questions per topic** and
-rotates topics between groups. The 15-2-5 preset means three topics, three rounds
-and five minutes per round, intended for approximately 15 participants.
-It does not enforce a fixed number of ideas in an answer.
+rotates topics between groups. The course variant 15-2-5 means about 15
+participants, two questions and five minutes per round. In setup, enter the planned
+number of participants: the form then names the resulting format, such as
+"Format 15-2-5", with the group size and how many topics everyone will see.
+The app does not enforce a fixed number of ideas in an answer. Names in setup are
+optional; participants can enter a name or a pseudonym when they join.
 
 Keep the core of 6-3-5 within the two fields: frame each topic as one open
 problem, ask for new ideas in the first field and for developing an idea already
@@ -33,7 +36,8 @@ Use pseudonyms. Explain who can read drafts, who will receive exports and when
 records will be removed. A modern browser and reachable server are required.
 There are no participant accounts. The interface offers German, English and
 French through a three-position language slider; German is the initial default.
-Select English to follow the interface labels used in this guide. Language
+Select English to follow the interface labels used in this guide. The moon/sun
+button next to the language slider switches between light and dark themes. Language
 selection changes interface text, not participant contributions or topic content.
 
 ## Start the application
@@ -89,7 +93,8 @@ The standard session keeps the bare address and is therefore never deleted or
 archived in place. **Reset** clears it after confirmation. **Archive** stores its
 finished results as a new archived session and then clears it for the next activity.
 
-The PIN is entered once per browser tab. The server keeps a login token in memory
+The PIN is entered once per browser tab, and a login lasts 12 hours, also in tabs
+that stay open. The server keeps a login token in memory
 and the tab keeps it in session storage, so opening other sessions does not ask
 again; **Sign out** ends it and a server restart signs everyone out. Five wrong
 PINs pause new logins for 15 seconds, doubling up to five minutes. Use a long,
@@ -236,6 +241,33 @@ Five people visiting six sheets leave one untouched in that round. Unequal group
 sizes therefore do not guarantee a contribution to every sheet every round.
 Completion of either question is voluntary.
 
+## Weigh contributions in the plenum
+
+After the last round, the finished moderator view offers **Analyse & Plenum**.
+**Start weighting** switches all participant devices to a weighting page: every
+nonempty contribution of each topic, without names and in an order that differs
+between people but stays stable for each person. Everyone has 100 % per topic and
+distributes it with sliders in 5 % steps. A slider stops at the remaining budget,
+and each change is saved immediately. Own contributions may be weighted as well.
+Group devices weight as one author; on a shared hot-seat device the weighting passes
+from person to person, and the moderator can skip someone.
+
+While the weighting runs, the moderator sees per topic how many people have used
+their full budget. Results remain hidden until **End weighting**, so the room is not
+influenced by a live ranking. The overview then shows the highest-weighted
+contributions per topic as a chart and the full ranking with the share of all points
+given in the topic, the mean per person and the number of supporters. **Reopen**
+continues with the saved weights. Treat the result as a snapshot of the group's
+opinion to structure the discussion, not as a quality score.
+
+Weights are stored with the voter's participant ID so that every person keeps one
+budget. The app never shows who gave which weight, and the CSV, XLSX, Markdown and
+PDF outputs are aggregated per contribution. Only the RDS snapshot keeps individual
+weights linked to participant IDs; tick the pseudonymization option to replace them.
+Each slider is named by its question and contribution for screen readers. If a person
+has the page open twice, or a group device is taken over, all open pages follow the
+stored weights within a few seconds.
+
 ## Read the results responsibly
 
 The finished moderator screen separates the contribution list from descriptive
@@ -271,9 +303,10 @@ alongside the figures.
 |:--|:--|:--|
 | CSV | Statistical or spreadsheet import | Long table, including empty drafts |
 | Markdown | Readable discussion protocol | Questions and nonempty answers grouped by sheet |
-| RDS | Lossless re-analysis in R | Raw tables, settings, generation time and package version |
-| XLSX | Workbook review | Contributions, authors, topics and descriptive summaries |
-| PDF | Shareable overview | Exactly two A4 pages using the same figures as the app |
+| RDS | Lossless re-analysis in R | Raw tables incl. weights, settings, generation time and package version |
+| XLSX | Workbook review | Contributions, authors, topics, descriptive summaries and weights |
+| PDF | Shareable overview | Two A4 pages with the app's figures, plus a plenum page when weighted |
+| Weighting (CSV) | Plenum ranking | Topic, rank, contribution, points, share, mean and supporters |
 
 On macOS, the CRAN R build may require [XQuartz](https://www.xquartz.org/)
 for Cairo graphics. Install it before using PDF reports; see the
@@ -282,6 +315,7 @@ for Cairo graphics. Install it before using PDF reports; see the
 The PDF uses Cairo and patchwork directly, without a runtime dependency on
 Pandoc or LaTeX. Its first page contains parameters, indicators and overview
 charts. Its second contains networks, a wordcloud and per-topic summaries.
+A third page shows the plenum weighting when weights exist.
 Up to three topics receive separate networks; larger sessions use one combined
 network. Export schemas and the PDF retain their German labels independently
 of the interface language.
@@ -291,7 +325,10 @@ downloads. It also replaces persistent author IDs and stored roster settings.
 On-screen views retain names. This is not complete anonymization: personal
 information typed into answers or topic prompts remains unchanged. Review such
 content before sharing. CSV values should be imported as text, and Markdown
-should be rendered with raw HTML disabled.
+should be rendered with raw HTML disabled. For spreadsheet software, tick **Make CSV
+safe for spreadsheets**: `=`, `+`, `-`, `@`, a tab or a carriage return at the start of
+a cell or after an embedded comma, semicolon, tab or line break is prefixed with an
+apostrophe. The default CSV stays raw.
 
 ## Persistence, recovery and deployment
 
@@ -303,8 +340,10 @@ each other's contributions. Autosaves preserve an explicit submission flag.
 The main database at `db_path` holds the standard session and the catalog of
 further sessions. Each further session is a separate SQLite file with the same
 schema in a `sessions/` folder next to it; deleting a session removes its file.
-Existing databases migrate in place by adding `mode`, `current_turn` and
-`settings_yaml`, and their session becomes the standard session. Older sessions retain individual mode. The settings column
+Existing databases migrate in place by adding `mode`, `current_turn`,
+`settings_yaml`, `plenum` and `plenum_turn` and a `votes` table; `run_app()` migrates the
+main database and every catalogued session file at startup, and the existing session
+becomes the standard session. Older sessions retain individual mode. The settings column
 preserves prepared names and turn duration across restarts; no sidecar file is
 needed. Back up before upgrading and avoid operating newer-mode databases with
 an older application version.
