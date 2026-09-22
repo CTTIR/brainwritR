@@ -21,8 +21,9 @@ offers German, English and French; documentation is English.
 
 The app keeps drafts and the round clock in SQLite, resumes participants
 after a mobile reconnect, and avoids replacing textareas during routine
-polling. No accounts, webfonts, or external application services are
-required.
+polling. One instance runs any number of sessions side by side, each
+with its own address and QR code, managed from a moderator overview. No
+accounts, webfonts, or external application services are required.
 
 Use the **DE / EN / FR language slider** to change the interface without
 replacing answer fields or translating contributed text. The choice is
@@ -86,7 +87,54 @@ brainwritR::run_app(
     round early.
 4.  **Debrief:** after the last round, the moderator sees results by
     topic and sheet, downloads CSV, Markdown, RDS, XLSX or a two-page
-    PDF, and can confirm a full session reset.
+    PDF, and can reset the session (**Zurücksetzen …**) or archive it
+    and start the next one from the session overview.
+
+## Run several sessions
+
+One instance holds any number of sessions, and several can run at the
+same time, for example two courses in parallel. The bare address always
+shows the **standard session**, exactly as before. Every further session
+has its own short code, address and QR code, such as
+`https://brainwriting.example.de/?s=k7m3pq`.
+
+Open **All sessions** (German: **Alle Sessions**) from the moderator
+bar, or go to `/?mod=1&view=sessions`. The overview lists every session
+with its state, mode, participant and contribution counts, topics and
+address, and refreshes as they change.
+
+| Action | Effect |
+|:---|:---|
+| **New session** | Creates an empty session with an optional label and opens its setup |
+| **Open** | Opens the session’s moderator view |
+| **QR code** | Shows a large QR code with the address; download it as PNG for slides or handouts |
+| **Restart** | Creates a new session prefilled with the same mode, topics, timing and names, and opens its setup for review; the original session and its results stay unchanged |
+| **Archive / Restore** | Finished sessions only. Archived sessions leave the active list, refuse participants and stay readable with all exports; restoring returns them to the list |
+| **Delete** | Permanently removes the session and its database file after confirmation; export first |
+
+The standard session keeps the bare address, so it is never deleted or
+archived in place. **Reset** clears it after confirmation. **Archive**
+saves its finished results as a new archived session and then clears it
+for the next activity.
+
+A moderator enters the PIN once per browser tab. The server then issues
+a login token that lives only in server memory and in the tab’s session
+storage, so moving between sessions and reconnecting do not ask for the
+PIN again. **Abmelden** (sign out) ends it; a server restart signs
+everyone out. After five wrong PINs, new logins pause for 15 seconds,
+doubling up to five minutes; signed-in moderators continue. Because the
+PIN now also protects deletion, use a long private PIN.
+
+Participants keep a separate stored identity for each session, so one
+device can join several sessions. Unknown codes show **Session nicht
+gefunden**; open pages of a deleted session switch to that notice within
+a few seconds.
+
+**Storage.** `DB_PATH` holds the standard session and the session
+catalog. Every further session is a separate SQLite file with the
+unchanged schema in a `sessions/` folder next to it. Back up the whole
+folder. Existing databases need no migration: their session simply
+becomes the standard session.
 
 ## Screenshot gallery
 
@@ -100,6 +148,10 @@ content.
 | Shared group device | Hot-seat handover |
 |:---|:---|
 | <img src="man/figures/group-device.png" width="320" alt="English group claim buttons" /> | <img src="man/figures/hot-seat.png" width="320" alt="English hot-seat handover and start button" /> |
+
+| Session overview |
+|:---|
+| <img src="man/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions" /> |
 
 <img src="man/figures/analytics.png" width="720" alt="English descriptive analytics with indicators, contribution chart and term figures" />
 
@@ -149,7 +201,11 @@ as parallel rounds.
 
 For a quick demonstration, select **Use example questions** (German:
 **Beispiel-Fragenset verwenden**). Three classroom topics appear in the
-selected interface language. Edit them freely; clearing the checkbox
+selected interface language. They follow the 6-3-5 principle within the
+two answer fields: each topic is one open “How might we …?” problem, the
+first field asks for up to three new ideas, and the second asks
+participants to take up an idea already on the sheet (or one of their
+own) and develop it further. Edit them freely; clearing the checkbox
 restores your previous questions and topic count. Mode, roster and
 timers stay as configured. Loading a YAML file replaces the example
 selection. Changing interface language never translates existing
@@ -164,6 +220,8 @@ finished RDS snapshot also contains the settings.
 
 ``` yaml
 # Portable session preparation. The moderator PIN is never included.
+# Topics follow 6-3-5: one open problem per sheet. Each round adds new ideas
+# and develops an idea that is already on the sheet.
 format: brainwriting635-settings/1
 mode: individual
 rounds: 3
@@ -171,14 +229,14 @@ round_secs: 300
 turn_secs: 90
 topics:
   - title: "Lernen im Kurs"
-    q1: "Was unterstützt das gemeinsame Lernen?"
-    q2: "Was möchten wir ausprobieren?"
-  - title: "Zusammenarbeit"
-    q1: "Wie können wir Wissen teilen?"
-    q2: "Wie beziehen wir alle ein?"
+    q1: "Wie könnten wir das gemeinsame Lernen im Kurs stärken? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
+  - title: "Wissen teilen"
+    q1: "Wie könnten wir unser Wissen untereinander leichter teilen? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
   - title: "Transfer in den Alltag"
-    q1: "Wo können wir die Ideen anwenden?"
-    q2: "Was ist der erste konkrete Schritt?"
+    q1: "Wie könnten wir die Ideen aus dem Kurs im Alltag anwenden? Notiere bis zu drei neue Ideen."
+    q2: "Greife eine Idee von oben auf (oder eine eigene) und entwickle sie weiter."
 groups:
   - "Gruppe Nord"
   - "Gruppe Süd"
@@ -305,7 +363,8 @@ K-topic guarantee applies to participants present for all K rounds, not
 to someone joining halfway through. With fewer than K rounds, some
 topics are not visited; with more than K, the cycle repeats. This
 two-question classroom adaptation is not the literal six-person,
-three-ideas-per-round protocol.
+three-ideas-per-round protocol; the example questions keep its core, new
+ideas plus building on the sheet, within two fields.
 
 ## Mobile robustness
 
@@ -318,10 +377,10 @@ three-ideas-per-round protocol.
   active room. With no clients connected, advancement resumes on the
   next connection; missed rounds are not silently skipped.
 - **Reconnect resumes identity.** The client reloads 1.5 seconds after a
-  Shiny disconnect and resends its participant ID from `localStorage`.
-  Reset IDs are cleared. Keep the same browser and origin to resume.
-  With storage disabled, automatic resume is unavailable; use one tab
-  per participant.
+  Shiny disconnect and resends the participant ID it stored in
+  `localStorage` for that session. Reset IDs are cleared. Keep the same
+  browser and origin to resume. With storage disabled, automatic resume
+  is unavailable; use one tab per participant.
 - **Typing stays in place.** Two database polls feed live subregions.
   Main views change only on status, round, or assignment transitions.
   Debounced edits carry the context in which they were typed; later
@@ -351,11 +410,10 @@ Explicit arguments override environment defaults. ENV is read when
 | `host`     | —           | `0.0.0.0`                  |
 | `poll_ms`  | —           | `2500` ms                  |
 
-**One session and exactly one R process per instance.** Do not use
-replicas, ShinyProxy, or `docker compose --scale`. Parallel courses need
-separate containers, databases, hostnames, and Traefik router/service
-names. Use local persistent disk; a network filesystem is not a
-supported SQLite deployment.
+**Exactly one R process per data folder.** Parallel courses can share
+one instance as separate sessions. Do not use replicas, ShinyProxy, or
+`docker compose --scale`. Use local persistent disk; a network
+filesystem is not a supported SQLite deployment.
 
 ## Docker and Traefik
 
@@ -364,11 +422,11 @@ runs as unprivileged UID 10001. A standalone local smoke run needs no
 Traefik:
 
 ``` sh
-docker build -f docker/Dockerfile -t brainwritr:0.3.0 .
+docker build -f docker/Dockerfile -t brainwritr:0.4.0 .
 docker volume create brainwritr-data
 docker run --rm --name brainwritr -p 3838:3838 \
   -e MOD_PIN=choose-a-private-pin \
-  -v brainwritr-data:/app/data brainwritr:0.3.0
+  -v brainwritr-data:/app/data brainwritr:0.4.0
 ```
 
 For an existing Traefik installation with an external `proxy` network:
@@ -385,9 +443,10 @@ docker compose -f docker/docker-compose.yml up -d --build
 Replace the example hostname and certificate resolver. DNS, TLS and the
 existing Traefik `websecure` entrypoint must already be configured.
 `BASE_URL` supplies the QR-code URL. The bind mount is **docker/data/**
-relative to the Compose file; it must be writable by UID 10001. Keep the
-database volume when updating images. Set `TZ=Europe/Berlin` for local
-export timestamps (already set in Compose).
+relative to the Compose file; it must be writable by UID 10001. It holds
+the main database and the `sessions/` folder. Keep the volume when
+updating images. Set `TZ=Europe/Berlin` for local export timestamps
+(already set in Compose).
 
 ## Export and privacy
 
@@ -401,21 +460,23 @@ grouped Markdown protocol. Markdown groups Thema → Bogen →
 Use pseudonyms and avoid personal or sensitive information in
 contributions. The app stores names/pseudonyms, an opaque participant
 ID, joining and editing times, group assignments, and text on your
-server. Browser storage holds the participant ID and language
-preference. It makes no application calls to external services and has
-no external usage tracking. The moderator can export all contributions
-and reset the session. Participants can read earlier drafts as well as
-submissions on their assigned sheet; this is a collaborative activity,
-not a confidential survey.
+server. Browser storage holds one participant ID per session and the
+language preference; a moderator tab also keeps its login token in
+session storage. It makes no application calls to external services and
+has no external usage tracking. The moderator can export all
+contributions and reset the session. Participants can read earlier
+drafts as well as submissions on their assigned sheet; this is a
+collaborative activity, not a confidential survey.
 
 This supports data-minimizing, self-hosted use; it is **not a blanket
 GDPR/DSGVO compliance guarantee**. The operator defines access, notice,
-retention and backup policy. Reset deletes the session’s logical
-records, but is not secure forensic erasure of SQLite pages, filesystem
-snapshots, exports or backups. Protect those separately. Treat exported
-user text as untrusted when importing into spreadsheet software or
-rendering Markdown; use text-only spreadsheet import and a safe Markdown
-renderer.
+retention and backup policy. Reset deletes the session’s logical records
+and Delete removes a session’s database file, but neither is secure
+forensic erasure of SQLite pages, filesystem snapshots, exports or
+backups. Archived sessions keep their data until deleted. Protect those
+separately. Treat exported user text as untrusted when importing into
+spreadsheet software or rendering Markdown; use text-only spreadsheet
+import and a safe Markdown renderer.
 
 ## Development and quality
 
@@ -429,13 +490,14 @@ pkgdown::build_site()
 ```
 
 Tests cover rotation, lifecycle, balanced assignment, late arrivals,
-upserts, clock advancement, authorization, exports and reset.
-`shinytest2` exercises a phone-sized browser, PIN rejection,
-reload/resume, polling stability, and a participant-driven round change.
-Browser tests skip on CRAN or if Chrome is unavailable; set
-`CHROMOTE_CHROME` to a Chromium executable to enable them locally. CI
-checks Linux, macOS and Windows, lint, and builds the CTTIR-themed
-pkgdown site.
+upserts, clock advancement, authorization, exports, reset, the session
+catalog, routing, overview actions and login throttling. `shinytest2`
+exercises a phone-sized browser, PIN rejection, reload/resume, polling
+stability, a participant-driven round change, separate identities per
+session and moderator navigation between sessions. Browser tests skip on
+CRAN or if Chrome is unavailable; set `CHROMOTE_CHROME` to a Chromium
+executable to enable them locally. CI checks Linux, macOS and Windows,
+lint, and builds the CTTIR-themed pkgdown site.
 
 See the [classroom and deployment
 guide](https://cttir.github.io/brainwritR/articles/classroom-guide.html)

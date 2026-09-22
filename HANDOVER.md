@@ -1,6 +1,64 @@
 # brainwritR implementation and validation handover
 
-Checkpoint: 2026-09-21T15:08:53Z (UTC)
+Checkpoint: 2026-09-22T07:30:21Z (UTC)
+
+## Current change: 0.4.0 multi-session administration
+
+Implementation commit `744be57` on `main`, built on `f2929de`. Hosted CI results
+are recorded in CURRENT_STATE.md once available.
+
+- **Storage (approved option A).** `DB_PATH` stays the standard session behind the
+  bare URL and gains a lazily created `catalog` table (code, label, created_at,
+  archived_at, prefill_yaml). Every further session is `sessions/<code>.sqlite`
+  next to it, created by the unchanged `init_db()`. This keeps the session schema
+  and the frozen iteration-1 tests untouched (singleton `CHECK`, exact `entries`
+  columns). Existing databases need no migration.
+- **Routing.** Each page binds to one session at connect (`resolve_route()`):
+  `?s=<code>` participants, `?mod=1[&s=<code>]` moderators, `?mod=1&view=sessions`
+  overview. Unknown codes show a notice; archived sessions refuse participants.
+  Codes: six characters from `23456789abcdefghjkmnpqrstuvwxyz`.
+- **Overview actions.** New, open, QR (modal + 1200 px PNG), restart, archive/restore
+  (finished only), delete. Restart = new session in setup, prefilled for review;
+  the source stays untouched (user decision). Archive = read-only, reversible (user
+  decision). The standard session is never deleted or archived in place: delete
+  means forced reset; archive copies it with `VACUUM INTO`, drops the copied catalog
+  and then resets it. The in-session reset is relabelled **Zurücksetzen …**.
+- **Deletion safety.** `db()` opens existing files only (`SQLITE_RW`); only
+  `init_db()` creates. Open pages of a deleted session receive `bw_reload` from
+  their polls and show the notice; draft and submit writes are guarded.
+- **Moderator login.** Tokens (12 h, server memory only) stored in the tab's
+  `sessionStorage` avoid re-entering the PIN when navigating. Global throttle:
+  from the fifth consecutive failure, 15 s doubling to 300 s; failures older than
+  15 min are forgotten; locked attempts are not compared. Signed-in tabs continue.
+- **Participant identity** is stored per session (`bw_pid` for the standard session,
+  `bw_pid:<code>` otherwise), so one device can join several sessions.
+- **Randomness fix.** `ggwordcloud` called `set.seed(635)` on every draw, making all
+  later `sample()` IDs and group shuffles predictable and letting two joins after
+  the same reseed collide on the participant ID (UNIQUE failure). IDs, codes and
+  tokens now use `openssl::rand_bytes()` (unbiased rejection sampling); wordcloud
+  drawing in app and report runs under `withr::with_preserve_seed()`.
+- **6-3-5 templates (user decision: reword only).** Each example topic is one open
+  "How might we …?" problem; field 1 asks for up to three new ideas, field 2 to
+  develop an idea from above (or one's own). Same in `settings-example.yml`.
+
+New files: `R/ids.R`, `R/catalog.R`, `R/auth.R`, `R/pages.R`, `R/dashboard.R`;
+tests `helper-sessions.R`, `test-ids.R`, `test-catalog.R`, `test-auth.R`,
+`test-sessions-server.R`, `test-dashboard.R`, `test-sessions-browser.R`.
+Non-frozen tests updated for the new templates: `test-templates.R`,
+`test-settings.R`, `test-ui-language.R`, `test-i18n.R`.
+
+Validation of 0.4.0 (local, R 4.6.1, Linux):
+
+- Complete test run with browser tests: **1167 passing assertions**, 0 failures,
+  0 warnings, 0 skips. The five iteration-1 files are byte-identical to `19e921d`.
+- `devtools::check(args = "--as-cran")` with browser tests: **0 errors, 0 warnings,
+  0 notes**. `lintr::lint_package()`: 0 lints. `R/` remains ASCII-only.
+- Browser checks: per-session identities, token navigation without PIN, deletion
+  notice; QR modal renders a 324×320 plot. Screenshots `setup.png`, `sessions.png`
+  (new) and `analytics.png` recaptured and inspected.
+- Container build `brainwritr:0.4.0` (`sha256:2221b6017a75…`, 620,507,532 bytes, +3.3 MB
+  for openssl): HTTP 200, UID 10001, catalog and `sessions/` file persisted across
+  restart in a named volume; coded address served. Test container/volume removed.
 
 ## Published package
 
@@ -20,6 +78,8 @@ Checkpoint: 2026-09-21T15:08:53Z (UTC)
 | Files | Responsibility |
 |:--|:--|
 | `R/db.R`, `R/session-ops.R` | SQLite, migration, atomic setup, shared rotation scheduler and identity claims |
+| `R/catalog.R`, `R/dashboard.R`, `R/pages.R` | Session catalog and files, routing, overview, notices, moderator bar |
+| `R/auth.R`, `R/ids.R` | Moderator tokens and PIN throttle; secure identifiers |
 | `R/rotation.R`, `R/entries.R` | Exported pure rotation helpers and unchanged entry upsert semantics |
 | `R/settings.R`, `R/templates.R` | Safe YAML validation/roundtrip and multilingual example question sets |
 | `R/server.R`, `R/ui.R`, `R/assets.R`, `R/i18n.R` | Mobile Shiny lifecycle, gated textareas, language slider and controls |
@@ -162,8 +222,8 @@ databases, participant records, development scratch files or archived drafts.
 
 ## Remaining operational boundaries
 
-One session and exactly one R process per instance; no replicas or horizontal
-scaling. Timers are driven by connected clients, so an empty room resumes on the
+Several sessions, but exactly one R process per data folder; no replicas or horizontal
+scaling. Moderator logins are lost on restart. Timers are driven by connected clients, so an empty room resumes on the
 next connection. Late boundary keystrokes can be overtaken by a round/turn change.
 Use a private moderator PIN, a reachable HTTPS URL and writable persistent storage.
 Classroom network/device rehearsal and retention policy remain operator tasks.
