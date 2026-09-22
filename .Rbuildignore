@@ -11,8 +11,7 @@
 ^docs$
 ^pkgdown$
 ^data$
-^CURRENT_STATE\.md$
-^HANDOVER\.md$
+^status$
 ^.*\.Rcheck$
 ^.*\.tar\.gz$
 ^cran-comments\.md$
