@@ -18,3 +18,4 @@
 ^.*\.Rproj$
 
 ^README\.html$
+^tools/branding$
