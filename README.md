@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file. -->
 
-# brainwritR <img src="man/figures/logo.png" align="right" width="120" height="139" alt="brainwritR hex logo" />
+# brainwritR <picture class="cttir-readme-logo"><source class="cttir-logo-dark-source" media="(prefers-color-scheme: dark)" srcset="man/figures/logo-with-name-dark.png" /><img src="man/figures/logo-with-name.png" align="right" alt="brainwritR hex logo" width="120" height="155" /></picture>
 
 <!-- badges: start -->
 
