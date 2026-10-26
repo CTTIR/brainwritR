@@ -1,4 +1,6 @@
 identity,rendered,destination
+brainwritR,hex.png,inst/app/www/icon.png
+brainwritR,hex.svg,inst/app/www/icon.svg
 brainwritR,icon-128.png,man/figures/icon-128.png
 brainwritR,icon-256.png,man/figures/icon-256.png
 brainwritR,icon-32.png,man/figures/icon-32.png
