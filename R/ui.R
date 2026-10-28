@@ -11,7 +11,7 @@ app_ui <- function(cfg) {
         name = "viewport",
         content = "width=device-width, initial-scale=1"
       ),
-      tags$link(rel = "icon", type = "image/svg+xml", href = app_icon_uri()),
+
       tags$style(HTML(app_css())),
       tags$script(HTML(paste(app_js(), language_js()))),
       tags$title("Brainwriting 6-3-5")
@@ -22,7 +22,7 @@ app_ui <- function(cfg) {
         class = "bw-header",
         div(
           class = "bw-brand",
-          tags$img(src = app_icon_uri(), alt = "", width = 36, height = 42),
+          .cttir_brand_logo(),
           "brainwritR"
         ),
         div(class = "bw-status", "Gemeinsam Ideen weiterdenken")

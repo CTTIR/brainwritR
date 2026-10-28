@@ -1,5 +1,9 @@
 # brainwritR 0.6.0
 
+* Standardize the named v5 package logo across README, documentation pages
+  and available application headers, with matching light and dark artwork.
+
+
 - Configure any positive number of questions separately for each topic. Answer
   fields, drafts, submissions, YAML, prompt exclusion and exports follow that
   count; existing two-question settings and databases remain supported.

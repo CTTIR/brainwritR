@@ -8,7 +8,7 @@ output: github_document
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-# brainwritR <picture class="cttir-readme-logo"><source class="cttir-logo-dark-source" media="(prefers-color-scheme: dark)" srcset="man/figures/logo-with-name-dark.png" /><img src="man/figures/logo-with-name.png" align="right" alt="brainwritR hex logo" width="120" height="139" /></picture>
+# brainwritR <picture class="cttir-readme-logo"><source class="cttir-logo-dark-source" media="(prefers-color-scheme: dark)" srcset="man/figures/logo-with-name-dark.png" /><img src="man/figures/logo-with-name.png" align="right" alt="brainwritR logo" width="120" height="139" /></picture>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/CTTIR/brainwritR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/brainwritR/actions/workflows/R-CMD-check.yaml)
