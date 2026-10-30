@@ -58,16 +58,19 @@ Open `http://localhost:3838` as a participant and
 `http://localhost:3838/?mod=1` as moderator. The local default PIN is
 `635`. On first launch the app creates `data/brainwriting.sqlite`
 relative to the working directory. Nothing is created when the package
-is merely loaded.
+is merely loaded. The default listening address is `127.0.0.1`,
+reachable only on this computer.
 
-**For a classroom, set the public URL and a private moderator PIN.** A
-phone’s `localhost` refers to the phone itself; the QR code must point
-to a reachable server. Use HTTPS on a public deployment.
+**For a classroom, set the listening address, public URL and a private
+moderator PIN.** A phone’s `localhost` refers to the phone itself; the
+QR code must point to a reachable server. Use HTTPS on a public
+deployment.
 
 ``` r
 brainwritR::run_app(
   base_url = "https://brainwriting.example.de",
   mod_pin = Sys.getenv("MY_CLASSROOM_PIN"),
+  host = "0.0.0.0",
   db_path = "/srv/brainwriting/data/session.sqlite"
 )
 ```
@@ -415,7 +418,7 @@ author list.
 K groups work on K topics in parallel. Group `g` in round `r` receives
 topic `((g - 1 + r - 1) %% K) + 1`:
 
-``` text
+```
               Round 1    Round 2    Round 3
 Group 1       Topic 1    Topic 2    Topic 3
 Group 2       Topic 2    Topic 3    Topic 1
@@ -488,8 +491,17 @@ Explicit arguments override environment defaults. ENV is read when
 | `mod_pin`  | `MOD_PIN`   | `635`                      |
 | `base_url` | `BASE_URL`  | `http://localhost:3838`    |
 | `port`     | `PORT`      | `3838`                     |
-| `host`     | —           | `0.0.0.0`                  |
+| `host`     | —           | `127.0.0.1`                |
 | `poll_ms`  | —           | `2500` ms                  |
+
+Network launchers must now pass `host = "0.0.0.0"` explicitly; Docker
+already does so. The demonstration PIN `635` is rejected when the
+listening host or participant URL is not loopback. Set a private PIN
+before deployment. `base_url` must have an HTTP(S) host and no
+credentials or fragment (`#...`). The query parameters `s`, `mod`, and
+`view` belong to session routing and must not appear in `base_url`;
+other query parameters such as `lang=de` are preserved in invitation
+links.
 
 **Exactly one R process per data folder.** Parallel courses can share
 one instance as separate sessions. Do not use replicas, ShinyProxy, or
@@ -503,11 +515,11 @@ runs as unprivileged UID 10001. A standalone local smoke run needs no
 Traefik:
 
 ``` sh
-docker build -f docker/Dockerfile -t brainwritr:0.5.0 .
+docker build -f docker/Dockerfile -t brainwritr:0.6.0 .
 docker volume create brainwritr-data
 docker run --rm --name brainwritr -p 3838:3838 \
   -e MOD_PIN=choose-a-private-pin \
-  -v brainwritr-data:/app/data brainwritr:0.5.0
+  -v brainwritr-data:/app/data brainwritr:0.6.0
 ```
 
 For an existing Traefik installation with an external `proxy` network:
@@ -596,22 +608,24 @@ licensed.
 
 ## Use of LLM tools
 
-Where applicable, LLM tools were used for narrowly defined, non-authorial tasks:
-copyediting, prose refinement, Markdown/LaTeX formatting, boilerplate scaffolding
-(such as CI configurations and build scripts), and code refactoring. Tools included
-[Chat AI](https://kisski.gwdg.de/leistungen/2-02-llm-service/), the KISSKI
-(GWDG) service, and self-hosted **Mistral Small (24B, Apache-2.0)** served through
-a local **vLLM architecture** on an Ubuntu Linux workstation with Intel
-processors and NVIDIA GPUs. The self-hosted model ran locally, with no data sent
-to third parties.
+Where applicable, LLM tools were used for narrowly defined,
+non-authorial tasks: copyediting, prose refinement, Markdown/LaTeX
+formatting, boilerplate scaffolding (such as CI configurations and build
+scripts), and code refactoring. Tools included [Chat
+AI](https://kisski.gwdg.de/leistungen/2-02-llm-service/), the KISSKI
+(GWDG) service, and self-hosted **Mistral Small (24B, Apache-2.0)**
+served through a local **vLLM architecture** on an Ubuntu Linux
+workstation with Intel processors and NVIDIA GPUs. The self-hosted model
+ran locally, with no data sent to third parties.
 
-All scientific claims, methodological choices, analyses, interpretations and
-conclusions remain the authors' own. Where applicable, LLM-generated material
-must be reviewed and revised before inclusion, and references must be verified
-against their DOI, arXiv ID or ISBN.
+All scientific claims, methodological choices, analyses, interpretations
+and conclusions remain the authors’ own. Where applicable, LLM-generated
+material must be reviewed and revised before inclusion, and references
+must be verified against their DOI, arXiv ID or ISBN.
 
 Local software setup: vLLM with Python/PyTorch, plus R and RStudio.
 
 ## Branding
 
-Editable R artwork and regeneration instructions are in [tools/branding](https://github.com/CTTIR/brainwritR/blob/main/tools/branding/README.md).
+Editable R artwork and regeneration instructions are in
+[tools/branding](https://github.com/CTTIR/brainwritR/blob/main/tools/branding/README.md).

@@ -1,5 +1,15 @@
 # brainwritR 0.6.0
 
+* Bind local startup to loopback by default. Network launchers must explicitly
+  select a listening host and replace the demonstration moderator PIN; Docker
+  keeps its explicit network binding.
+* Reject invitation base URLs with missing hosts, credentials, fragments or
+  reserved routing parameters, and preserve harmless query strings.
+* Close SQLite connections after failed standard-session archive attempts and
+  exclude local Git metadata from source packages.
+* Establish the browser's starting theme before testing its toggle, independent
+  of the test machine's colour preference.
+
 * Standardize the named v5 package logo across README, documentation pages
   and available application headers, with matching light and dark artwork.
 

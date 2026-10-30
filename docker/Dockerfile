@@ -19,4 +19,4 @@ RUN R -q -e 'stopifnot(capabilities("cairo"))' \
 USER brainwriting
 ENV DB_PATH=/app/data/brainwriting.sqlite PORT=3838
 EXPOSE 3838
-CMD ["R", "-q", "-e", "brainwritR::run_app()"]
+CMD ["R", "-q", "-e", "brainwritR::run_app(host = '0.0.0.0')"]

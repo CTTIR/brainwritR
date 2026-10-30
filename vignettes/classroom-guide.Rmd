@@ -77,8 +77,9 @@ run_app()
 # Moderator:   http://localhost:3838/?mod=1
 ```
 
-The default moderator PIN is `635`, suitable for a local demonstration. For a
-classroom deployment, supply a private PIN and the externally reachable URL:
+Local startup binds to `127.0.0.1`. The default moderator PIN is `635`, accepted
+only with a loopback listening host and URL. For a classroom deployment, explicitly
+select a network listening address, private PIN and externally reachable URL:
 
 ```{r classroom, eval=FALSE}
 run_app(
@@ -99,7 +100,9 @@ directory. Use an absolute path for a long-running service.
 
 The QR code of the standard session uses `base_url` exactly. A phone's `localhost`
 refers to that phone; use a URL that devices in the classroom can reach. The
-moderator route adds `?mod=1`; do not put this query string into the participant URL.
+moderator route adds `?mod=1`. Do not put credentials, fragments or the routing
+query parameters `s`, `mod`, or `view` into the participant URL. Harmless query
+parameters are retained when generating session invitations.
 
 ## Manage several sessions
 

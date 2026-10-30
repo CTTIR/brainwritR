@@ -9,7 +9,7 @@ run_app(
   mod_pin = Sys.getenv("MOD_PIN", "635"),
   base_url = Sys.getenv("BASE_URL", "http://localhost:3838"),
   port = Sys.getenv("PORT", "3838"),
-  host = "0.0.0.0",
+  host = "127.0.0.1",
   poll_ms = 2500
 )
 }
@@ -18,14 +18,16 @@ run_app(
 \code{"data/brainwriting.sqlite"}.}
 
 \item{mod_pin}{Moderator PIN. Defaults to \code{MOD_PIN}, then \code{"635"}.
-Set a private PIN before deployment.}
+The demonstration PIN is accepted only with a loopback host and URL.}
 
 \item{base_url}{Public participant URL used in the QR code. Defaults to
-\code{BASE_URL}, then \code{"http://localhost:3838"}.}
+\code{BASE_URL}, then \code{"http://localhost:3838"}. Must not contain credentials,
+a fragment, or the reserved query parameters \code{s}, \code{mod}, and \code{view}.}
 
 \item{port}{Listening port. Defaults to \code{PORT}, then \code{3838}.}
 
-\item{host}{Listening address, default \code{"0.0.0.0"}.}
+\item{host}{Listening address, default \code{"127.0.0.1"}. Set \code{"0.0.0.0"}
+explicitly to accept network connections, with a private moderator PIN.}
 
 \item{poll_ms}{Database polling interval in milliseconds, default \code{2500}.}
 }

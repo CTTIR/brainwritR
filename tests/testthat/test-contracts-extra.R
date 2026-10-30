@@ -21,7 +21,7 @@ test_that("run_app resolves environment at invocation and arguments take precede
   expect_identical(result$value, "stopped")
   expect_s3_class(calls$app, "shiny.appobj")
   expect_identical(calls$port, 4387L)
-  expect_identical(calls$host, "0.0.0.0")
+  expect_identical(calls$host, "127.0.0.1")
   expect_true(file.exists(env_path))
   expect_identical(read_table(env_path, "session")$status, "setup")
 

@@ -201,6 +201,9 @@ test_that("the dark mode toggle switches colours in place and is remembered", {
   app$get_chromote_session()$Emulation$setEmulatedMedia(
     features = list(list(name = "prefers-color-scheme", value = "light"))
   )
+  app$run_js("localStorage.removeItem('bw_theme'); location.reload()")
+  app$wait_for_js(paste0("!!document.querySelector('#join_name') && ",
+                         "document.documentElement.getAttribute('data-bs-theme') === 'light'"))
   app$run_js("window.originalJoin = document.querySelector('#join_name')")
   background <- "getComputedStyle(document.body).backgroundColor"
   light <- app$get_js(background)
