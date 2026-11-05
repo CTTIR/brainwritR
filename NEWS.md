@@ -1,5 +1,8 @@
 # brainwritR 0.6.0
 
+* Show the logo in the new consensus and ideation colour (plum #91617B),
+  shared with delphyR; `tools/branding/render.R` recolours the approved hexmakR
+  master and keeps the name outlines.
 * Bind local startup to loopback by default. Network launchers must explicitly
   select a listening host and replace the demonstration moderator PIN; Docker
   keeps its explicit network binding.
