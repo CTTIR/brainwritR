@@ -1,5 +1,9 @@
 url: https://cttir.github.io/brainwritR/
 template:
+  includes:
+    in_header: |
+      <meta name="theme-color" content="#1565c0">
+      <script defer data-domain="cttir.github.io/brainwritr" src="https://analytics.hellebo.de/js/script.file-downloads.outbound-links.js"></script>
   package: themakR
   # includes:
   #   in_header: |
