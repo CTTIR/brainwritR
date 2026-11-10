@@ -1,12 +1,12 @@
 Package: brainwritR
-Title: Resilient Classroom Brainwriting with Shiny
-Version: 0.6.0
+Title: Resilient Classroom Brainwriting with 'shiny'
+Version: 0.7.0
 Authors@R: person("R.", "Heller", email = "raban.heller@uni-ulm.de",
     role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
 Description: Run a self-hosted classroom adaptation of 6-3-5 brainwriting.
     Rotating topics, persistent drafts, participant reconnection, and a
     database-authoritative round clock support small groups using smartphones.
-    Includes a multilingual Shiny application, pure rotation helpers,
+    Includes a multilingual 'shiny' application, pure rotation helpers,
     three device modes, portable session settings, descriptive text analysis,
     plenum weighting of contributions, session administration, and tabular and
     PDF report exports for facilitated debriefing.
@@ -24,4 +24,4 @@ Config/Needs/website: CTTIR/themakR
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 8.0.0
+Config/roxygen2/version: 8.1.1

@@ -1,3 +1,13 @@
+# brainwritR 0.7.0
+
+* `run_app()` now keeps its main database in the user data directory,
+  `tools::R_user_dir("brainwritR", "data")`, when neither `db_path` nor
+  `DB_PATH` is given, instead of creating `data/` in the working directory.
+  Docker deployments set `DB_PATH` and are unaffected; local users who relied
+  on the old default can pass `db_path = "data/brainwriting.sqlite"`.
+* Prepare the package for CRAN: quote 'shiny' in the title and description and
+  add `cran-comments.md`.
+
 # brainwritR 0.6.0
 
 * Show the logo in the new consensus and ideation colour (plum #91617B),
