@@ -95,8 +95,9 @@ run_app(
 `DB_PATH`, `MOD_PIN`, `BASE_URL` and `PORT` provide defaults when corresponding
 arguments are omitted. Explicit arguments take precedence. Configuration is
 resolved at launch, with no database or directory creation during package loading.
-The default database is `data/brainwriting.sqlite`, relative to the working
-directory. Use an absolute path for a long-running service.
+The default database is `brainwriting.sqlite` in the user data directory
+reported by `tools::R_user_dir("brainwritR", "data")`. Use an absolute path for
+a long-running service.
 
 The QR code of the standard session uses `base_url` exactly. A phone's `localhost`
 refers to that phone; use a URL that devices in the classroom can reach. The

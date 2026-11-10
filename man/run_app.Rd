@@ -5,7 +5,7 @@
 \title{Run the classroom brainwriting application}
 \usage{
 run_app(
-  db_path = Sys.getenv("DB_PATH", "data/brainwriting.sqlite"),
+  db_path = Sys.getenv("DB_PATH", default_db_path()),
   mod_pin = Sys.getenv("MOD_PIN", "635"),
   base_url = Sys.getenv("BASE_URL", "http://localhost:3838"),
   port = Sys.getenv("PORT", "3838"),
@@ -15,7 +15,9 @@ run_app(
 }
 \arguments{
 \item{db_path}{Main SQLite file path. Defaults to \code{DB_PATH}, then
-\code{"data/brainwriting.sqlite"}.}
+\code{brainwriting.sqlite} in the package's user data directory,
+\code{tools::R_user_dir("brainwritR", "data")}. Use an absolute path for a
+long-running service.}
 
 \item{mod_pin}{Moderator PIN. Defaults to \code{MOD_PIN}, then \code{"635"}.
 The demonstration PIN is accepted only with a loopback host and URL.}

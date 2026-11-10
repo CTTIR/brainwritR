@@ -10,7 +10,9 @@
 #' (`?s=<code>`) and QR code. Moderators create, open, restart, archive and
 #' delete sessions in the overview at `?mod=1&view=sessions`.
 #' @param db_path Main SQLite file path. Defaults to `DB_PATH`, then
-#'   `"data/brainwriting.sqlite"`.
+#'   `brainwriting.sqlite` in the package's user data directory,
+#'   `tools::R_user_dir("brainwritR", "data")`. Use an absolute path for a
+#'   long-running service.
 #' @param mod_pin Moderator PIN. Defaults to `MOD_PIN`, then `"635"`.
 #'   The demonstration PIN is accepted only with a loopback host and URL.
 #' @param base_url Public participant URL used in the QR code. Defaults to
@@ -30,7 +32,7 @@
 #' if (interactive()) {
 #'   run_app()
 #' }
-run_app <- function(db_path = Sys.getenv("DB_PATH", "data/brainwriting.sqlite"),
+run_app <- function(db_path = Sys.getenv("DB_PATH", default_db_path()),
                     mod_pin = Sys.getenv("MOD_PIN", "635"),
                     base_url = Sys.getenv("BASE_URL", "http://localhost:3838"),
                     port = Sys.getenv("PORT", "3838"), host = "127.0.0.1",
@@ -42,6 +44,13 @@ run_app <- function(db_path = Sys.getenv("DB_PATH", "data/brainwriting.sqlite"),
   invisible(shiny::runApp(shiny::shinyApp(app_ui(cfg), app_server(cfg)),
     host = cfg$host, port = cfg$port
   ))
+}
+
+#' Default main database in the user data directory
+#' @keywords internal
+#' @noRd
+default_db_path <- function() {
+  file.path(tools::R_user_dir("brainwritR", which = "data"), "brainwriting.sqlite")
 }
 
 #' Validate runtime configuration

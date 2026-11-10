@@ -56,10 +56,11 @@ Rscript -e 'brainwritR::run_app()'
 
 Open `http://localhost:3838` as a participant and
 `http://localhost:3838/?mod=1` as moderator. The local default PIN is
-`635`. On first launch the app creates `data/brainwriting.sqlite`
-relative to the working directory. Nothing is created when the package
-is merely loaded. The default listening address is `127.0.0.1`,
-reachable only on this computer.
+`635`. On first launch the app creates `brainwriting.sqlite` in the user
+data directory reported by `tools::R_user_dir("brainwritR", "data")`;
+set `DB_PATH` or `db_path` to keep it elsewhere. Nothing is created when
+the package is merely loaded. The default listening address is
+`127.0.0.1`, reachable only on this computer.
 
 **For a classroom, set the listening address, public URL and a private
 moderator PIN.** A phone’s `localhost` refers to the phone itself; the
@@ -485,14 +486,14 @@ each other’s edits.
 Explicit arguments override environment defaults. ENV is read when
 `run_app()` is called, not when the package loads.
 
-| Argument   | Environment | Default                    |
-|:-----------|:------------|:---------------------------|
-| `db_path`  | `DB_PATH`   | `data/brainwriting.sqlite` |
-| `mod_pin`  | `MOD_PIN`   | `635`                      |
-| `base_url` | `BASE_URL`  | `http://localhost:3838`    |
-| `port`     | `PORT`      | `3838`                     |
-| `host`     | —           | `127.0.0.1`                |
-| `poll_ms`  | —           | `2500` ms                  |
+| Argument | Environment | Default |
+|:---|:---|:---|
+| `db_path` | `DB_PATH` | `brainwriting.sqlite` in `tools::R_user_dir("brainwritR", "data")` |
+| `mod_pin` | `MOD_PIN` | `635` |
+| `base_url` | `BASE_URL` | `http://localhost:3838` |
+| `port` | `PORT` | `3838` |
+| `host` | — | `127.0.0.1` |
+| `poll_ms` | — | `2500` ms |
 
 Network launchers must now pass `host = "0.0.0.0"` explicitly; Docker
 already does so. The demonstration PIN `635` is rejected when the
@@ -515,11 +516,11 @@ runs as unprivileged UID 10001. A standalone local smoke run needs no
 Traefik:
 
 ``` sh
-docker build -f docker/Dockerfile -t brainwritr:0.6.0 .
+docker build -f docker/Dockerfile -t brainwritr:0.7.0 .
 docker volume create brainwritr-data
 docker run --rm --name brainwritr -p 3838:3838 \
   -e MOD_PIN=choose-a-private-pin \
-  -v brainwritr-data:/app/data brainwritr:0.6.0
+  -v brainwritr-data:/app/data brainwritr:0.7.0
 ```
 
 For an existing Traefik installation with an external `proxy` network:
@@ -615,9 +616,10 @@ scripts), and code refactoring. Tools included [Chat
 AI](https://kisski.gwdg.de/leistungen/2-02-llm-service/), the KISSKI
 (GWDG) service, and self-hosted **Mistral Small (24B, Apache-2.0)**
 served through a local **vLLM architecture** on an Ubuntu Linux
-workstation with Intel processors and NVIDIA GPUs. Self-hosted use also includes models that were
-further trained (fine-tuned) or weight-edited in-house for specific tasks.
-All self-hosted models ran locally, with no data sent to third parties.
+workstation with Intel processors and NVIDIA GPUs. Self-hosted use also
+includes models that were further trained (fine-tuned) or weight-edited
+in-house for specific tasks. All self-hosted models ran locally, with no
+data sent to third parties.
 
 All scientific claims, methodological choices, analyses, interpretations
 and conclusions remain the authors’ own. Where applicable, LLM-generated
