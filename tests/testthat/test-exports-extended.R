@@ -17,7 +17,12 @@ test_that("snapshot exports preserve raw tables and existing CSV/Markdown contra
     expect_identical(data[[table]], read_table(path, table))
   }
   expect_identical(export_snapshot_df(data), export_df(path))
-  expect_identical(build_snapshot_md(data), build_md(path))
+  # build_md() stamps the current time, so compare the reports without the
+  # minute-resolution timestamp line.
+  unstamp <- function(md) {
+    gsub("_[0-9.]{10} [0-9]{2}:[0-9]{2}_", "_<time>_", md)
+  }
+  expect_identical(unstamp(build_snapshot_md(data)), unstamp(build_md(path)))
   expect_s3_class(data$generated_at, "POSIXct")
   file <- withr::local_tempfile(fileext = ".rds")
   write_rds(data, file)
