@@ -21,3 +21,4 @@
 ^tools/branding$
 ^\.git$
 ^MAINTENANCE\.md$
+^CITATION\.cff$
