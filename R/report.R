@@ -201,7 +201,7 @@ build_report <- function(data, file, anonymize = FALSE) {
 #' @noRd
 bw_report_overview <- function(header, tiles, entries, topics) {
   patchwork::wrap_plots(
-    bw_report_text(header, "Brainwriting 6-3-5 — Ergebnisbericht", size = 3.5),
+    bw_report_text(header, "Brainwriting 6-3-5 \u2014 Ergebnisbericht", size = 3.5),
     patchwork::wrap_plots(lapply(tiles, bw_report_text, size = 3), nrow = 1),
     bw_plot_contributions(entries, topics), bw_plot_terms(entries, topics),
     ncol = 1, heights = c(1.5, 0.55, 2.7, 4)

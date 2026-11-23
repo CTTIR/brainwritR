@@ -202,7 +202,7 @@ test_that("report text blocks keep their title on the edge of their text", {
 test_that("the first report page aligns the header with the figure titles", {
   topics <- data.frame(id = 1:2, title = c("Mehr Beteiligung in Gruppenarbeit", "Kurz"))
   e <- data.frame(topic_id = 1:2, sheet = 1L, round = 1L, question = 1L, text = "Bus Zug")
-  page <- bw_report_overview("Datum: heute", c("Beiträge\n 2", "Abgabequote\n 100 %"),
+  page <- bw_report_overview("Datum: heute", c("Beitr\u00e4ge\n 2", "Abgabequote\n 100 %"),
                              e, topics)
   expect_s3_class(page, "patchwork")
   # The page itself holds the last figure (terms); the patches hold the rest.
