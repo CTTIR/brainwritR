@@ -119,3 +119,21 @@ test_that("the planned number of participants is optional, bounded and round-tri
                  all = FALSE)
   }
 })
+
+test_that("unknown keys that start with a known name are not read in its place", {
+  x <- settings_fixture()
+  x$participants_planned <- 20
+  x$groups_hint <- "frei"
+  x$mode <- NULL
+  x$mode_of_play <- "hot_seat"
+  expect_warning(errors <- validate_settings(x), "participants_planned, groups_hint, mode_of_play")
+  expect_identical(errors, "mode: muss individual, group_device oder hot_seat sein.")
+  x$mode <- "individual"
+  x$topics[[1]]$questions_note <- "nur intern"
+  expect_warning(config <- validate_settings(x), "Unbekannte Einstellungen")
+  expect_s3_class(config, "bw_settings")
+  expect_identical(config$participants, character())
+  expect_identical(config$groups, c("Gruppe 1", "Gruppe 2"))
+  expect_identical(config$mode, "individual")
+  expect_identical(config$topics[[1]], list(title = "A", q1 = "A1?", q2 = "A2?"))
+})

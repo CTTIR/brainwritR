@@ -23,11 +23,13 @@ validate_settings <- function(x) {
     is.character(value) && length(value) == 1L && !is.na(value) &&
       nzchar(trimws(value))
   }
-  if (!identical(x$format, "brainwriting635-settings/1")) {
+  # Exact names only: `$` would also accept an unknown key that merely starts
+  # with a known one, such as `participants_planned` for `participants`.
+  if (!identical(x[["format"]], "brainwriting635-settings/1")) {
     errors <- c(errors, "format: muss brainwriting635-settings/1 sein.")
   }
-  if (!scalar_text(x$mode) ||
-        !x$mode %in% c("individual", "group_device", "hot_seat")) {
+  if (!scalar_text(x[["mode"]]) ||
+        !x[["mode"]] %in% c("individual", "group_device", "hot_seat")) {
     errors <- c(errors, "mode: muss individual, group_device oder hot_seat sein.")
   }
   ranges <- list(rounds = c(1, 12), round_secs = c(30, 1800), turn_secs = c(20, 600),
@@ -44,7 +46,7 @@ validate_settings <- function(x) {
                                   field, bounds[1], bounds[2]))
     }
   }
-  topics <- x$topics
+  topics <- x[["topics"]]
   valid_topics <- is.list(topics) && !is.data.frame(topics)
   if (!valid_topics || length(topics) < 2L || length(topics) > 6L) {
     errors <- c(errors, "topics: muss 2 bis 6 Themen enthalten.")
@@ -52,11 +54,11 @@ validate_settings <- function(x) {
   if (valid_topics) {
     for (i in seq_along(topics)) {
       topic <- topics[[i]]
-      if (!is.list(topic) || !scalar_text(topic$title)) {
+      if (!is.list(topic) || !scalar_text(topic[["title"]])) {
         errors <- c(errors, sprintf("topics: Thema %s hat keinen Titel.", i))
       }
-      if (is.list(topic) && !is.null(topic$questions)) {
-        questions <- topic$questions
+      if (is.list(topic) && !is.null(topic[["questions"]])) {
+        questions <- topic[["questions"]]
         if (!(is.character(questions) || is.list(questions)) || !length(questions) ||
               !all(vapply(as.list(questions), scalar_text, logical(1)))) {
           errors <- c(errors, sprintf(
@@ -91,34 +93,39 @@ validate_settings <- function(x) {
     }
     structure(value, valid = TRUE)
   }
-  groups <- name_vector(x$groups, "groups")
-  participants <- name_vector(x$participants, "participants")
-  if (!is.null(x$groups) && !isTRUE(attr(groups, "valid"))) {
+  groups <- name_vector(x[["groups"]], "groups")
+  participants <- name_vector(x[["participants"]], "participants")
+  if (!is.null(x[["groups"]]) && !isTRUE(attr(groups, "valid"))) {
     errors <- c(errors, groups)
   }
-  if (!is.null(x$groups) && length(x$groups) != length(topics)) {
+  if (!is.null(x[["groups"]]) && length(x[["groups"]]) != length(topics)) {
     errors <- c(errors, "groups: Anzahl muss der Anzahl der Themen entsprechen.")
   }
-  if (!is.null(x$participants) && !isTRUE(attr(participants, "valid"))) {
+  if (!is.null(x[["participants"]]) && !isTRUE(attr(participants, "valid"))) {
     errors <- c(errors, participants)
   }
   if (length(errors)) return(errors)
   config <- structure(list(
-    format = "brainwriting635-settings/1", mode = x$mode,
-    rounds = as.integer(x$rounds), round_secs = as.integer(x$round_secs),
-    turn_secs = as.integer(x$turn_secs),
+    format = "brainwriting635-settings/1", mode = x[["mode"]],
+    rounds = as.integer(x[["rounds"]]), round_secs = as.integer(x[["round_secs"]]),
+    turn_secs = as.integer(x[["turn_secs"]]),
     topics = lapply(topics, function(topic) {
-      if (!is.null(topic$questions)) {
-        list(title = trimws(topic$title), questions = trimws(topic_questions(topic)))
+      if (!is.null(topic[["questions"]])) {
+        list(title = trimws(topic[["title"]]),
+             questions = trimws(topic_questions(topic)))
       } else {
         lapply(topic[c("title", "q1", "q2")], trimws)
       }
     }),
-    groups = if (is.null(x$groups)) paste("Gruppe", seq_along(topics)) else as.vector(groups),
+    groups = if (is.null(x[["groups"]])) {
+      paste("Gruppe", seq_along(topics))
+    } else {
+      as.vector(groups)
+    },
     participants = as.vector(participants)
   ), class = c("bw_settings", "list"))
-  if (!is.null(x$expected_participants)) {
-    config$expected_participants <- as.integer(x$expected_participants)
+  if (!is.null(x[["expected_participants"]])) {
+    config$expected_participants <- as.integer(x[["expected_participants"]])
   }
   config
 }
