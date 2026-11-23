@@ -86,6 +86,22 @@ test_that("topic labels follow topic order and mark shortened titles", {
   expect_identical(levels(fallback$topic), c("Thema 1", "Thema 2"))
 })
 
+test_that("topic labels keep to three lines so six topics fit beside their bars", {
+  topics <- data.frame(id = 1:3, title = c(
+    "Wie können wir die Zusammenarbeit in Lerngruppen verbessern?",
+    "Mehr Beteiligung in Gruppenarbeit", "Kommunikation zwischen Studierenden und Lehrenden"
+  ))
+  labelled <- bw_topic_labels(data.frame(topic_id = 1:3), topics)
+  lines <- strsplit(levels(labelled$topic), "\n", fixed = TRUE)
+  expect_true(all(lengths(lines) <= 3L))
+  expect_identical(lines[[1]], c("1 · Wie können wir", "die Zusammenarbeit",
+                                 "in Lerngruppen…"))
+  # Titles that fit into three lines stay whole.
+  expect_identical(lines[[2]], c("2 · Mehr Beteiligung", "in Gruppenarbeit"))
+  expect_identical(lines[[3]], c("3 · Kommunikation", "zwischen Studierenden",
+                                 "und Lehrenden"))
+})
+
 test_that("horizontal bars read top-down from topic 1 with whole-number counts", {
   topics <- data.frame(id = 1:3, title = c("Erstes", "Zweites", "Drittes"),
                        q1 = "Was?", q2 = "Wie?")

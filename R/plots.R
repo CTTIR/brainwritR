@@ -76,7 +76,8 @@ bw_count_breaks <- function(limits) {
 #' Attach display titles to a figure table
 #'
 #' The label is a factor in topic order, so axes and panels follow the topic
-#' numbers. Titles beyond 60 characters end with an ellipsis.
+#' numbers. Titles beyond 60 characters or three wrapped lines end with an
+#' ellipsis.
 #' @keywords internal
 #' @noRd
 bw_topic_labels <- function(x, topics) {
@@ -92,10 +93,15 @@ bw_topic_labels <- function(x, topics) {
       width = 22,
       simplify = FALSE
     )
-    # A long first word would leave the topic number alone on the first line.
     labels <- lapply(labels, function(lines) {
+      # A long first word would leave the topic number alone on the first line.
       if (length(lines) > 1L && grepl("^[0-9]+ \u00b7$", lines[1])) {
         lines <- c(paste(lines[1], lines[2]), lines[-(1:2)])
+      }
+      # Three lines at most: six four-line labels run into one another beside
+      # the bars on the first page of the PDF report.
+      if (length(lines) > 3L) {
+        lines <- c(lines[1:2], paste0(sub("[[:space:][:punct:]]+$", "", lines[3]), "\u2026"))
       }
       lines
     })

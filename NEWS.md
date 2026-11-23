@@ -22,8 +22,9 @@
   "Beiträge", "löschen") instead of ASCII transliterations.
 * Figures list topics and rounds from top to bottom, starting with topic 1 and
   round 1, and show whole numbers on count axes. Topic titles are shortened
-  after 60 instead of 42 characters and then end with an ellipsis instead of
-  being cut silently. Labels in the term network move apart instead of covering
+  after 60 instead of 42 characters or after three lines, so six topics fit
+  the first report page, and then end with an ellipsis instead of being cut
+  silently. Labels in the term network move apart instead of covering
   one another, and the term chart grows with the number of topic rows, so five
   or six topics stay legible. A topic number stays on the line of a long first
   word instead of standing alone, as in "5 · Prüfungsvorbereitung".
