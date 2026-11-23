@@ -292,14 +292,16 @@ list_sessions <- function(main_db, base_url) {
 #' @noRd
 resolve_route <- function(cfg, query) {
   main <- cfg$main_db %||% cfg$db_path
-  mod <- identical(query$mod, "1")
+  # Exact names only: `$` would also accept any parameter that merely starts
+  # with a reserved name, such as `source` for `s` or `mode` for `mod`.
+  mod <- identical(query[["mod"]], "1")
   base <- utils::modifyList(cfg, list(
     main_db = main, code = NA_character_, label = "Standard-Session", archived = FALSE
   ))
-  if (mod && identical(query$view, "sessions")) {
+  if (mod && identical(query[["view"]], "sessions")) {
     return(list(kind = "sessions", mod = TRUE, cfg = base))
   }
-  code <- trimws(query$s %||% "")
+  code <- trimws(query[["s"]] %||% "")
   if (!nzchar(code)) return(list(kind = "session", mod = mod, cfg = base, prefill = NULL))
   code <- tolower(code)
   row <- catalog_session(main, code)

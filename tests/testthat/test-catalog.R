@@ -180,3 +180,20 @@ test_that("connections favour durability and wait for busy files before any prag
   expect_equal(DBI::dbGetQuery(con, "PRAGMA synchronous")[[1]], 1)
   expect_equal(DBI::dbGetQuery(con, "PRAGMA busy_timeout")[[1]], 5000)
 })
+
+test_that("routes ignore parameters that only start with a reserved name", {
+  main <- catalog_fixture()
+  code <- create_session(main, "Kurs C")
+  cfg <- app_config(main, "secret", "https://bw.example.org/?source=moodle")
+  for (query in list(list(source = "moodle"), list(src = "qr"), list(session = code))) {
+    route <- resolve_route(cfg, query)
+    expect_identical(route$kind, "session")
+    expect_identical(route$cfg$db_path, main)
+    expect_false(route$mod)
+  }
+  lookalike <- resolve_route(cfg, list(mode = "1", viewer = "sessions"))
+  expect_identical(lookalike$kind, "session")
+  expect_false(lookalike$mod)
+  expect_false(resolve_route(cfg, list(mod = "1", viewer = "sessions"))$kind == "sessions")
+  expect_identical(resolve_route(cfg, list(source = "moodle", s = code))$cfg$code, code)
+})
