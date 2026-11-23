@@ -137,8 +137,10 @@ bw_plot_contributions <- function(entries, topics = NULL) {
   tint <- grDevices::colorRampPalette(c("#bad9dc", bw_palette()[["petrol"]]))
   colours <- tint(nlevels(d$round))
   ggplot2::ggplot(d, ggplot2::aes(x = .data$n, y = .data$topic, fill = .data$round)) +
-    # Read top-down like the legend: topic 1 and round 1 come first.
-    ggplot2::geom_col(position = ggplot2::position_dodge2(reverse = TRUE, padding = 0),
+    # Read top-down like the legend: topic 1 and round 1 come first. Every bar
+    # keeps the same thickness when a topic has no entries in some round.
+    ggplot2::geom_col(position = ggplot2::position_dodge2(reverse = TRUE, padding = 0,
+                                                          preserve = "single"),
                       width = 0.75) +
     ggplot2::scale_fill_manual(values = colours) +
     ggplot2::scale_x_continuous(breaks = bw_count_breaks) +

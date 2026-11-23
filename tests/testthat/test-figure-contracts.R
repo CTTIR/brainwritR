@@ -127,6 +127,14 @@ test_that("horizontal bars read top-down from topic 1 with whole-number counts",
   }
 })
 
+test_that("round bars keep one thickness when a topic misses a round", {
+  e <- data.frame(topic_id = c(1, 1, 1, 2, 2), sheet = 1L, round = c(1, 2, 3, 1, 3),
+                  question = 1L, text = "Bus Zug", submitted = 1L)
+  bars <- ggplot2::layer_data(bw_plot_contributions(e))
+  expect_equal(nrow(bars), 5L)
+  expect_equal(length(unique(round(bars$ymax - bars$ymin, 10))), 1L)
+})
+
 test_that("the term chart grows with its rows of topic panels", {
   expect_identical(bw_terms_height(3), 460)
   expect_identical(bw_terms_height(4), 460)

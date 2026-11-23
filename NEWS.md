@@ -21,7 +21,8 @@
 * Write the remaining German interface texts with umlauts ("möglich",
   "Beiträge", "löschen") instead of ASCII transliterations.
 * Figures list topics and rounds from top to bottom, starting with topic 1 and
-  round 1, and show whole numbers on count axes. Topic titles are shortened
+  round 1, with bars of one thickness also where a round has no entries, and
+  show whole numbers on count axes. Topic titles are shortened
   after 60 instead of 42 characters or after three lines, so six topics fit
   the first report page, and then end with an ellipsis instead of being cut
   silently. Labels in the term network move apart instead of covering
