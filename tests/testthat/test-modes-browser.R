@@ -4,6 +4,8 @@ test_that("setup modes show the relevant inputs and YAML changes the topic count
   init_db(path)
   cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
   app <- modes_browser_app(cfg, "mode-settings")
+  # Browser commands of this app wait long enough for slow CI runners.
+  expect_identical(app$get_chromote_session()$default_timeout, 60)
   modes_browser_moderator(app)
   app$wait_for_js("!!document.querySelector('#play_mode')")
   app$set_inputs(play_mode = "hot_seat")

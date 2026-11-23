@@ -18,6 +18,10 @@ new_browser_app <- function(cfg, name) {
   browser <- tryCatch(chromote::Chromote$new(), error = function(e) {
     testthat::skip(paste("Chrome cannot start:", conditionMessage(e)))
   })
+  # Slow runners, notably Windows on CI, can need more than chromote's
+  # default ten seconds to answer a browser command such as the first
+  # navigation to the app; sessions inherit this limit.
+  browser$default_timeout <- 60
   chromote::set_default_chromote_object(browser)
   app <- NULL
   withr::defer({
@@ -116,6 +120,8 @@ test_that("moderator route requires PIN and reset clears stale identities", {
   path <- new_db(withr::local_tempfile(), n = 3)
   cfg <- app_config(path, "secret", "http://localhost:3838", poll_ms = 2500)
   app <- new_browser_app(cfg, "moderator")
+  # Browser commands of this app wait long enough for slow CI runners.
+  expect_identical(app$get_chromote_session()$default_timeout, 60)
   app$run_js("location.search = '?mod=1'")
   app$wait_for_js("!!document.querySelector('#pin')")
   restore_browser_tracer(app)

@@ -17,6 +17,10 @@ modes_browser_app <- function(cfg, name) {
   browser <- tryCatch(chromote::Chromote$new(), error = function(e) {
     testthat::skip(paste("Chrome cannot start:", conditionMessage(e)))
   })
+  # Slow runners, notably Windows on CI, can need more than chromote's
+  # default ten seconds to answer a browser command such as the first
+  # navigation to the app; sessions inherit this limit.
+  browser$default_timeout <- 60
   chromote::set_default_chromote_object(browser)
   app <- NULL
   withr::defer({
