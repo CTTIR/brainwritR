@@ -198,3 +198,15 @@ test_that("figure titles start at the plot edge so they fit narrow panels", {
 test_that("report text blocks keep their title on the edge of their text", {
   expect_identical(bw_report_text("Datum", "Bericht")$theme$plot.title.position, "panel")
 })
+
+test_that("the first report page aligns the header with the figure titles", {
+  topics <- data.frame(id = 1:2, title = c("Mehr Beteiligung in Gruppenarbeit", "Kurz"))
+  e <- data.frame(topic_id = 1:2, sheet = 1L, round = 1L, question = 1L, text = "Bus Zug")
+  page <- bw_report_overview("Datum: heute", c("Beiträge\n 2", "Abgabequote\n 100 %"),
+                             e, topics)
+  expect_s3_class(page, "patchwork")
+  # The page itself holds the last figure (terms); the patches hold the rest.
+  plots <- c(page$patches$plots, page$patches$plots[[2]]$patches$plots, list(page))
+  positions <- vapply(plots, function(p) p$theme$plot.title.position, character(1))
+  expect_identical(positions, rep("panel", length(plots)))
+})

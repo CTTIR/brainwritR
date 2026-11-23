@@ -150,12 +150,7 @@ build_report <- function(data, file, anonymize = FALSE) {
     paste("Abgabequote\n", bw_report_number(kpis$submission_rate, percent = TRUE)),
     paste("Verschiedene Begriffe\n", bw_report_number(kpis$distinct_terms, digits = 0))
   )
-  page1 <- patchwork::wrap_plots(
-    bw_report_text(header, "Brainwriting 6-3-5 \u2014 Ergebnisbericht", size = 3.5),
-    patchwork::wrap_plots(lapply(tiles, bw_report_text, size = 3), nrow = 1),
-    bw_plot_contributions(entries, topics), bw_plot_terms(entries, topics),
-    ncol = 1, heights = c(1.5, 0.55, 2.7, 4)
-  )
+  page1 <- bw_report_overview(header, tiles, entries, topics)
   networks <- if (nrow(topics) > 0L && nrow(topics) <= 3L) {
     patchwork::wrap_plots(lapply(seq_len(nrow(topics)), function(i) {
       # Each of these panels is about five times as wide as it is tall.
@@ -192,6 +187,25 @@ build_report <- function(data, file, anonymize = FALSE) {
   withr::with_preserve_seed(print(page2))
   if (has_votes(data$votes)) print(bw_report_weights(data))
   invisible(file)
+}
+
+#' First report page with the header, key figures, contributions and terms
+#'
+#' All titles on this page start at the panel edge, so the header and the
+#' figure titles share one left edge; the A4 page is wide enough for them.
+#' @param header Header lines.
+#' @param tiles Texts of the key figure tiles.
+#' @param entries,topics Snapshot tables.
+#' @return A patchwork page.
+#' @keywords internal
+#' @noRd
+bw_report_overview <- function(header, tiles, entries, topics) {
+  patchwork::wrap_plots(
+    bw_report_text(header, "Brainwriting 6-3-5 — Ergebnisbericht", size = 3.5),
+    patchwork::wrap_plots(lapply(tiles, bw_report_text, size = 3), nrow = 1),
+    bw_plot_contributions(entries, topics), bw_plot_terms(entries, topics),
+    ncol = 1, heights = c(1.5, 0.55, 2.7, 4)
+  ) & ggplot2::theme(plot.title.position = "panel")
 }
 
 #' Third report page with the plenum weights
