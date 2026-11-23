@@ -309,7 +309,7 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
     ggraph::geom_node_text(ggplot2::aes(label = .data$name, point.size = .data$drawn),
                            size = label_size, repel = TRUE, seed = 635, max.overlaps = Inf,
                            point.padding = 0.1, box.padding = 0.15, min.segment.length = 0.5,
-                           force = 3, force_pull = 0.5, max.time = 2, max.iter = 1e5,
+                           force = 3, force_pull = 0.5, max.time = 1, max.iter = 1e5,
                            segment.colour = bw_palette()[["muted"]], segment.size = 0.25) +
     ggraph::scale_edge_width(range = c(0.3, 1.7), guide = "none") +
     ggplot2::scale_size_continuous(range = c(3, 10), guide = "none") +
