@@ -27,6 +27,10 @@
   one another, and the term chart grows with the number of topic rows, so five
   or six topics stay legible. A topic number stays on the line of a long first
   word instead of standing alone, as in "5 · Prüfungsvorbereitung".
+* The term network lays out each connected group of terms on its own tile and
+  without edge weights, so the terms of one long contribution no longer form a
+  knot of overlapping points and labels; edge widths still show the weights.
+  Labels keep clear of points at their drawn size.
 * Bars of the overlap chart ("Anknüpfung über Runden") carry their value, so a
   topic with no overlap shows "0 %" instead of an empty row that looks like
   missing data.

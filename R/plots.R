@@ -244,6 +244,38 @@ bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
                    plot.margin = ggplot2::margin(4, 16, 4, 4))
 }
 
+#' Positions of a term network, one tile per connected group of terms
+#'
+#' Each group is laid out on its own without edge weights, which would pull
+#' the terms of one long sentence (they co-occur in every copy of it) into a
+#' knot; edge widths still show the weights. Groups are scaled to their size
+#' and placed on a grid with a gap, largest first, so that no group crowds
+#' another.
+#' @param graph An igraph graph.
+#' @return A two-column matrix of node positions.
+#' @keywords internal
+#' @noRd
+bw_network_layout <- function(graph) {
+  parts <- igraph::components(graph)
+  ids <- order(-parts$csize, seq_along(parts$csize))
+  ncol <- ceiling(sqrt(length(ids) * 2))
+  radii <- 0.3 * sqrt(parts$csize)
+  step <- 2 * max(radii) + 0.5
+  layout <- matrix(0, igraph::vcount(graph), 2)
+  for (k in seq_along(ids)) {
+    members <- which(parts$membership == ids[k])
+    part <- igraph::induced_subgraph(graph, members)
+    xy <- igraph::layout_with_fr(part, coords = igraph::layout_in_circle(part), niter = 500,
+                                 grid = "nogrid", weights = NA)
+    xy <- sweep(xy, 2, colMeans(xy))
+    extent <- max(abs(xy))
+    if (extent > 0) xy <- xy * radii[ids[k]] / extent
+    cell <- c((k - 1L) %% ncol, -((k - 1L) %/% ncol))
+    layout[members, ] <- sweep(xy, 2, cell * step, "+")
+  }
+  layout
+}
+
 #' Co-occurrence network with deterministic initial positions
 #' @keywords internal
 #' @noRd
@@ -260,16 +292,15 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   )
   nodes <- stats::aggregate(n ~ term, counts, sum)
   nodes <- nodes[nodes$term %in% c(edges$from, edges$to), ]
-  # Point diameters as drawn (3 to 10), so that labels keep clear of them.
+  # Point sizes as drawn, so that labels keep clear of them. The size scale
+  # below maps counts by area: rescaled to 0-1 (0.5 without spread), square
+  # root, then onto its range of 3 to 10.
   spread <- diff(range(nodes$n))
-  nodes$drawn <- if (spread > 0) 3 + 7 * (nodes$n - min(nodes$n)) / spread else 3
+  share <- if (spread > 0) (nodes$n - min(nodes$n)) / spread else rep(0.5, nrow(nodes))
+  nodes$drawn <- 3 + 7 * sqrt(share)
   graph <- igraph::graph_from_data_frame(edges, directed = FALSE, vertices = nodes)
   # Preserve the caller's RNG state while fixing the network layout.
-  start <- igraph::layout_in_circle(graph)
-  layout <- withr::with_seed(
-    635,
-    igraph::layout_with_fr(graph, coords = start, niter = 500, grid = "nogrid")
-  )
+  layout <- withr::with_seed(635, bw_network_layout(graph))
   ggraph::ggraph(graph, layout = "manual", x = layout[, 1], y = layout[, 2]) +
     ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), colour = "#9dbbc0", alpha = 0.65) +
     ggraph::geom_node_point(ggplot2::aes(size = .data$n), colour = bw_palette()[["petrol"]]) +
@@ -278,6 +309,7 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
     ggraph::geom_node_text(ggplot2::aes(label = .data$name, point.size = .data$drawn),
                            size = label_size, repel = TRUE, seed = 635, max.overlaps = Inf,
                            point.padding = 0.1, box.padding = 0.15, min.segment.length = 0.5,
+                           force = 3, force_pull = 0.5, max.time = 2, max.iter = 1e5,
                            segment.colour = bw_palette()[["muted"]], segment.size = 0.25) +
     ggraph::scale_edge_width(range = c(0.3, 1.7), guide = "none") +
     ggplot2::scale_size_continuous(range = c(3, 10), guide = "none") +

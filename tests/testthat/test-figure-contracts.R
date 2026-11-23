@@ -143,3 +143,27 @@ test_that("overlap bars carry their value, so zero overlap is not read as missin
   expect_identical(labels, c("33 %", "0 %"))
   expect_identical(ggplot2::layer_scales(plot)$x$get_labels()[1], "0 %")
 })
+
+test_that("network groups get their own tile and a dense group is not drawn as a knot", {
+  clique <- utils::combn(paste0("w", 1:8), 2)
+  edges <- data.frame(from = c(clique[1, ], "a", "c"), to = c(clique[2, ], "b", "d"),
+                      weight = c(rep(6, ncol(clique)), 1, 1))
+  graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
+  layout <- withr::with_seed(635, bw_network_layout(graph))
+  expect_equal(dim(layout), c(igraph::vcount(graph), 2))
+  group <- igraph::components(graph)$membership
+  boxes <- lapply(split(seq_len(nrow(layout)), group), function(i) {
+    apply(layout[i, , drop = FALSE], 2, range)
+  })
+  # No two groups share any part of their bounding boxes.
+  for (pair in utils::combn(length(boxes), 2, simplify = FALSE)) {
+    a <- boxes[[pair[1]]]
+    b <- boxes[[pair[2]]]
+    apart <- a[2, 1] < b[1, 1] || b[2, 1] < a[1, 1] || a[2, 2] < b[1, 2] || b[2, 2] < a[1, 2]
+    expect_true(apart)
+  }
+  # Terms of the dense group keep a readable distance from one another.
+  dense <- layout[group == group[1], ]
+  expect_gt(min(stats::dist(dense)) / diff(range(dense[, 1])), 0.1)
+  expect_identical(withr::with_seed(635, bw_network_layout(graph)), layout)
+})
