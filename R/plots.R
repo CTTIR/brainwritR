@@ -321,12 +321,13 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   ggraph::ggraph(graph, layout = "manual", x = layout[, 1], y = layout[, 2]) +
     ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), colour = "#9dbbc0", alpha = 0.65) +
     ggraph::geom_node_point(ggplot2::aes(size = .data$n), colour = bw_palette()[["petrol"]]) +
-    # Labels move apart instead of covering one another; the fixed seed keeps
-    # the figure identical between renders.
+    # Labels move apart instead of covering one another. The fixed seed and an
+    # iteration budget, not a time budget, keep the figure identical between
+    # renders and machines; max.time only guards against a stalled device.
     ggraph::geom_node_text(ggplot2::aes(label = .data$name, point.size = .data$drawn),
                            size = label_size, repel = TRUE, seed = 635, max.overlaps = Inf,
                            point.padding = 0.1, box.padding = 0.15, min.segment.length = 0.5,
-                           force = 3, force_pull = 0.5, max.time = 1, max.iter = 1e5,
+                           force = 3, force_pull = 0.5, max.time = 30, max.iter = 1e4,
                            segment.colour = bw_palette()[["muted"]], segment.size = 0.25) +
     ggraph::scale_edge_width(range = c(0.3, 1.7), guide = "none") +
     ggplot2::scale_size_continuous(range = c(3, 10), guide = "none") +

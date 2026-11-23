@@ -30,9 +30,11 @@
 * The term network lays out each connected group of terms on its own tile and
   without edge weights, so the terms of one long contribution no longer form a
   knot of overlapping points and labels; edge widths still show the weights.
-  Labels keep clear of points at their drawn size. Tiles follow the panel
-  shape: the short, wide per-topic networks of the PDF report place their
-  groups side by side, the phone view stacks them.
+  Labels keep clear of points at their drawn size; their placement ends after
+  a fixed number of steps instead of one second, so a figure looks the same
+  on every computer and under load. Tiles follow the panel shape: the short,
+  wide per-topic networks of the PDF report place their groups side by side,
+  the phone view stacks them.
 * Bars of the overlap chart ("Anknüpfung über Runden") carry their value, so a
   topic with no overlap shows "0 %" instead of an empty row that looks like
   missing data. Its axis shows 0, 50 and 100 %, which stay apart on phones.

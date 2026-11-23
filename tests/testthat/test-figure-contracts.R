@@ -138,6 +138,45 @@ test_that("network labels repel one another reproducibly without touching the RN
   expect_identical(stats::runif(1), expected)
 })
 
+test_that("dense network labels land on the same spots however long drawing takes", {
+  words <- c("bus", "zug", "rad", "haus", "garten", "wald", "feld", "raum", "licht", "tafel",
+             "pause", "kaffee", "ziele", "rollen", "fragen", "ideen", "lernen", "gruppe",
+             "projekt", "methode", "material", "notizen", "handy", "tablet", "beamer",
+             "plan", "termin", "ablauf", "regeln", "rueckmeldung", "austausch", "thema")
+  text <- withr::with_seed(11, vapply(seq_len(72), function(i) {
+    paste(sample(words, 6), collapse = " ")
+  }, character(1)))
+  e <- data.frame(topic_id = rep(1:3, 24), sheet = 1L, round = rep(1:3, each = 24),
+                  question = 1L, text = text)
+  label_positions <- function(plot) {
+    grDevices::pdf(NULL, width = 8.3, height = 4)
+    on.exit(grDevices::dev.off())
+    print(plot)
+    grid::grid.force()
+    tree <- grid::grid.grab()
+    texts <- list()
+    collect <- function(grob) {
+      if (inherits(grob, "text")) texts[[length(texts) + 1L]] <<- grob
+      for (child in grob$children) collect(child)
+    }
+    collect(tree)
+    vapply(texts, function(grob) {
+      paste(grob$label, as.character(grob$x), as.character(grob$y))
+    }, character(1))
+  }
+  drawn <- label_positions(bw_plot_network(e, max_nodes = 40L))
+  expect_gt(length(drawn), 20L)
+  # An iteration budget, not the wall clock, ends the label placement: with
+  # unlimited time the labels end up exactly where they are drawn normally.
+  # Layers are reference objects, so the unhurried figure is built afresh.
+  unhurried <- bw_plot_network(e, max_nodes = 40L)
+  repel <- which(vapply(unhurried$layers, function(layer) {
+    inherits(layer$geom, "GeomTextRepel")
+  }, logical(1)))
+  unhurried$layers[[repel]]$geom_params$max.time <- 600
+  expect_identical(label_positions(unhurried), drawn)
+})
+
 test_that("overlap bars carry their value, so zero overlap is not read as missing", {
   e <- data.frame(
     topic_id = rep(1:2, each = 2), sheet = 1L, round = rep(1:2, 2), question = 1L,
