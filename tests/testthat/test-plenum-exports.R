@@ -153,6 +153,9 @@ test_that("report labels stay on one line when many topics share the weighting p
   expect_true(any(grepl("\n", wrapped, fixed = TRUE)))
   expect_false(any(grepl("\n", single, fixed = TRUE)))
   expect_true(all(nchar(single) <= 44L))
+  # Shortened contributions end with the same ellipsis as shortened topic titles.
+  expect_match(single[1], "\u2026$")
+  expect_false(grepl("...", single[1], fixed = TRUE))
   expect_identical(single[2], "Kurz mit Umbruch")
   plot <- bw_plot_weights(results, NULL, compact = TRUE, wrap = FALSE)
   expect_false(any(grepl("\n", levels(plot$data$label), fixed = TRUE)))

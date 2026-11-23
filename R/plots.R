@@ -79,6 +79,13 @@ bw_topic_labels <- function(x, topics) {
       width = 22,
       simplify = FALSE
     )
+    # A long first word would leave the topic number alone on the first line.
+    labels <- lapply(labels, function(lines) {
+      if (length(lines) > 1L && grepl("^[0-9]+ \u00b7$", lines[1])) {
+        lines <- c(paste(lines[1], lines[2]), lines[-(1:2)])
+      }
+      lines
+    })
     x$topic[keep] <- vapply(labels, paste, character(1), collapse = "\n")
   }
   x$topic <- factor(x$topic, levels = unique(x$topic[order(x$topic_id)]))
@@ -168,7 +175,7 @@ bw_compact <- function(width) {
 #' @noRd
 bw_weight_labels <- function(d, compact = FALSE, numbered = FALSE, wrap = TRUE) {
   limit <- if (compact) 44L else 70L
-  text <- ifelse(nchar(d$text) > limit, paste0(substr(d$text, 1, limit - 3L), "..."), d$text)
+  text <- bw_shorten(d$text, limit)
   if (numbered) text <- paste0(d$rank, ". ", text)
   if (!wrap) return(gsub("\\s+", " ", text))
   lines <- stringi::stri_wrap(text, if (compact) 24L else 36L, simplify = FALSE)

@@ -25,10 +25,12 @@
   after 60 instead of 42 characters and then end with an ellipsis instead of
   being cut silently. Labels in the term network move apart instead of covering
   one another, and the term chart grows with the number of topic rows, so five
-  or six topics stay legible.
+  or six topics stay legible. A topic number stays on the line of a long first
+  word instead of standing alone, as in "5 · Prüfungsvorbereitung".
 * The weighting page of the PDF report writes each contribution on one line
   when more than three topics share the page; wrapped labels ran into one
-  another there.
+  another there. Shortened contributions in the weighting chart end with an
+  ellipsis (…), like shortened topic titles.
 * Errors of `topic_for()` and `sheet_for()` name the allowed range, for example
   "grp must contain finite whole numbers from 1 to 3".
 * Declare the base packages grDevices and tools in Imports.
