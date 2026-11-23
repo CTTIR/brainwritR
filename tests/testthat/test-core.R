@@ -82,7 +82,7 @@ test_that("lifecycle rejects joins and starts outside allowed states", {
   exec_sql(path, "UPDATE session SET status='finished'")
   expect_null(add_participant(path, "No"))
   exec_sql(path, "UPDATE session SET status='lobby'")
-  expect_identical(start_session(path), "Mindestens 3 Teilnehmer noetig (aktuell 0).")
+  expect_identical(start_session(path), "Mindestens 3 Teilnehmer n\u00f6tig (aktuell 0).")
   pid <- add_participant(path, "Lobby")
   expect_type(pid, "character")
   expect_true(is.na(read_table(path, "participants")$grp))

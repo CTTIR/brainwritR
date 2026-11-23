@@ -231,8 +231,8 @@ sessions_server <- function(input, output, session, cfg, is_mod) {
       restore = report(restore_session(main, code)),
       delete = if (is_standard(code)) {
         confirm("delete", code, "Standard-Session zur\u00fccksetzen?",
-                "Alle Teilnehmer, Boegen und Beitraege werden geloescht. Vorher exportieren!",
-                "Ja, alles loeschen")
+                "Alle Teilnehmer, B\u00f6gen und Beitr\u00e4ge werden gel\u00f6scht. Vorher exportieren!",
+                "Ja, alles l\u00f6schen")
       } else {
         confirm("delete", code, "Session l\u00f6schen?", tagList(
           p(translate = "no", strong(target$label)),

@@ -211,7 +211,7 @@ app_server <- function(cfg) {
       if (!nzchar(nm)) nm <- paste0("TN-", sample(100:999, 1))
       pid <- add_participant(cfg$db_path, nm)
       if (is.null(pid)) {
-        showNotification("Beitritt derzeit nicht moeglich.", type = "warning")
+        showNotification("Beitritt derzeit nicht m\u00f6glich.", type = "warning")
         return()
       }
       my_pid(pid)
@@ -364,7 +364,7 @@ app_server <- function(cfg) {
         if (s$status == "finished") {
           return(div(
             class = "bw-card", h2("Session beendet"),
-            p("Ein Beitritt ist nicht mehr moeglich.")
+            p("Ein Beitritt ist nicht mehr m\u00f6glich.")
           ))
         }
         if (s$status == "setup") {
@@ -403,7 +403,7 @@ app_server <- function(cfg) {
         return(div(
           class = "bw-card",
           h3("Geschafft \u2014 danke!"),
-          p("Alle Beitraege sind gesichert. Die Ergebnisse besprechen wir jetzt gemeinsam.")
+          p("Alle Beitr\u00e4ge sind gesichert. Die Ergebnisse besprechen wir jetzt gemeinsam.")
         ))
       }
       if (s$mode == "hot_seat" && is.na(s$round_ends_at)) {
@@ -455,7 +455,7 @@ app_server <- function(cfg) {
                          tags$span(translate = "no", topic_questions(tp)[q])),
               uiOutput(paste0("prev", q)),
               textAreaInput(id, NULL, value = if (length(mine)) mine[1] else "",
-                            placeholder = "Aufgreifen, ergaenzen, weiterentwickeln \u2026",
+                            placeholder = "Aufgreifen, erg\u00e4nzen, weiterentwickeln \u2026",
                             width = "100%")
             )
           }),
@@ -483,7 +483,7 @@ app_server <- function(cfg) {
       if (!nrow(rows)) {
         return(p(
           class = "bw-status",
-          "Noch keine Vorbeitraege \u2014 dieser Bogen beginnt bei dir."
+          "Noch keine Vorbeitr\u00e4ge \u2014 dieser Bogen beginnt bei dir."
         ))
       }
       rows <- rows[order(rows$round), ]
@@ -574,7 +574,7 @@ app_server <- function(cfg) {
       if (done) {
         div(
           class = "text-center bw-status py-2",
-          "\u2713 Abgegeben \u2014 du kannst bis Rundenende weiter aendern."
+          "\u2713 Abgegeben \u2014 du kannst bis Rundenende weiter \u00e4ndern."
         )
       } else {
         actionButton("submit_btn", "Abgeben", class = "btn-primary w-100 btn-lg")
@@ -1021,7 +1021,7 @@ app_server <- function(cfg) {
         div(
           class = "bw-card",
           h3("Lobby"),
-          p(class = "bw-status", "Teilnehmer scannen den QR-Code oder oeffnen:"),
+          p(class = "bw-status", "Teilnehmer scannen den QR-Code oder \u00f6ffnen:"),
           tags$code(cfg$base_url),
           plotOutput("qr", height = "240px"),
           uiOutput("mod_lobby_list"),
@@ -1329,7 +1329,7 @@ app_server <- function(cfg) {
                   collapse = "   \u00b7   ")
           ),
           if (!nrow(sub)) {
-            p(class = "bw-status", "Keine Beitraege.")
+            p(class = "bw-status", "Keine Beitr\u00e4ge.")
           } else {
             lapply(sort(unique(sub$sheet)), function(sh) {
               ss <- sub[sub$sheet == sh, ]
@@ -1414,10 +1414,10 @@ app_server <- function(cfg) {
       reset_pending(TRUE)
       showModal(modalDialog(
         title = "Session zur\u00fccksetzen?",
-        "Alle Teilnehmer, Boegen und Beitraege werden geloescht. Vorher exportieren!",
+        "Alle Teilnehmer, B\u00f6gen und Beitr\u00e4ge werden gel\u00f6scht. Vorher exportieren!",
         footer = tagList(
           modalButton("Abbrechen"),
-          actionButton("reset_confirm", "Ja, alles loeschen", class = "btn-danger")
+          actionButton("reset_confirm", "Ja, alles l\u00f6schen", class = "btn-danger")
         )
       ))
     })

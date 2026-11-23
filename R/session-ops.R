@@ -78,7 +78,7 @@ start_on_connection <- function(con, force = FALSE) {
     return("Bitte mindestens einen Namen eingeben.")
   }
   if (s$mode == "individual" && nrow(p) < s$n_groups) {
-    return(paste0("Mindestens ", s$n_groups, " Teilnehmer noetig (aktuell ", nrow(p), ")."))
+    return(paste0("Mindestens ", s$n_groups, " Teilnehmer n\u00f6tig (aktuell ", nrow(p), ")."))
   }
   ord <- sample(p$pid)
   k <- s$n_groups

@@ -63,6 +63,6 @@ test_that("participants and moderators never see whitespace-only contributions",
   shiny::testServer(app_server(cfg), {
     session$setInputs(stored_pid = reader$pid)
     session$elapse(100)
-    expect_match(output$prev1$html, "Noch keine Vorbeitraege")
+    expect_match(output$prev1$html, "Noch keine Vorbeitr\u00e4ge")
   })
 })
