@@ -654,6 +654,9 @@ language_js <- function() {
     [/^topics: Thema (\d+) hat keine Frage ([12])\.$/,
       'topics: topic $1 has no question $2.',
       'topics : le th\u00e8me $1 n\u2019a pas de question $2.'],
+    [/^topics: Thema (\d+) braucht mindestens eine nicht-leere Frage\.$/,
+      'topics: topic $1 needs at least one non-empty question.',
+      'topics : le th\u00e8me $1 doit avoir au moins une question non vide.'],
     [/^(groups|participants): Namen m\u00fcssen nicht-leere Texte sein\.$/,
       '$1: names must be non-empty text.', '$1 : les noms doivent \u00eatre des textes non vides.'],
     [/^(groups|participants): Namen m\u00fcssen nach dem Trimmen eindeutig sein\.$/,
@@ -675,12 +678,12 @@ language_js <- function() {
     [/^R(\d+) \u00b7 F(\d+) \u00b7 (\d+) Unterst\u00fctzende$/,
       'R$1 \u00b7 Q$2 \u00b7 $3 supporters',
       'R$1 \u00b7 Q$2 \u00b7 $3 soutiens'],
-    [/^Format (\d+)-2-([\d,]+): (\d+) Themen, (\d+) Runden, (\d+) s pro Runde\.$/,
-      function(match, people, minutes, topics, rounds, secs) {
-        return 'Format ' + people + '-2-' + minutes.replace(',', '.') + ': ' + topics +
-          ' topics, ' + rounds + ' rounds, ' + secs + ' s per round.';
+    [/^Format (\d+)-(\d+(?:\u2013\d+)?)-([\d,]+): (\d+) Themen, (\d+) Runden, (\d+) s pro Runde\.$/,
+      function(match, people, questions, minutes, topics, rounds, secs) {
+        return 'Format ' + people + '-' + questions + '-' + minutes.replace(',', '.') + ': ' +
+          topics + ' topics, ' + rounds + ' rounds, ' + secs + ' s per round.';
       },
-      'Format $1-2-$2 : $3 th\u00e8mes, $4 rondes, $5 s par ronde.'],
+      'Format $1-$2-$3 : $4 th\u00e8mes, $5 rondes, $6 s par ronde.'],
     [/^(\d+) Themen, (\d+) Runden, (\d+) s pro Runde\.$/,
       '$1 topics, $2 rounds, $3 s per round.', '$1 th\u00e8mes, $2 rondes, $3 s par ronde.'],
     [/^Je Gruppe 1 Person\.$/, '1 person per group.', '1 personne par groupe.'],

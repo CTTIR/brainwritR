@@ -77,7 +77,7 @@ test_that("setup texts for group size, format and optional names are translated"
   expect_identical(setdiff(texts, dict$de), character())
   expect_false(any(c("Im Einzelmodus optional") %in% dict$de))
   js <- language_js()
-  for (pattern in c("^Format (\\d+)-2-", "^Je Gruppe (\\d+) Personen", "Teilnehmenden$",
+  for (pattern in c("^Format (\\d+)-(\\d+", "^Je Gruppe (\\d+) Personen", "Teilnehmenden$",
                     "^Reihum: (\\d+) Personen", "danach wiederholen",
                     "muss zwischen")) {
     expect_match(js, pattern, fixed = TRUE)
@@ -137,4 +137,33 @@ test_that("the roster placeholder shows one name per line", {
     expect_match(output$mod_view$html, 'placeholder="Alex&#10;Robin&#10;\u2026"', fixed = TRUE)
   })
   expect_true("Alex\nRobin\n\u2026" %in% bw_language_dictionary()$de)
+})
+
+test_that("setup sentences are translated for every number of questions", {
+  js <- language_js()
+  rules <- regmatches(js, gregexpr("\\[/\\^[^\n]*?\\$/,", js, perl = TRUE))[[1]]
+  rules <- sub("^\\[/", "", sub("/,$", "", rules))
+  # JavaScript \\uXXXX escapes become PCRE code points, read in UTF mode.
+  rules <- paste0("(*UTF)", gsub("\\\\u([0-9a-fA-F]{4})", "\\\\x{\\1}", rules))
+  expect_gt(length(rules), 40L)
+  translated <- function(text) {
+    any(vapply(rules, function(rule) grepl(rule, text, perl = TRUE), logical(1)))
+  }
+  sentences <- c(
+    format_summary("individual", 15, 3, 3, 300, questions = c(2, 2, 2)),
+    format_summary("individual", 16, 3, 3, 300, questions = c(3, 3, 3)),
+    format_summary("group_device", 16, 3, 2, 90, questions = c(1, 3, 2)),
+    format_summary("hot_seat", NA, 3, 3, 300, turn_secs = 90, roster = 4)
+  )
+  expect_true("Format 16-3-5: 3 Themen, 3 Runden, 300 s pro Runde." %in% sentences)
+  expect_true("Format 16-1–3-1,5: 3 Themen, 2 Runden, 90 s pro Runde." %in% sentences)
+  for (sentence in sentences) expect_true(translated(sentence), info = sentence)
+  x <- list(format = "brainwriting635-settings/1", mode = "individual", rounds = 3,
+            round_secs = 300, turn_secs = 90,
+            topics = list(list(title = "A", questions = list("A1?", " ")),
+                          list(title = "", q1 = "B1?")))
+  errors <- validate_settings(x)
+  expect_true(any(grepl("braucht mindestens eine nicht-leere Frage", errors, fixed = TRUE)))
+  for (message in errors) expect_true(translated(message), info = message)
+  expect_false(translated("private contribution"))
 })
