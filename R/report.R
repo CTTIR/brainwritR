@@ -54,7 +54,7 @@ bw_report_table <- function(entries, topics) {
   labels <- topics$title[match(summary$topic_id, topics$id)]
   labels[is.na(labels)] <- paste("Thema", summary$topic_id[is.na(labels)])
   labels <- paste0(summary$topic_id, " \u00b7 ", labels)
-  labels <- ifelse(nchar(labels) > 30, paste0(substr(labels, 1, 27), "..."), labels)
+  labels <- bw_shorten(labels, 56L)
   values <- list(
     labels, bw_report_number(summary$contributions, digits = 0),
     bw_report_number(summary$mean_words),
@@ -156,7 +156,7 @@ build_report <- function(data, file, anonymize = FALSE) {
   networks <- if (nrow(topics) > 0L && nrow(topics) <= 3L) {
     patchwork::wrap_plots(lapply(seq_len(nrow(topics)), function(i) {
       bw_plot_network(entries[entries$topic_id == topics$id[i], , drop = FALSE], topics) +
-        ggplot2::labs(title = paste("Begriffsnetz:", substr(topics$title[i], 1, 30)))
+        ggplot2::labs(title = paste("Begriffsnetz:", bw_shorten(topics$title[i], 48L)))
     }), ncol = 1)
   } else {
     bw_plot_network(entries, topics)

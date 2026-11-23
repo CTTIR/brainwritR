@@ -38,7 +38,32 @@ bw_placeholder <- function(title) {
     )
 }
 
+#' Shorten text to a character budget and mark the cut with an ellipsis
+#' @param text Character vector.
+#' @param limit Maximum number of characters, including the ellipsis.
+#' @return Character vector; texts within the budget are unchanged.
+#' @keywords internal
+#' @noRd
+bw_shorten <- function(text, limit) {
+  long <- !is.na(text) & nchar(text) > limit
+  text[long] <- paste0(trimws(substr(text[long], 1, limit - 1L), "right"), "\u2026")
+  text
+}
+
+#' Whole-number axis breaks for counts
+#' @param limits Axis limits.
+#' @return Numeric breaks without fractions.
+#' @keywords internal
+#' @noRd
+bw_count_breaks <- function(limits) {
+  breaks <- pretty(c(0, max(1, limits, na.rm = TRUE)))
+  breaks[breaks == round(breaks)]
+}
+
 #' Attach display titles to a figure table
+#'
+#' The label is a factor in topic order, so axes and panels follow the topic
+#' numbers. Titles beyond 60 characters end with an ellipsis.
 #' @keywords internal
 #' @noRd
 bw_topic_labels <- function(x, topics) {
@@ -49,13 +74,14 @@ bw_topic_labels <- function(x, topics) {
     labels <- stringi::stri_wrap(
       paste0(
         x$topic_id[keep], " \u00b7 ",
-        substr(labels[keep], 1, 42)
+        bw_shorten(labels[keep], 60L)
       ),
       width = 22,
       simplify = FALSE
     )
     x$topic[keep] <- vapply(labels, paste, character(1), collapse = "\n")
   }
+  x$topic <- factor(x$topic, levels = unique(x$topic[order(x$topic_id)]))
   x
 }
 
@@ -78,8 +104,12 @@ bw_plot_contributions <- function(entries, topics = NULL) {
   tint <- grDevices::colorRampPalette(c("#bad9dc", bw_palette()[["petrol"]]))
   colours <- tint(nlevels(d$round))
   ggplot2::ggplot(d, ggplot2::aes(x = .data$n, y = .data$topic, fill = .data$round)) +
-    ggplot2::geom_col(position = "dodge", width = 0.75) +
+    # Read top-down like the legend: topic 1 and round 1 come first.
+    ggplot2::geom_col(position = ggplot2::position_dodge2(reverse = TRUE, padding = 0),
+                      width = 0.75) +
     ggplot2::scale_fill_manual(values = colours) +
+    ggplot2::scale_x_continuous(breaks = bw_count_breaks) +
+    ggplot2::scale_y_discrete(limits = rev) +
     ggplot2::labs(title = title, x = "Beitr\u00e4ge", y = NULL, fill = "Runde") +
     bw_theme()
 }
@@ -104,9 +134,20 @@ bw_plot_terms <- function(entries, topics = NULL, top_n = 8L, exclude_prompt = T
   ggplot2::ggplot(d, ggplot2::aes(x = .data$n, y = .data$label)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.7) +
     ggplot2::facet_wrap(~topic, scales = "free_y", ncol = ncol) +
+    ggplot2::scale_x_continuous(breaks = bw_count_breaks) +
     ggplot2::scale_y_discrete(labels = function(x) sub("___[0-9]+$", "", x)) +
     ggplot2::labs(title = title, x = "Nennungen", y = NULL) +
     bw_theme()
+}
+
+#' Pixel height of the term chart for its rows of topic panels
+#' @param n_topics Number of topics.
+#' @param compact Phone layout with one panel per row instead of two.
+#' @keywords internal
+#' @noRd
+bw_terms_height <- function(n_topics, compact = FALSE) {
+  n_topics <- max(1, n_topics)
+  if (compact) 90 + 210 * n_topics else 120 + 170 * ceiling(n_topics / 2)
 }
 
 #' Whether a plot area is narrow enough for the compact phone layout
@@ -208,6 +249,9 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   )
   nodes <- stats::aggregate(n ~ term, counts, sum)
   nodes <- nodes[nodes$term %in% c(edges$from, edges$to), ]
+  # Point diameters as drawn (3 to 10), so that labels keep clear of them.
+  spread <- diff(range(nodes$n))
+  nodes$drawn <- if (spread > 0) 3 + 7 * (nodes$n - min(nodes$n)) / spread else 3
   graph <- igraph::graph_from_data_frame(edges, directed = FALSE, vertices = nodes)
   # Preserve the caller's RNG state while fixing the network layout.
   start <- igraph::layout_in_circle(graph)
@@ -218,7 +262,12 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   ggraph::ggraph(graph, layout = "manual", x = layout[, 1], y = layout[, 2]) +
     ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), colour = "#9dbbc0", alpha = 0.65) +
     ggraph::geom_node_point(ggplot2::aes(size = .data$n), colour = bw_palette()[["petrol"]]) +
-    ggraph::geom_node_text(ggplot2::aes(label = .data$name), size = label_size, vjust = -0.8) +
+    # Labels move apart instead of covering one another; the fixed seed keeps
+    # the figure identical between renders.
+    ggraph::geom_node_text(ggplot2::aes(label = .data$name, point.size = .data$drawn),
+                           size = label_size, repel = TRUE, seed = 635, max.overlaps = Inf,
+                           point.padding = 0.1, box.padding = 0.15, min.segment.length = 0.5,
+                           segment.colour = bw_palette()[["muted"]], segment.size = 0.25) +
     ggraph::scale_edge_width(range = c(0.3, 1.7), guide = "none") +
     ggplot2::scale_size_continuous(range = c(3, 10), guide = "none") +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.18)) +
@@ -271,6 +320,7 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
   ggplot2::ggplot(d, ggplot2::aes(x = .data$buildon, y = .data$topic)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.65) +
     ggplot2::scale_x_continuous(limits = c(0, 1), labels = function(x) paste0(x * 100, "%")) +
+    ggplot2::scale_y_discrete(limits = rev) +
     ggplot2::labs(title = title, x = "Mittlere Begriffsoverlappung", y = NULL) +
     bw_theme()
 }

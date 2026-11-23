@@ -57,3 +57,70 @@ test_that("a sixty-term wordcloud draws quietly at report panel dimensions", {
   on.exit(grDevices::dev.off(), add = TRUE)
   expect_no_warning(print(plot))
 })
+
+test_that("topic labels follow topic order and mark shortened titles", {
+  topics <- data.frame(id = 1:3, title = c(
+    "Kurz", strrep("Sehr langer Titel ", 5), "Zuletzt"
+  ))
+  labelled <- bw_topic_labels(data.frame(topic_id = c(3L, 1L, 2L)), topics)
+  expect_s3_class(labelled$topic, "factor")
+  expect_identical(levels(labelled$topic)[c(1, 3)], c("1 \u00b7 Kurz", "3 \u00b7 Zuletzt"))
+  expect_match(levels(labelled$topic)[2], "^2 \u00b7 Sehr")
+  expect_match(levels(labelled$topic)[2], "\u2026$")
+  expect_identical(bw_shorten(c("kurz", "abcdefghij", NA), 6L), c("kurz", "abcde\u2026", NA))
+  expect_identical(nchar(bw_shorten(strrep("x", 80), 60L)), 60L)
+  fallback <- bw_topic_labels(data.frame(topic_id = 2:1), NULL)
+  expect_identical(levels(fallback$topic), c("Thema 1", "Thema 2"))
+})
+
+test_that("horizontal bars read top-down from topic 1 with whole-number counts", {
+  topics <- data.frame(id = 1:3, title = c("Erstes", "Zweites", "Drittes"),
+                       q1 = "Was?", q2 = "Wie?")
+  e <- data.frame(
+    topic_id = rep(1:3, each = 2), sheet = 1L, round = rep(1:2, 3), question = 1L,
+    text = "Bus Zug Fahrrad Garten", submitted = 1L
+  )
+  for (plot in list(bw_plot_contributions(e, topics), bw_plot_buildon(e, topics))) {
+    limits <- ggplot2::layer_scales(plot)$y$get_limits()
+    expect_identical(limits, c("3 \u00b7 Drittes", "2 \u00b7 Zweites", "1 \u00b7 Erstes"))
+  }
+  bars <- ggplot2::layer_data(bw_plot_contributions(e, topics))
+  first_topic <- bars[bars$y > 2.5, ]
+  # Round 1 is the lightest fill and sits above round 2 within its topic.
+  light <- first_topic$fill == "#BAD9DC"
+  expect_gt(first_topic$y[light], first_topic$y[!light])
+  expect_identical(bw_count_breaks(c(0, 1)), c(0, 1))
+  expect_identical(bw_count_breaks(c(0, 0.4)), c(0, 1))
+  expect_true(all(bw_count_breaks(c(0, 37)) %% 1 == 0))
+  for (plot in list(bw_plot_contributions(e[1, ], topics), bw_plot_terms(e[1, ], topics))) {
+    breaks <- ggplot2::layer_scales(plot)$x$get_breaks()
+    expect_true(all(breaks[!is.na(breaks)] %% 1 == 0))
+  }
+})
+
+test_that("the term chart grows with its rows of topic panels", {
+  expect_identical(bw_terms_height(3), 460)
+  expect_identical(bw_terms_height(4), 460)
+  expect_gt(bw_terms_height(6), bw_terms_height(4))
+  expect_lt(bw_terms_height(2), bw_terms_height(3))
+  expect_identical(bw_terms_height(0), bw_terms_height(1))
+  expect_identical(bw_terms_height(3, compact = TRUE), 720)
+})
+
+test_that("network labels repel one another reproducibly without touching the RNG", {
+  e <- data.frame(
+    topic_id = 1L, sheet = 1L, round = 1:4, question = 1L,
+    text = "Bus Zug Fahrrad Garten Haus"
+  )
+  plot <- bw_plot_network(e, min_cooc = 2)
+  geoms <- vapply(plot$layers, function(layer) class(layer$geom)[1], character(1))
+  expect_true("GeomTextRepel" %in% geoms)
+  file <- withr::local_tempfile(fileext = ".pdf")
+  grDevices::pdf(file)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  set.seed(1)
+  expected <- stats::runif(1)
+  set.seed(1)
+  expect_warning(print(plot), NA)
+  expect_identical(stats::runif(1), expected)
+})

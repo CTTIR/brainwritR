@@ -1282,20 +1282,20 @@ app_server <- function(cfg) {
                       ncol = if (compact("fig_terms")) 1L else 2L),
         input$ui_language %||% "de"
       )
-    }, height = function() {
-      if (compact("fig_terms")) 90 + 210 * max(1, topic_count()) else 460
-    }, res = 96)
+    }, height = function() bw_terms_height(topic_count(), compact("fig_terms")), res = 96)
     output$fig_network <- renderPlot({
       st <- analytics_data()
       threshold <- input$min_cooc %||% 2
       req(is.numeric(threshold), is.finite(threshold), threshold >= 1)
       small <- compact("fig_network")
-      bw_plot_language(bw_plot_network(analytics_selected(), st$topics,
-                         min_cooc = threshold,
-                         exclude_prompt = input$exclude_prompt %||% TRUE,
-                         max_nodes = if (small) 20L else 40L,
-                         label_size = if (small) 2.8 else 3
-                       ), input$ui_language %||% "de")
+      plot <- bw_plot_language(bw_plot_network(analytics_selected(), st$topics,
+                                 min_cooc = threshold,
+                                 exclude_prompt = input$exclude_prompt %||% TRUE,
+                                 max_nodes = if (small) 20L else 40L,
+                                 label_size = if (small) 2.8 else 3
+                               ), input$ui_language %||% "de")
+      # Label placement may draw random numbers; keep participant draws random.
+      withr::with_preserve_seed(print(plot))
     }, height = function() if (compact("fig_network")) 400 else 380, res = 96)
     output$fig_wordcloud <- renderPlot({
       st <- analytics_data()
