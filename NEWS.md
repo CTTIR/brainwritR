@@ -7,6 +7,28 @@
   on the old default can pass `db_path = "data/brainwriting.sqlite"`.
 * Prepare the package for CRAN: quote 'shiny' in the title and description and
   add `cran-comments.md`.
+* Match the reserved address parameters `s`, `mod` and `view` by their exact
+  names. An invitation address with a harmless parameter that merely starts
+  with one of them, such as `?source=moodle` or `?src=qr`, was read as a
+  session code and showed "Session nicht gefunden" to every participant;
+  `?mode=1` was read as the moderator route.
+* Read settings keys by their exact names. An unknown key that starts with a
+  known one, such as `participants_planned`, is no longer taken for that key;
+  it only raises the warning for unknown settings.
+* Translate the format sentence in setup for any number of questions per topic,
+  not only two, and the error for a topic without a non-empty question, in the
+  English and French interface.
+* Write the remaining German interface texts with umlauts ("möglich",
+  "Beiträge", "löschen") instead of ASCII transliterations.
+* Figures list topics and rounds from top to bottom, starting with topic 1 and
+  round 1, and show whole numbers on count axes. Topic titles are shortened
+  after 60 instead of 42 characters and then end with an ellipsis instead of
+  being cut silently. Labels in the term network move apart instead of covering
+  one another, and the term chart grows with the number of topic rows, so five
+  or six topics stay legible.
+* Errors of `topic_for()` and `sheet_for()` name the allowed range, for example
+  "grp must contain finite whole numbers from 1 to 3".
+* Declare the base packages grDevices and tools in Imports.
 
 # brainwritR 0.6.0
 
