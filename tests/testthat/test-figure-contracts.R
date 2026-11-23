@@ -267,6 +267,26 @@ test_that("figure titles start at the plot edge so they fit narrow panels", {
   expect_identical(bw_plot_contributions(e, topics)$theme$plot.title.position, "plot")
 })
 
+test_that("legends and the overlap axis title stay inside narrow phone figures", {
+  skip_if_not("legend.location" %in% names(ggplot2::get_element_tree()))
+  topics <- data.frame(id = 1:3, title = c(
+    "Wie können wir die Zusammenarbeit in Lerngruppen verbessern?",
+    "Prüfungsvorbereitung in Lerngruppen und Selbststudium", "Kurz"
+  ))
+  e <- data.frame(topic_id = rep(1:3, each = 3), sheet = 1L, round = rep(1:3, 3),
+                  question = 1L, text = "Bus Zug Rad", submitted = 1L)
+  grDevices::pdf(NULL)
+  withr::defer(grDevices::dev.off())
+  layout <- ggplot2::ggplotGrob(bw_plot_contributions(e, topics))$layout
+  legend <- layout[layout$name == "guide-box-bottom", c("l", "r")]
+  title <- layout[layout$name == "title", c("l", "r")]
+  # The round legend is centred on the whole figure, not on the panel that
+  # long topic labels push to the right edge.
+  expect_identical(legend, title, ignore_attr = TRUE)
+  overlap <- bw_plot_buildon(e, topics)
+  expect_identical(ggplot2::calc_element("axis.title.x", overlap$theme)$hjust, 1)
+})
+
 test_that("report text blocks keep their title on the edge of their text", {
   expect_identical(bw_report_text("Datum", "Bericht")$theme$plot.title.position, "panel")
 })

@@ -9,7 +9,7 @@ bw_palette <- function() {
 #' @keywords internal
 #' @noRd
 bw_theme <- function() {
-  ggplot2::theme_minimal(base_size = 11, base_family = "sans") +
+  theme <- ggplot2::theme_minimal(base_size = 11, base_family = "sans") +
     ggplot2::theme(
       text = ggplot2::element_text(colour = bw_palette()[["ink"]]),
       plot.title = ggplot2::element_text(face = "bold", size = 12),
@@ -20,6 +20,13 @@ bw_theme <- function() {
       plot.background = ggplot2::element_rect(fill = "white", colour = NA),
       legend.position = "bottom", strip.text = ggplot2::element_text(face = "bold")
     )
+  # Legends are centred on the whole figure, like the titles. Centred on a
+  # panel that long topic labels push to the right, the round legend lost its
+  # last label at the edge of phone panels. ggplot2 3.5.0 added this element.
+  if ("legend.location" %in% names(ggplot2::get_element_tree())) {
+    theme <- theme + ggplot2::theme(legend.location = "plot")
+  }
+  theme
 }
 
 #' A legible empty figure
@@ -402,7 +409,10 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
                                 expand = ggplot2::expansion(mult = c(0.02, 0.1))) +
     ggplot2::scale_y_discrete(limits = rev) +
     ggplot2::labs(title = title, x = "Mittlere Begriffsoverlappung", y = NULL) +
-    bw_theme()
+    bw_theme() +
+    # The long axis title ends at the right edge of the panel instead of being
+    # centred on it, so it is not cut off beside long topic labels on phones.
+    ggplot2::theme(axis.title.x = ggplot2::element_text(hjust = 1))
 }
 
 #' Translate figure labels without changing contribution text or categories
