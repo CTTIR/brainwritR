@@ -386,10 +386,16 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
   d <- bw_topic_labels(d, topics)
   # Value labels tell a measured overlap of zero apart from a missing bar.
   d$value <- paste0(round(100 * d$buildon), " %")
+  # Long bars carry their value inside, in white, so that "100 %" is not cut
+  # off at the right edge of a narrow phone panel.
+  inside <- d$buildon >= 0.75
+  d$hjust <- ifelse(inside, 1.15, -0.15)
+  d$ink <- ifelse(inside, "white", bw_palette()[["ink"]])
   ggplot2::ggplot(d, ggplot2::aes(x = .data$buildon, y = .data$topic)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.65) +
-    ggplot2::geom_text(ggplot2::aes(label = .data$value), hjust = -0.15, size = 3,
-                       colour = bw_palette()[["ink"]]) +
+    ggplot2::geom_text(ggplot2::aes(label = .data$value, hjust = .data$hjust,
+                                    colour = .data$ink), size = 3) +
+    ggplot2::scale_colour_identity() +
     # Three breaks stay apart on phones; the bars carry their exact values.
     ggplot2::scale_x_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
                                 labels = function(x) paste0(round(100 * x), " %"),

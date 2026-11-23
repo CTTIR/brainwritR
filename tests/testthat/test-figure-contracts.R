@@ -205,6 +205,23 @@ test_that("overlap bars carry their value, so zero overlap is not read as missin
   expect_identical(ggplot2::layer_scales(plot)$x$get_labels()[1], "0 %")
 })
 
+test_that("a full overlap bar keeps its value inside the panel on phones", {
+  e <- data.frame(
+    topic_id = rep(1:2, each = 3), sheet = 1L, round = rep(1:3, 2), question = 1L,
+    text = c(rep("Bus Zug Rad", 3), "Haus Garten", "Wald Feld", "Haus Feld"), submitted = 1L
+  )
+  plot <- bw_plot_buildon(e)
+  text <- ggplot2::layer_data(plot, 2L)
+  full <- text$label == "100 %"
+  expect_true(any(full))
+  # The label of a long bar ends inside the bar instead of beyond the axis.
+  expect_true(all(text$hjust[full] > 1))
+  expect_identical(unique(text$colour[full]), "white")
+  expect_true(all(text$hjust[!full] < 0))
+  expect_identical(unique(text$colour[!full]), bw_palette()[["ink"]])
+  expect_true(all(text$x <= 1))
+})
+
 test_that("network groups get their own tile and a dense group is not drawn as a knot", {
   clique <- utils::combn(paste0("w", 1:8), 2)
   edges <- data.frame(from = c(clique[1, ], "a", "c"), to = c(clique[2, ], "b", "d"),
