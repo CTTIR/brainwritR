@@ -41,6 +41,12 @@ sheet_for <- function(idx, n_sheets) {
 check_index <- function(x, name, min = 1, max = Inf) {
   if (!is.numeric(x) || !length(x) || anyNA(x) ||
         any(!is.finite(x) | x != floor(x) | x < min | x > max)) {
-    stop(name, " must contain finite whole numbers in the documented range.", call. = FALSE)
+    allowed <- if (any(is.finite(max))) {
+      sprintf("from %s to %s", min, paste(unique(max[is.finite(max)]), collapse = " or "))
+    } else {
+      sprintf("of %s or more", min)
+    }
+    stop(name, " must contain finite whole numbers ", allowed, ", without missing values.",
+         call. = FALSE)
   }
 }

@@ -101,3 +101,17 @@ test_that("schema and connection pragmas match the persistence contract", {
     "question", "pid", "text", "submitted", "updated_at"
   ))
 })
+
+test_that("index errors name the argument and its allowed range", {
+  expect_error(topic_for(4, 1, 3), "grp must contain finite whole numbers from 1 to 3",
+               fixed = TRUE)
+  expect_error(topic_for(1, 1, 7), "n_groups must contain finite whole numbers from 2 to 6",
+               fixed = TRUE)
+  expect_error(topic_for(1, 0, 3), "round must contain finite whole numbers of 1 or more",
+               fixed = TRUE)
+  expect_error(sheet_for(1.5, 3), "idx must contain finite whole numbers of 1 or more",
+               fixed = TRUE)
+  expect_error(sheet_for(NA, 3), "without missing values", fixed = TRUE)
+  expect_error(app_config("x", "x", "https://example.org", port = 70000),
+               "port must contain finite whole numbers from 1 to 65535", fixed = TRUE)
+})
