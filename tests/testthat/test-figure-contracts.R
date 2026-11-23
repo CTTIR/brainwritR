@@ -131,3 +131,15 @@ test_that("network labels repel one another reproducibly without touching the RN
   expect_warning(print(plot), NA)
   expect_identical(stats::runif(1), expected)
 })
+
+test_that("overlap bars carry their value, so zero overlap is not read as missing", {
+  e <- data.frame(
+    topic_id = rep(1:2, each = 2), sheet = 1L, round = rep(1:2, 2), question = 1L,
+    text = c("Bus Zug", "Bus Rad", "Haus Garten", "Wald Feld"), submitted = 1L
+  )
+  plot <- bw_plot_buildon(e)
+  expect_identical(plot$data$value, c("33 %", "0 %"))
+  labels <- ggplot2::layer_data(plot, 2L)$label
+  expect_identical(labels, c("33 %", "0 %"))
+  expect_identical(ggplot2::layer_scales(plot)$x$get_labels()[1], "0 %")
+})

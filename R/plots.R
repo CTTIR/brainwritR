@@ -328,9 +328,15 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
     return(bw_placeholder(title))
   }
   d <- bw_topic_labels(d, topics)
+  # Value labels tell a measured overlap of zero apart from a missing bar.
+  d$value <- paste0(round(100 * d$buildon), " %")
   ggplot2::ggplot(d, ggplot2::aes(x = .data$buildon, y = .data$topic)) +
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.65) +
-    ggplot2::scale_x_continuous(limits = c(0, 1), labels = function(x) paste0(x * 100, "%")) +
+    ggplot2::geom_text(ggplot2::aes(label = .data$value), hjust = -0.15, size = 3,
+                       colour = bw_palette()[["ink"]]) +
+    ggplot2::scale_x_continuous(limits = c(0, 1),
+                                labels = function(x) paste0(round(100 * x), " %"),
+                                expand = ggplot2::expansion(mult = c(0.02, 0.1))) +
     ggplot2::scale_y_discrete(limits = rev) +
     ggplot2::labs(title = title, x = "Mittlere Begriffsoverlappung", y = NULL) +
     bw_theme()

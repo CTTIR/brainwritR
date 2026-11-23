@@ -27,6 +27,9 @@
   one another, and the term chart grows with the number of topic rows, so five
   or six topics stay legible. A topic number stays on the line of a long first
   word instead of standing alone, as in "5 · Prüfungsvorbereitung".
+* Bars of the overlap chart ("Anknüpfung über Runden") carry their value, so a
+  topic with no overlap shows "0 %" instead of an empty row that looks like
+  missing data.
 * The weighting page of the PDF report writes each contribution on one line
   when more than three topics share the page; wrapped labels ran into one
   another there. Shortened contributions in the weighting chart end with an
