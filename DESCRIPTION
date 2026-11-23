@@ -22,6 +22,6 @@ VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/Needs/website: CTTIR/themakR
 Encoding: UTF-8
-Language: en-US
+Language: en-GB
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.1

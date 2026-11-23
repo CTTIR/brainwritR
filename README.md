@@ -91,7 +91,7 @@ brainwritR::run_app(
 2.  **Invite:** open the lobby. Participants scan the QR code and enter
     a name or pseudonym. Watch the live roster, then start once at least
     K people have joined.
-3.  **Write and rotate:** groups are balanced and randomized.
+3.  **Write and rotate:** groups are balanced and randomised.
     Participants read previous rounds on their sheet and answer the
     configured questions. Drafts save after 1.2 seconds of quiet;
     **Abgeben** explicitly submits all configured answers. Submitted
@@ -112,7 +112,7 @@ brainwritR::run_app(
 
 After the writing phase, the finished moderator view has an **Analyse &
 Plenum** tab. **Gewichtung starten** switches every participant’s device
-to the weighting: all nonempty contributions of each topic appear
+to the weighting: all non-empty contributions of each topic appear
 without names and in a personal random order. Each person has **100 %
 per topic** and distributes it with sliders in steps of 5 %; a slider
 cannot pass the remaining budget, and every change saves at once. Each
@@ -186,7 +186,7 @@ gefunden**; open pages of a deleted session switch to that notice within
 a few seconds.
 
 **Storage.** `DB_PATH` holds the standard session and the session
-catalog. Every further session is a separate SQLite file with the
+catalogue. Every further session is a separate SQLite file with the
 unchanged schema in a `sessions/` folder next to it. Back up the whole
 folder. Existing databases migrate automatically when the app starts,
 including every catalogued session file; their session becomes the
@@ -207,7 +207,7 @@ content.
 
 | Session overview | Plenum weighting |
 |:---|:---|
-| <img src="man/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions" /> | <img src="man/figures/plenum-vote.png" width="320" alt="English weighting sliders distributing 100 percent per topic" /> |
+| <img src="man/figures/sessions.png" width="320" alt="English session overview with open, QR code, restart, archive and delete actions" /> | <img src="man/figures/plenum-vote.png" width="320" alt="English weighting sliders distributing 100 per cent per topic" /> |
 
 <img src="man/figures/plenum-results.png" width="720" alt="English plenum overview with ranked contributions and chart" />
 
@@ -239,7 +239,7 @@ directly at **Weitergeben an: …**, without a QR-code lobby. **Los
 geht’s** starts that person’s timer; **Fertig — weitergeben** saves all
 configured answers and advances. **Überspringen** skips an absent person
 without creating entries. People are assigned virtual groups using the
-same balanced randomization as individual mode; turns follow roster
+same balanced randomisation as individual mode; turns follow roster
 arrival order. Each pass visits everyone once.
 
 Keep a PIN-authenticated `/?mod=1` tab open on the same machine for
@@ -322,10 +322,10 @@ used. Existing session databases migrate automatically at startup.
 
 The compatibility identifier remains exactly
 `brainwriting635-settings/1`. There must be 2–6 topics, each with a
-nonempty title and at least one nonempty question. Rounds are integers
+non-empty title and at least one non-empty question. Rounds are integers
 1–12; parallel-round duration is 30–1800 seconds and turn duration
 20–600 seconds (default 90). Optional group names must be unique and
-match the number of topics. Roster names must be nonempty and unique
+match the number of topics. Roster names must be non-empty and unique
 after trimming. Hot-seat start requires at least one name.
 Individual-mode roster names appear as one-tap join buttons; taken names
 are disabled, and the free-text join field remains available.
@@ -335,7 +335,7 @@ validation errors appear together in the selected interface language;
 unknown keys produce warnings and are ignored. The PIN is never read
 from or exported to settings. Keep it in runtime configuration.
 
-Database initialization migrates older sessions in place. It adds `mode`
+Database initialisation migrates older sessions in place. It adds `mode`
 (default `individual`), `current_turn` (default 0), `settings_yaml`, and
 for the plenum `plenum` (default `none`) and `plenum_turn` (default 0),
 and creates the `votes` table, without changing the other tables or
@@ -349,10 +349,10 @@ operate a newer-mode database.
 ## Analytics and reports
 
 The moderator’s finished screen has **Beiträge**, **Auswertung** and
-**Analyse & Plenum** tabs. Four indicators summarize nonempty saved
+**Analyse & Plenum** tabs. Four indicators summarise non-empty saved
 answers: contribution count, average raw word count, submitted share,
 and distinct filtered terms. Drafts count as contributions;
-**Abgabequote** is submitted nonempty entries divided by all nonempty
+**Abgabequote** is submitted non-empty entries divided by all non-empty
 entries, not a measure of attendance or the proportion of possible
 answers completed.
 
@@ -399,7 +399,7 @@ LaTeX, Pandoc, or R Markdown report toolchain.
 | Format | Use | Contents |
 |:---|:---|:---|
 | CSV | Spreadsheet or statistical import | Existing UTF-8 long contribution table |
-| Markdown | Readable classroom protocol | Questions and nonempty answers by topic/sheet |
+| Markdown | Readable classroom protocol | Questions and non-empty answers by topic/sheet |
 | RDS | Lossless re-analysis in R | Raw tables (plus `votes`), settings, generation time, package version |
 | XLSX | Workbook for review | Beiträge, Teilnehmer, Themen, Kennzahlen (plus Gewichtung); styled headers |
 | PDF | Shareable debrief | Session overview and the shared figures; plenum page when weighted |
@@ -410,7 +410,7 @@ arrival-order codes to all five downloads; groups receive `Gruppe-01`,
 etc. RDS/XLSX persistent author IDs and stored roster settings are
 replaced consistently. The result view updates immediately when the
 checkbox changes; the same codes are used in downloads. This is
-author-field pseudonymization: identifying information typed inside
+author-field pseudonymisation: identifying information typed inside
 answers, topic titles or questions is not detected or redacted. Review
 free text before sharing. The PDF contains aggregate results, not an
 author list.
@@ -564,7 +564,7 @@ session. Participants can read earlier drafts as well as submissions on
 their assigned sheet; this is a collaborative activity, not a
 confidential survey.
 
-This supports data-minimizing, self-hosted use; it is **not a blanket
+This supports data-minimising, self-hosted use; it is **not a blanket
 GDPR/DSGVO compliance guarantee**. The operator defines access, notice,
 retention and backup policy. Reset deletes the session’s logical records
 and Delete removes a session’s database file, but neither is secure
@@ -592,8 +592,8 @@ pkgdown::build_site()
 ```
 
 Tests cover rotation, lifecycle, balanced assignment, late arrivals,
-upserts, clock advancement, authorization, exports, reset, the session
-catalog, routing, overview actions, login throttling, plenum budgets,
+upserts, clock advancement, authorisation, exports, reset, the session
+catalogue, routing, overview actions, login throttling, plenum budgets,
 results and exports. `shinytest2` exercises a phone-sized browser, PIN
 rejection, reload/resume, polling stability, a participant-driven round
 change, separate identities per session, moderator navigation between

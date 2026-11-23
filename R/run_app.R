@@ -5,7 +5,7 @@
 #' Configuration is resolved at invocation, never at package load time.
 #'
 #' The main database holds the standard session behind `base_url` and the
-#' catalog of all further sessions. Each further session is a separate SQLite
+#' catalogue of all further sessions. Each further session is a separate SQLite
 #' file in a `sessions` folder next to the main database, with its own address
 #' (`?s=<code>`) and QR code. Moderators create, open, restart, archive and
 #' delete sessions in the overview at `?mod=1&view=sessions`.

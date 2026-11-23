@@ -52,6 +52,8 @@
 * Errors of `topic_for()` and `sheet_for()` name the allowed range, for example
   "grp must contain finite whole numbers from 1 to 3".
 * Declare the base packages grDevices and tools in Imports.
+* Write the documentation in British English and name the author "R. Heller"
+  in `CITATION.cff`.
 
 # brainwritR 0.6.0
 
@@ -68,7 +70,7 @@
 * Establish the browser's starting theme before testing its toggle, independent
   of the test machine's colour preference.
 
-* Standardize the named v5 package logo across README, documentation pages
+* Standardise the named v5 package logo across README, documentation pages
   and available application headers, with matching light and dark artwork.
 
 
@@ -77,7 +79,7 @@
   count; existing two-question settings and databases remain supported.
 - Show the authored question above each answer in results and plenum views, and
   list the questions in the analysis tab.
-- Apply the pseudonymization checkbox immediately to the result view as well as
+- Apply the pseudonymisation checkbox immediately to the result view as well as
   downloads, without changing stored participant identities.
 - Fix weighted plots and PDF generation on ggplot2 3.5.x, where `facet_wrap()`
   does not accept `space`. Keep download handlers active and send explicit MIME
@@ -149,7 +151,7 @@ Follow-up to an external audit of this release:
 
 * Add a multilingual descriptive analytics view with five shared ggplot figures.
 * Count Unicode German terms with transparent stopword and prompt-vocabulary filters.
-* Summarize adjacent-round lexical overlap without treating it as an idea-quality score.
+* Summarise adjacent-round lexical overlap without treating it as an idea-quality score.
 * Compose deterministic two-page A4 reports directly with Cairo and patchwork.
 * Add lossless RDS and styled four-sheet XLSX exports alongside CSV and Markdown.
 * Apply optional stable author pseudonyms consistently across all five downloads.
@@ -168,5 +170,5 @@ Follow-up to an external audit of this release:
 * Initial classroom brainwriting application with German participant and moderator views.
 * SQLite persistence, frozen sheet counts, balanced groups and late joining.
 * Server-authoritative rounds, reconnect/resume and debounced draft saving.
-* Server-side moderator authorization and transactional lifecycle operations.
+* Server-side moderator authorisation and transactional lifecycle operations.
 * CSV and Markdown export, container deployment and classroom guide.

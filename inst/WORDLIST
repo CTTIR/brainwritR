@@ -45,6 +45,8 @@ Ohne
 PINs
 Pandoc
 Prüfungsvorbereitung
+PyTorch
+R's
 README
 RSQLite's
 RStudio
@@ -53,8 +55,11 @@ Rohrbach's
 Rohrbach’s
 Runde
 Runden
+SQLite
+SQLite's
 ShinyProxy
 TLS
+TN
 Tabellenkalkulation
 Teilnehmer
 Thema
@@ -87,6 +92,7 @@ delphyR
 der
 embeddings
 entrypoint
+etc
 exportieren
 filesystem
 für
@@ -115,6 +121,7 @@ participants’
 pkgdown
 prefilled
 prefills
+pseudonymisation
 pseudonymisieren
 pseudonymization
 px
@@ -125,6 +132,7 @@ renderer
 resends
 schemas
 sliders’
+standalone
 starten
 stopword
 stopwords
@@ -140,6 +148,7 @@ verwenden
 webfonts
 weitergeben
 wordcloud
+writable
 Überspringen
 öffnen
 über
