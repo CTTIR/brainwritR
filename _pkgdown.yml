@@ -5,9 +5,6 @@ template:
       <meta name="theme-color" content="#1565c0">
       <script defer data-domain="cttir.github.io/brainwritr" src="https://analytics.hellebo.de/js/script.file-downloads.outbound-links.js"></script>
   package: themakR
-  # includes:
-  #   in_header: |
-  #     Insert the organisation's approved Plausible Analytics snippet here.
 development:
   mode: auto
 home:
@@ -15,13 +12,16 @@ home:
   description: Resilient classroom brainwriting on participants' own smartphones.
 reference:
   - title: Run the app
+    desc: Start the classroom application and its session overview.
     contents:
       - run_app
   - title: Rotation logic
+    desc: Pure helpers that assign topics to groups and sheets to participants.
     contents:
       - topic_for
       - sheet_for
   - title: Package
+    desc: Package overview.
     contents:
       - brainwritR-package
 articles:
