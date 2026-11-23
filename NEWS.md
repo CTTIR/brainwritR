@@ -58,6 +58,9 @@
 * Declare the base packages grDevices and tools in Imports.
 * Write the documentation in British English and name the author "R. Heller"
   in `CITATION.cff`.
+* The licence badge in the README links to the full licence text on GitHub.
+  It pointed to `LICENSE.md`, which is not part of the package source, so the
+  link was dead in the built package.
 
 # brainwritR 0.6.0
 
