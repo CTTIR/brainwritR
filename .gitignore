@@ -13,3 +13,6 @@ inst/doc
 /docker/data/
 
 /README.html
+
+# Local maintenance notes stay out of the repository
+/MAINTENANCE.md
