@@ -156,7 +156,7 @@ test_that("setup sentences are translated for every number of questions", {
     format_summary("hot_seat", NA, 3, 3, 300, turn_secs = 90, roster = 4)
   )
   expect_true("Format 16-3-5: 3 Themen, 3 Runden, 300 s pro Runde." %in% sentences)
-  expect_true("Format 16-1–3-1,5: 3 Themen, 2 Runden, 90 s pro Runde." %in% sentences)
+  expect_true("Format 16-1\u20133-1,5: 3 Themen, 2 Runden, 90 s pro Runde." %in% sentences)
   for (sentence in sentences) expect_true(translated(sentence), info = sentence)
   x <- list(format = "brainwriting635-settings/1", mode = "individual", rounds = 3,
             round_secs = 300, turn_secs = 90,
