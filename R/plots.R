@@ -162,12 +162,15 @@ bw_compact <- function(width) {
 #' @param d Rows of plenum_results() that are shown.
 #' @param compact Shorter, narrower labels for phones.
 #' @param numbered Prefix the rank, matching the ranking list in the app.
+#' @param wrap Break labels into lines. Single-line labels suit a wide page
+#'   with many short panels, where wrapped labels would run into one another.
 #' @keywords internal
 #' @noRd
-bw_weight_labels <- function(d, compact = FALSE, numbered = FALSE) {
+bw_weight_labels <- function(d, compact = FALSE, numbered = FALSE, wrap = TRUE) {
   limit <- if (compact) 44L else 70L
   text <- ifelse(nchar(d$text) > limit, paste0(substr(d$text, 1, limit - 3L), "..."), d$text)
   if (numbered) text <- paste0(d$rank, ". ", text)
+  if (!wrap) return(gsub("\\s+", " ", text))
   lines <- stringi::stri_wrap(text, if (compact) 24L else 36L, simplify = FALSE)
   vapply(lines, paste, "", collapse = "\n")
 }
@@ -189,10 +192,11 @@ bw_weights_height <- function(results, top_n = 8L, compact = FALSE) {
 #' @param compact Phone layout with short labels.
 #' @param numbered Rank-numbered labels without a title, as in the app where the
 #'   ranking list below carries the full text.
+#' @param wrap Break axis labels into lines, see bw_weight_labels().
 #' @keywords internal
 #' @noRd
 bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
-                            numbered = FALSE) {
+                            numbered = FALSE, wrap = TRUE) {
   title <- "Gewichtung im Plenum"
   d <- results[!is.na(results$share) & results$points > 0, , drop = FALSE]
   if (!nrow(d)) {
@@ -202,7 +206,7 @@ bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
     utils::head(x[order(x$rank, x$entry_id), ], top_n)
   }))
   d <- bw_topic_labels(d, topics)
-  keys <- paste(bw_weight_labels(d, compact, numbered), d$entry_id, sep = "___")
+  keys <- paste(bw_weight_labels(d, compact, numbered, wrap), d$entry_id, sep = "___")
   d$label <- factor(keys, levels = rev(unique(keys)))
   d$value <- paste0(round(100 * d$share), " %")
   # Stretch the axis to the largest share (with room for its label), so small

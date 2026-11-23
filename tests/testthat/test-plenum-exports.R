@@ -140,3 +140,33 @@ test_that("topics whose bars are all zero do not add chart height", {
   rows$points[rows$topic_id == 2] <- 0
   expect_identical(bw_weights_height(rows), bw_weights_height(rows[rows$topic_id == 1, ]))
 })
+
+test_that("report labels stay on one line when many topics share the weighting page", {
+  long <- strrep("Eine sehr lange Idee ", 5)
+  results <- data.frame(
+    topic_id = 1L, title = "Thema", entry_id = 1:2, sheet = 1L, round = 1L, question = 1L,
+    text = c(long, "Kurz\nmit Umbruch"), points = c(60, 40), share = c(0.6, 0.4),
+    mean = c(60, 40), supporters = c(1, 1), rank = c(1, 2)
+  )
+  wrapped <- bw_weight_labels(results, compact = TRUE)
+  single <- bw_weight_labels(results, compact = TRUE, wrap = FALSE)
+  expect_true(any(grepl("\n", wrapped, fixed = TRUE)))
+  expect_false(any(grepl("\n", single, fixed = TRUE)))
+  expect_true(all(nchar(single) <= 44L))
+  expect_identical(single[2], "Kurz mit Umbruch")
+  plot <- bw_plot_weights(results, NULL, compact = TRUE, wrap = FALSE)
+  expect_false(any(grepl("\n", levels(plot$data$label), fixed = TRUE)))
+  skip_if_not(capabilities("cairo"))
+  fixture <- function(k) {
+    topics <- data.frame(id = seq_len(k), title = paste("Thema", seq_len(k)),
+                         q1 = "Was?", q2 = "Wie?")
+    entries <- data.frame(id = seq_len(k), topic_id = seq_len(k), sheet = 1L, round = 1L,
+                          question = 1L, pid = "a", text = long, submitted = 1L)
+    votes <- data.frame(pid = "a", entry_id = seq_len(k), topic_id = seq_len(k), points = 100L)
+    list(topics = topics, entries = entries, votes = votes)
+  }
+  many <- bw_report_weights(fixture(4))[[2]]
+  few <- bw_report_weights(fixture(3))[[2]]
+  expect_false(any(grepl("\n", levels(many$data$label), fixed = TRUE)))
+  expect_true(any(grepl("\n", levels(few$data$label), fixed = TRUE)))
+})

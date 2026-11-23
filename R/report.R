@@ -197,11 +197,13 @@ build_report <- function(data, file, anonymize = FALSE) {
 bw_report_weights <- function(data) {
   votes <- data$votes[data$votes$points > 0, , drop = FALSE]
   results <- plenum_results(data$entries, data$topics, votes)
-  # With more than three topics, fewer and shorter labels keep one page legible.
+  # With more than three topics, fewer and shorter labels keep one page legible;
+  # on one line each, because the panels are too short for wrapped labels.
   many <- nrow(data$topics) > 3L
   patchwork::wrap_plots(
     bw_report_text(bw_report_weights_lines(data), "Gewichtung im Plenum", size = 3),
-    bw_plot_weights(results, data$topics, top_n = if (many) 4L else 6L, compact = many) +
+    bw_plot_weights(results, data$topics, top_n = if (many) 4L else 6L, compact = many,
+                    wrap = !many) +
       ggplot2::labs(title = NULL),
     ncol = 1, heights = c(1, 8)
   )
