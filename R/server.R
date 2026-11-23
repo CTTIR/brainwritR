@@ -1292,7 +1292,8 @@ app_server <- function(cfg) {
                                  min_cooc = threshold,
                                  exclude_prompt = input$exclude_prompt %||% TRUE,
                                  max_nodes = if (small) 20L else 40L,
-                                 label_size = if (small) 2.8 else 3
+                                 label_size = if (small) 2.8 else 3,
+                                 aspect = if (small) 1 else 2
                                ), input$ui_language %||% "de")
       # Label placement may draw random numbers; keep participant draws random.
       withr::with_preserve_seed(print(plot))

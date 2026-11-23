@@ -155,7 +155,9 @@ build_report <- function(data, file, anonymize = FALSE) {
   )
   networks <- if (nrow(topics) > 0L && nrow(topics) <= 3L) {
     patchwork::wrap_plots(lapply(seq_len(nrow(topics)), function(i) {
-      bw_plot_network(entries[entries$topic_id == topics$id[i], , drop = FALSE], topics) +
+      # Each of these panels is about five times as wide as it is tall.
+      bw_plot_network(entries[entries$topic_id == topics$id[i], , drop = FALSE], topics,
+                      aspect = 5) +
         ggplot2::labs(title = paste("Begriffsnetz:", bw_shorten(topics$title[i], 48L)))
     }), ncol = 1)
   } else {

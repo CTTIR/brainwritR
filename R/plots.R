@@ -252,13 +252,15 @@ bw_plot_weights <- function(results, topics = NULL, top_n = 8L, compact = FALSE,
 #' and placed on a grid with a gap, largest first, so that no group crowds
 #' another.
 #' @param graph An igraph graph.
+#' @param aspect Width-to-height ratio of the panel; wide panels get more
+#'   tiles per row.
 #' @return A two-column matrix of node positions.
 #' @keywords internal
 #' @noRd
-bw_network_layout <- function(graph) {
+bw_network_layout <- function(graph, aspect = 2) {
   parts <- igraph::components(graph)
   ids <- order(-parts$csize, seq_along(parts$csize))
-  ncol <- ceiling(sqrt(length(ids) * 2))
+  ncol <- max(1, min(length(ids), ceiling(sqrt(length(ids) * aspect))))
   radii <- 0.3 * sqrt(parts$csize)
   step <- 2 * max(radii) + 0.5
   layout <- matrix(0, igraph::vcount(graph), 2)
@@ -277,10 +279,12 @@ bw_network_layout <- function(graph) {
 }
 
 #' Co-occurrence network with deterministic initial positions
+#' @param aspect Width-to-height ratio of the panel, see bw_network_layout().
 #' @keywords internal
 #' @noRd
 bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
-                            max_nodes = 40L, exclude_prompt = TRUE, label_size = 3) {
+                            max_nodes = 40L, exclude_prompt = TRUE, label_size = 3,
+                            aspect = 2) {
   title <- "Begriffsnetz"
   edges <- bw_cooccurrence(entries, min_cooc, max_nodes, topics, exclude_prompt)
   if (!nrow(edges)) {
@@ -300,7 +304,7 @@ bw_plot_network <- function(entries, topics = NULL, min_cooc = 2L,
   nodes$drawn <- 3 + 7 * sqrt(share)
   graph <- igraph::graph_from_data_frame(edges, directed = FALSE, vertices = nodes)
   # Preserve the caller's RNG state while fixing the network layout.
-  layout <- withr::with_seed(635, bw_network_layout(graph))
+  layout <- withr::with_seed(635, bw_network_layout(graph, aspect))
   ggraph::ggraph(graph, layout = "manual", x = layout[, 1], y = layout[, 2]) +
     ggraph::geom_edge_link(ggplot2::aes(width = .data$weight), colour = "#9dbbc0", alpha = 0.65) +
     ggraph::geom_node_point(ggplot2::aes(size = .data$n), colour = bw_palette()[["petrol"]]) +

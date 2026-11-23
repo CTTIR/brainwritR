@@ -167,3 +167,17 @@ test_that("network groups get their own tile and a dense group is not drawn as a
   expect_gt(min(stats::dist(dense)) / diff(range(dense[, 1])), 0.1)
   expect_identical(withr::with_seed(635, bw_network_layout(graph)), layout)
 })
+
+test_that("wide network panels place more groups side by side", {
+  edges <- data.frame(from = c("a", "c", "e", "g"), to = c("b", "d", "f", "h"), weight = 2)
+  graph <- igraph::graph_from_data_frame(edges, directed = FALSE)
+  centres <- function(aspect) {
+    layout <- withr::with_seed(635, bw_network_layout(graph, aspect))
+    length(unique(round(stats::ave(layout[, 2], igraph::components(graph)$membership), 6)))
+  }
+  expect_identical(centres(1), 2L)
+  expect_identical(centres(5), 1L)
+  plot <- bw_plot_network(data.frame(topic_id = 1L, sheet = 1L, round = 1:2, question = 1L,
+                                     text = "Bus Zug"), aspect = 5)
+  expect_s3_class(plot, "ggplot")
+})
