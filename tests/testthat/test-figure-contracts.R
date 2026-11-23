@@ -187,3 +187,10 @@ test_that("wide network panels place more groups side by side", {
                                      text = "Bus Zug"), aspect = 5)
   expect_s3_class(plot, "ggplot")
 })
+
+test_that("figure titles start at the plot edge so they fit narrow panels", {
+  expect_identical(bw_theme()$plot.title.position, "plot")
+  topics <- data.frame(id = 1:2, title = c("Mehr Beteiligung in Gruppenarbeit", "Kurz"))
+  e <- data.frame(topic_id = 1:2, sheet = 1L, round = 1L, question = 1L, text = "Bus Zug")
+  expect_identical(bw_plot_contributions(e, topics)$theme$plot.title.position, "plot")
+})

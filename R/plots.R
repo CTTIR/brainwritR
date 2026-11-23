@@ -13,6 +13,9 @@ bw_theme <- function() {
     ggplot2::theme(
       text = ggplot2::element_text(colour = bw_palette()[["ink"]]),
       plot.title = ggplot2::element_text(face = "bold", size = 12),
+      # Titles start at the plot edge, not after the axis labels, so they fit
+      # narrow phone panels.
+      plot.title.position = "plot",
       panel.grid.minor = ggplot2::element_blank(),
       plot.background = ggplot2::element_rect(fill = "white", colour = NA),
       legend.position = "bottom", strip.text = ggplot2::element_text(face = "bold")
@@ -380,7 +383,8 @@ bw_plot_buildon <- function(entries, topics = NULL, exclude_prompt = TRUE) {
     ggplot2::geom_col(fill = bw_palette()[["petrol"]], width = 0.65) +
     ggplot2::geom_text(ggplot2::aes(label = .data$value), hjust = -0.15, size = 3,
                        colour = bw_palette()[["ink"]]) +
-    ggplot2::scale_x_continuous(limits = c(0, 1),
+    # Three breaks stay apart on phones; the bars carry their exact values.
+    ggplot2::scale_x_continuous(limits = c(0, 1), breaks = c(0, 0.5, 1),
                                 labels = function(x) paste0(round(100 * x), " %"),
                                 expand = ggplot2::expansion(mult = c(0.02, 0.1))) +
     ggplot2::scale_y_discrete(limits = rev) +

@@ -35,7 +35,10 @@
   groups side by side, the phone view stacks them.
 * Bars of the overlap chart ("Anknüpfung über Runden") carry their value, so a
   topic with no overlap shows "0 %" instead of an empty row that looks like
-  missing data.
+  missing data. Its axis shows 0, 50 and 100 %, which stay apart on phones.
+* Figure titles start at the left edge of the figure instead of after the axis
+  labels, so titles such as "Beiträge je Thema und Runde" are no longer cut
+  off in narrow phone panels.
 * The weighting page of the PDF report writes each contribution on one line
   when more than three topics share the page; wrapped labels ran into one
   another there. Shortened contributions in the weighting chart end with an
