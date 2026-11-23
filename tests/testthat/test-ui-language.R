@@ -90,6 +90,9 @@ test_that("newly mounted moderator forms inherit the selected interface language
   app$wait_for_js("document.documentElement.lang === 'en'")
   modes_browser_moderator(app)
   app$wait_for_js("document.body.innerText.includes('Prepare session')")
+  # The setup form can be mounted again while the server settles; read the
+  # button only once Shiny is idle and the newest copy has been translated.
+  app$wait_for_idle()
   app$wait_for_js(
     "document.querySelector('#setup_save').textContent.includes('Save and open lobby')"
   )
