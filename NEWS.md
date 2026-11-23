@@ -39,7 +39,7 @@
 * The weighting page of the PDF report writes each contribution on one line
   when more than three topics share the page; wrapped labels ran into one
   another there. Shortened contributions in the weighting chart end with an
-  ellipsis (…), like shortened topic titles.
+  ellipsis (…), like shortened topic titles, and are cut between words.
 * Errors of `topic_for()` and `sheet_for()` name the allowed range, for example
   "grp must contain finite whole numbers from 1 to 3".
 * Declare the base packages grDevices and tools in Imports.

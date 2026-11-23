@@ -39,6 +39,9 @@ bw_placeholder <- function(title) {
 }
 
 #' Shorten text to a character budget and mark the cut with an ellipsis
+#'
+#' The cut falls after the last whole word when that keeps at least half of
+#' the budget, so no word fragment such as "e\u2026" remains.
 #' @param text Character vector.
 #' @param limit Maximum number of characters, including the ellipsis.
 #' @return Character vector; texts within the budget are unchanged.
@@ -46,7 +49,14 @@ bw_placeholder <- function(title) {
 #' @noRd
 bw_shorten <- function(text, limit) {
   long <- !is.na(text) & nchar(text) > limit
-  text[long] <- paste0(trimws(substr(text[long], 1, limit - 1L), "right"), "\u2026")
+  cut <- substr(text[long], 1, limit - 1L)
+  # Keep whole words: drop a partial last word when the next character
+  # continues it, provided at least half of the budget remains.
+  partial <- !grepl("^\\s", substr(text[long], limit, limit))
+  words <- sub("\\s+\\S*$", "", cut)
+  whole <- partial & grepl("\\s", cut) & nchar(words) >= limit / 2
+  cut[whole] <- words[whole]
+  text[long] <- paste0(trimws(cut, "right"), "\u2026")
   text
 }
 

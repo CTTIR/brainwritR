@@ -69,6 +69,12 @@ test_that("topic labels follow topic order and mark shortened titles", {
   expect_match(levels(labelled$topic)[2], "\u2026$")
   expect_identical(bw_shorten(c("kurz", "abcdefghij", NA), 6L), c("kurz", "abcde\u2026", NA))
   expect_identical(nchar(bw_shorten(strrep("x", 80), 60L)), 60L)
+  # Cuts fall between words unless that would drop more than half the budget.
+  expect_identical(bw_shorten("Rollen klar verteilen und au\u00dferdem eine Idee", 32L),
+                   "Rollen klar verteilen und\u2026")
+  expect_identical(bw_shorten("Rollen verteilen", 12L), "Rollen\u2026")
+  expect_identical(bw_shorten("Rollen klar verteilen", 12L), "Rollen klar\u2026")
+  expect_identical(bw_shorten("Ab Zusammenarbeit", 12L), "Ab Zusammen\u2026")
   # The topic number stays on the line of a long first word.
   long_word <- bw_topic_labels(
     data.frame(topic_id = 5L),
