@@ -19,7 +19,10 @@ bw_report_text <- function(lines, title = NULL, size = 3.5) {
     bw_theme() +
     ggplot2::theme(
       axis.title = ggplot2::element_blank(), axis.text = ggplot2::element_blank(),
-      panel.grid = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank()
+      panel.grid = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
+      # Patchwork aligns this panel with the figures below; keep the title on
+      # the same left edge as the text.
+      plot.title.position = "panel"
     )
 }
 

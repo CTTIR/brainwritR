@@ -194,3 +194,7 @@ test_that("figure titles start at the plot edge so they fit narrow panels", {
   e <- data.frame(topic_id = 1:2, sheet = 1L, round = 1L, question = 1L, text = "Bus Zug")
   expect_identical(bw_plot_contributions(e, topics)$theme$plot.title.position, "plot")
 })
+
+test_that("report text blocks keep their title on the edge of their text", {
+  expect_identical(bw_report_text("Datum", "Bericht")$theme$plot.title.position, "panel")
+})
