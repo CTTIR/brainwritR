@@ -57,7 +57,7 @@ jobs:
       # Pages is configured to publish from GitHub Actions, not from a branch.
       - name: Upload site for GitHub Pages
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: docs
 
